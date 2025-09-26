@@ -1,15 +1,13 @@
-import React from "react";
-import { FlatList, ScrollView } from "react-native-gesture-handler";
-import NotFound from "@/components/search/NotFound";
-import DefaultScreen from "@/components/search/DefaultScreen";
-import useMusicStore from "@/store/useMusicStore";
-import { View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import TopResultCard from "@/components/search/TopResultCard";
-import SongResultCard from "@/components/search/SongResultCard";
 import AlbumResultCard from "@/components/search/AlbumResultCard";
-import PlaylistResultCard from "@/components/search/PlaylistResultCard";
 import ArtistResultCard from "@/components/search/ArtistResultCard";
+import DefaultScreen from "@/components/search/DefaultScreen";
+import PlaylistResultCard from "@/components/search/PlaylistResultCard";
+import SongResultCard from "@/components/search/SongResultCard";
+import TopResultCard from "@/components/search/TopResultCard";
+import useMusicStore from "@/store/useMusicStore";
+import React from "react";
+import { FlatList, ScrollView, View } from "react-native";
 
 const index = () => {
   const { searchedSongs, searchLoading } = useMusicStore();

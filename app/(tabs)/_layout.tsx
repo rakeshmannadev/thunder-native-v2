@@ -1,18 +1,13 @@
-import { Tabs } from "expo-router";
-import React from "react";
 import { HapticTab } from "@/components/HapticTab";
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import {
-  AlbumIcon,
-  HomeIcon,
-  LogoIcon,
-  PersonIcon,
-  RoomsIcon,
-} from "@/constants/Icons";
 import HeaderRight from "@/components/HeaderRight";
 import FloatingPlayer from "@/components/songs/FloatingPlayer";
+import TabBarBackground from "@/components/ui/TabBarBackground";
+import { Colors } from "@/constants/Colors";
+import { LogoIcon } from "@/constants/Icons";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { FontAwesome } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import React from "react";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -42,7 +37,9 @@ export default function TabLayout() {
           name="index"
           options={{
             title: "Home",
-            tabBarIcon: ({ color }) => <HomeIcon color={color} />,
+            tabBarIcon: ({ color }) => (
+              <FontAwesome size={28} name="home" color={color} />
+            ),
             headerTitle: "Thunder",
             headerShown: true,
             headerTransparent: true,
@@ -53,7 +50,9 @@ export default function TabLayout() {
           name="library/index"
           options={{
             title: "Library",
-            tabBarIcon: ({ color }) => <AlbumIcon color={color} />,
+            tabBarIcon: ({ color }) => (
+              <FontAwesome size={28} name="bookmark" color={color} />
+            ),
             headerTitle: "Library",
             headerShown: true,
             headerTransparent: true,
@@ -64,7 +63,9 @@ export default function TabLayout() {
           name="rooms/index"
           options={{
             title: "Rooms",
-            tabBarIcon: ({ color }) => <RoomsIcon color={color} />,
+            tabBarIcon: ({ color }) => (
+              <FontAwesome size={28} name="coffee" color={color} />
+            ),
             headerTitle: "Rooms",
             headerShown: true,
             headerTransparent: true,
@@ -75,7 +76,9 @@ export default function TabLayout() {
           name="profile/index"
           options={{
             title: "Profile",
-            tabBarIcon: ({ color }) => <PersonIcon color={color} />,
+            tabBarIcon: ({ color }) => (
+              <FontAwesome size={28} name="user" color={color} />
+            ),
             headerTitle: "Profile",
             headerShown: true,
             headerTransparent: true,
@@ -88,7 +91,7 @@ export default function TabLayout() {
           position: "absolute",
           left: 8,
           right: 8,
-          bottom: 49,
+          bottom: 80,
         }}
       />
     </>

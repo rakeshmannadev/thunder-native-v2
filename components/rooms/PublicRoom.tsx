@@ -1,14 +1,13 @@
-import React from "react";
-import { ScrollView } from "react-native-gesture-handler";
-import { Card } from "@/components/ui/card";
+import { ThemedText } from "@/components/ThemedText";
 import {
   Avatar,
   AvatarFallbackText,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { ThemedText } from "@/components/ThemedText";
-import { VStack } from "@/components/ui/vstack";
 import { Button, ButtonText } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { VStack } from "@/components/ui/vstack";
+import React from "react";
 
 const PublicRoom = () => {
   return (

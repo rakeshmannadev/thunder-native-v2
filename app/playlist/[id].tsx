@@ -1,34 +1,34 @@
-import {
-  View,
-  Platform,
-  StyleSheet,
-  Image,
-  Pressable,
-  FlatList,
-} from "react-native";
-import React, { useEffect, useRef } from "react";
-import { useLocalSearchParams } from "expo-router";
-import { usePlayerBackground } from "@/hooks/usePlayerBackground";
-import { ImageColorsResult } from "react-native-image-colors";
-import { colors, fontSize, screenPadding } from "@/constants/tokens";
-import { LinearGradient } from "expo-linear-gradient";
-import { defaultStyles } from "@/styles";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
+import { colors, fontSize, screenPadding } from "@/constants/tokens";
+import { usePlayerBackground } from "@/hooks/usePlayerBackground";
+import { defaultStyles } from "@/styles";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
 import {
   EllipsisVertical,
   HeartIcon,
   PlayCircleIcon,
   Shuffle,
 } from "lucide-react-native";
+import React, { useEffect, useRef } from "react";
+import {
+  FlatList,
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { ImageColorsResult } from "react-native-image-colors";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ScrollView } from "react-native-gesture-handler";
 import AlbumItem from "@/components/album/AlbumItem";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
-import { Song } from "@/types";
 import { songToTrack } from "@/helpers/SongToTrack";
-import useUserStore from "@/store/useUserStore";
 import { useQueueStore } from "@/store/useQueue";
+import useUserStore from "@/store/useUserStore";
+import { Song } from "@/types";
 
 const PlaylistScreen = () => {
   const { id }: { id: string } = useLocalSearchParams();

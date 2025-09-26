@@ -7,8 +7,7 @@ import useUserStore from "@/store/useUserStore";
 import { Playlist, Song } from "@/types";
 import { Loader, View } from "lucide-react-native";
 import { useEffect } from "react";
-
-import { FlatList, ScrollView } from "react-native-gesture-handler";
+import { FlatList, ScrollView } from "react-native";
 
 const index = () => {
   const {

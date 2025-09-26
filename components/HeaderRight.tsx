@@ -1,8 +1,8 @@
-import React from "react";
-import { BellIcon, SearchIcon } from "lucide-react-native";
-import { HStack } from "./ui/hstack";
 import { useRouter } from "expo-router";
-import { Pressable } from "react-native-gesture-handler";
+import { BellIcon, SearchIcon } from "lucide-react-native";
+import React from "react";
+import { Pressable } from "react-native";
+import { HStack } from "./ui/hstack";
 
 const HeaderRight = () => {
   const router = useRouter();

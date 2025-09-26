@@ -1,9 +1,8 @@
-import { View, Image } from "react-native";
-import React from "react";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Redirect, Stack } from "expo-router";
-import { ScrollView } from "react-native-gesture-handler";
 import useUserStore from "@/store/useUserStore";
+import { Redirect, Stack } from "expo-router";
+import React from "react";
+import { Image, ScrollView, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const _layout = () => {
   const { currentUser } = useUserStore();

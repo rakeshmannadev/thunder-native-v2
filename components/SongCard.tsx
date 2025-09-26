@@ -1,14 +1,13 @@
-import { Image, View } from "react-native";
 import React from "react";
-import { Card } from "./ui/card";
-import { Heading } from "./ui/heading";
-import { VStack } from "./ui/vstack";
-import { ThemedText } from "./ThemedText";
+import { Image, View } from "react-native";
 import { Song } from "../types/index";
+import { ThemedText } from "./ThemedText";
+import { Card } from "./ui/card";
+import { VStack } from "./ui/vstack";
 
+import usePlayerStore from "@/store/usePlayerStore";
 import PlayButton from "./songs/PlayButton";
 import { Skeleton, SkeletonText } from "./ui/skeleton";
-import usePlayerStore from "@/store/usePlayerStore";
 
 const SongCard = ({ song, isLoading }: { song: Song; isLoading: boolean }) => {
   const { isPlaying } = usePlayerStore();
@@ -31,21 +30,18 @@ const SongCard = ({ song, isLoading }: { song: Song; isLoading: boolean }) => {
       </View>
 
       <VStack className=" w-36 ">
-        <View className="w-full h-7 truncate">
+        <View className="w-full h-6 truncate">
           {isLoading ? (
             <SkeletonText className="w-20 h-4" />
           ) : (
-            <Heading size="sm">{song.title}</Heading>
+            <ThemedText type="defaultSemiBold">{song.title}</ThemedText>
           )}
         </View>
         <View className="w-full h-6 truncate">
           {isLoading ? (
             <SkeletonText className="w-16 h-4" />
           ) : (
-            <ThemedText
-              type="subtitle"
-              className="text-sm font-normal mb-2 text-typography-700"
-            >
+            <ThemedText type="default">
               {song.artists.primary.map((artist) => artist.name).join(", ")}
             </ThemedText>
           )}

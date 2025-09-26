@@ -1,9 +1,9 @@
-import React from "react";
+import { ThemedText } from "@/components/ThemedText";
 import { VStack } from "@/components/ui/vstack";
-import { ScrollView } from "react-native-gesture-handler";
+import React from "react";
+import { ScrollView } from "react-native";
 import JoinedRoom from "../../../components/rooms/JoinedRoom";
 import PublicRoom from "../../../components/rooms/PublicRoom";
-import { ThemedText } from "@/components/ThemedText";
 
 const index = () => {
   return (

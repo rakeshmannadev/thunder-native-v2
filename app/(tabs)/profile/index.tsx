@@ -1,18 +1,18 @@
-import { View } from "react-native";
-import React from "react";
-import { Pressable, ScrollView } from "react-native-gesture-handler";
-import { VStack } from "@/components/ui/vstack";
+import { ThemedText } from "@/components/ThemedText";
 import ProfileCard from "@/components/profile/ProfileCard";
+import ThemeSheet from "@/components/profile/ThemeSheet";
+import { VStack } from "@/components/ui/vstack";
+import useAuthStore from "@/store/useAuthStore";
+import useUserStore from "@/store/useUserStore";
 import {
   ChevronRight,
   GlobeIcon,
   LogOutIcon,
   PaletteIcon,
 } from "lucide-react-native";
-import { ThemedText } from "@/components/ThemedText";
-import ThemeSheet from "@/components/profile/ThemeSheet";
-import useUserStore from "@/store/useUserStore";
-import useAuthStore from "@/store/useAuthStore";
+import React from "react";
+import { Pressable, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const index = () => {
   const [showActionsheet, setShowActionsheet] = React.useState(false);
@@ -20,31 +20,57 @@ const index = () => {
   const { currentUser } = useUserStore();
   const { logout } = useAuthStore();
   return (
-    <ScrollView className="flex-1 dark:bg-dark-background p-2">
+    <SafeAreaView className="flex-1 dark:bg-dark-background p-2">
       <VStack space="2xl" className="mt-16">
         <ProfileCard />
 
-        <VStack space="md">
+        <VStack space="4xl">
           {/* Posts */}
-          <Pressable className="flex flex-1 flex-row justify-between items-center p-3 hover:bg-hover-background rounded-2xl ">
-            <View className="flex flex-row items-center gap-5">
-              <GlobeIcon />
-              <ThemedText type="subtitle">Posts</ThemedText>
+          <Pressable
+            style={({ pressed }) => [
+              {
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 12,
+                borderRadius: 16,
+                backgroundColor: pressed ? "#2A2A2A" : "transparent", // pressed state
+              },
+            ]}
+          >
+            <View className="flex flex-row items-center justify-between ">
+              <View className="flex flex-row gap-4 items-center">
+                <GlobeIcon />
+                <ThemedText type="subtitle">Posts</ThemedText>
+              </View>
+
+              <ChevronRight />
             </View>
-            <ChevronRight />
           </Pressable>
 
           {/* Change theme */}
 
           <Pressable
             onPress={() => setShowActionsheet(true)}
-            className="flex flex-1 flex-row justify-between items-center p-3 hover:bg-hover-background rounded-2xl "
+            style={({ pressed }) => [
+              {
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 12,
+                borderRadius: 16,
+                backgroundColor: pressed ? "#2A2A2A" : "transparent", // pressed state
+              },
+            ]}
           >
-            <View className="flex flex-row items-center gap-5">
-              <PaletteIcon />
-              <ThemedText type="subtitle">Theme mode</ThemedText>
+            <View className="flex flex-row items-center justify-between ">
+              <View className="flex flex-row gap-4 items-center">
+                <PaletteIcon />
+                <ThemedText type="subtitle">Theme mode</ThemedText>
+              </View>
+              <ChevronRight />
             </View>
-            <ChevronRight />
           </Pressable>
 
           {/* Logout */}
@@ -66,9 +92,12 @@ const index = () => {
             </Pressable>
           )}
         </VStack>
+        <ThemeSheet
+          showActionsheet={showActionsheet}
+          handleClose={handleClose}
+        />
       </VStack>
-      <ThemeSheet showActionsheet={showActionsheet} handleClose={handleClose} />
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 

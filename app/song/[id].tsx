@@ -1,26 +1,25 @@
-import { View, StyleSheet, Image, Pressable } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
-import React, { useEffect } from "react";
-import { useLocalSearchParams } from "expo-router";
-import { usePlayerBackground } from "@/hooks/usePlayerBackground";
-import { fontSize, screenPadding } from "@/constants/tokens";
-import { LinearGradient } from "expo-linear-gradient";
-import { defaultStyles } from "@/styles";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AlbumItem from "@/components/album/AlbumItem";
 import { ThemedText } from "@/components/ThemedText";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
+import { fontSize, screenPadding } from "@/constants/tokens";
+import { getGradientColors } from "@/helpers/getGradientColors";
+import { songToTrack } from "@/helpers/SongToTrack";
+import { usePlayerBackground } from "@/hooks/usePlayerBackground";
+import useMusicStore from "@/store/useMusicStore";
+import useUserStore from "@/store/useUserStore";
+import { defaultStyles } from "@/styles";
+import { Song } from "@/types";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
 import {
   EllipsisVertical,
   HeartIcon,
   PlayCircleIcon,
 } from "lucide-react-native";
-import { ScrollView } from "react-native-gesture-handler";
-import { getGradientColors } from "@/helpers/getGradientColors";
-import useMusicStore from "@/store/useMusicStore";
-import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
-import AlbumItem from "@/components/album/AlbumItem";
-import { songToTrack } from "@/helpers/SongToTrack";
-import { Song } from "@/types";
-import useUserStore from "@/store/useUserStore";
+import React, { useEffect } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SongScreen = () => {
   const { fetchSingle, isLoading, single } = useMusicStore();

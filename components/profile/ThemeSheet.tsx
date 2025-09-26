@@ -16,6 +16,7 @@ const ThemeSheet = ({
   showActionsheet: boolean;
   handleClose: () => void;
 }) => {
+  console.log("showactionSheet: ", showActionsheet);
   return (
     <Actionsheet isOpen={showActionsheet} onClose={handleClose}>
       <ActionsheetBackdrop />
