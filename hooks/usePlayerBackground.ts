@@ -1,6 +1,4 @@
-import { colors } from "@/constants/tokens";
-import { useEffect, useState } from "react";
-import { getColors } from "react-native-image-colors";
+import { useState } from "react";
 import {
   AndroidImageColors,
   IOSImageColors,

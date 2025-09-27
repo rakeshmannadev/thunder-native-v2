@@ -1,7 +1,5 @@
 import { PlayerControls } from "@/components/songs/PlayerControls";
 import { PlayerProgressBar } from "@/components/songs/PlayerProgressbar";
-import { PlayerRepeatToggle } from "@/components/songs/PlayerRepeatToggle";
-import { PlayerVolumeBar } from "@/components/songs/PlayerVolumeBar";
 import { MovingText } from "@/components/songs/useMovingText";
 
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
@@ -11,11 +9,12 @@ import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 
-import { defaultStyles, utilsStyles } from "@/styles";
+import { defaultStyles } from "@/styles";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ChevronDownIcon } from "lucide-react-native";
+import { useEffect } from "react";
 
 import {
   ActivityIndicator,
@@ -25,8 +24,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
 
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const PlayerScreen = () => {
   const { addToFavorite, favoriteSongs } = useUserStore();
@@ -67,7 +75,22 @@ const PlayerScreen = () => {
     }
   });
 
-  console.log(isFavorite);
+  // Artwork animation
+
+  const scale = useSharedValue(0.9);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    // animate on mount
+    scale.value = withDelay(100, withTiming(1, { duration: 800 }));
+    opacity.value = withTiming(1, { duration: 800 });
+  }, []);
+
+  const animatedArtworkStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
   if (!currentSong) {
     return (
       <View style={[defaultStyles.container, { justifyContent: "center" }]}>
@@ -77,83 +100,93 @@ const PlayerScreen = () => {
   }
 
   return (
-    <LinearGradient style={{ flex: 1 }} colors={getGradientColors(imageColors)}>
-      <View style={styles.overlayContainer}>
-        {/* <DismissPlayerSymbol /> */}
-        {/* Close button */}
-        <View style={styles.closeIconContainer}>
-          <TouchableOpacity activeOpacity={0.7} onPress={() => router.back()}>
-            <ChevronDownIcon size={30} color={"#fff"} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ flex: 1, marginTop: top + 70, marginBottom: bottom }}>
-          <View style={styles.artworkImageContainer}>
-            <Image
-              source={{
-                uri: currentSong.imageUrl ?? unknownTrackImageUri,
-              }}
-              resizeMode="cover"
-              style={styles.artworkImage}
-            />
+    <SafeAreaView style={{ flex: 1 }}>
+      <LinearGradient
+        style={[StyleSheet.absoluteFillObject, { flex: 1 }]}
+        colors={getGradientColors(imageColors)}
+      >
+        <Image
+          source={{ uri: currentSong.imageUrl ?? unknownTrackImageUri }}
+          blurRadius={50}
+          style={[StyleSheet.absoluteFillObject, { opacity: 0.3 }]}
+          resizeMode="cover"
+        />
+        <View style={[styles.overlayContainer]}>
+          {/* Close button */}
+          <View style={styles.closeIconContainer}>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => router.back()}>
+              <ChevronDownIcon size={30} color={"#fff"} />
+            </TouchableOpacity>
           </View>
 
-          <View style={{ flex: 1 }}>
-            <View style={{ marginTop: "auto" }}>
-              <View style={{ height: 60 }}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  {/* Track title */}
-                  <View style={styles.trackTitleContainer}>
-                    <MovingText
-                      text={currentSong.title ?? ""}
-                      animationThreshold={30}
-                      style={styles.trackTitleText}
+          <View style={{ flex: 1, marginTop: top + 70 }}>
+            <View style={styles.artworkImageContainer}>
+              <Animated.Image
+                source={{
+                  uri: currentSong.imageUrl ?? unknownTrackImageUri,
+                }}
+                resizeMode="cover"
+                style={[styles.artworkImage, animatedArtworkStyle]}
+              />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <View style={{ marginTop: 20 }}>
+                <View style={{ height: 60 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* Track title */}
+                    <View style={styles.trackTitleContainer}>
+                      <MovingText
+                        text={currentSong.title ?? ""}
+                        animationThreshold={30}
+                        style={styles.trackTitleText}
+                      />
+                    </View>
+
+                    {/* Favorite button icon */}
+                    <FontAwesome
+                      name={isFavorite ? "heart" : "heart-o"}
+                      size={20}
+                      color={isFavorite ? colors.primary : colors.icon}
+                      style={{ marginHorizontal: 14 }}
+                      onPress={handleAddToFavorite}
                     />
                   </View>
 
-                  {/* Favorite button icon */}
-                  <FontAwesome
-                    name={isFavorite ? "heart" : "heart-o"}
-                    size={20}
-                    color={isFavorite ? colors.primary : colors.icon}
-                    style={{ marginHorizontal: 14 }}
-                    onPress={handleAddToFavorite}
-                  />
+                  {/* Track artist */}
+                  {currentSong.artists && (
+                    <Text
+                      numberOfLines={1}
+                      style={[styles.trackArtistText, { marginTop: 6 }]}
+                    >
+                      {currentSong.artists.primary
+                        .map((artist) => artist.name)
+                        .join(",")}
+                    </Text>
+                  )}
                 </View>
 
-                {/* Track artist */}
-                {currentSong.artists && (
-                  <Text
-                    numberOfLines={1}
-                    style={[styles.trackArtistText, { marginTop: 6 }]}
-                  >
-                    {currentSong.artists.primary
-                      .map((artist) => artist.name)
-                      .join(",")}
-                  </Text>
-                )}
+                <PlayerProgressBar style={{ marginTop: 32 }} />
+
+                <PlayerControls style={{ marginTop: 40 }} />
               </View>
 
-              <PlayerProgressBar style={{ marginTop: 32 }} />
-
-              <PlayerControls style={{ marginTop: 40 }} />
-            </View>
-
-            <PlayerVolumeBar style={{ marginTop: "auto", marginBottom: 30 }} />
+              {/* <PlayerVolumeBar style={{ marginTop: "auto", marginBottom: 30 }} />
 
             <View style={utilsStyles.centeredRow}>
               <PlayerRepeatToggle size={30} style={{ marginBottom: 6 }} />
+            </View> */}
             </View>
           </View>
         </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
@@ -200,12 +233,14 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   artworkImageContainer: {
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 8,
     },
     shadowOpacity: 0.44,
-    shadowRadius: 11.0,
+    shadowRadius: 20,
+    elevation: 10,
     flexDirection: "row",
     justifyContent: "center",
     height: "45%",

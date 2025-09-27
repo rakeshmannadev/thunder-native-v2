@@ -13,7 +13,7 @@ const index = () => {
   const { searchedSongs, searchLoading } = useMusicStore();
   console.log(searchedSongs);
   return (
-    <ScrollView className="h-screen  dark:bg-dark-background mt-16  items-center ">
+    <ScrollView style={{ flex: 1 }}>
       {/* Search result section */}
       <View className="w-screen p-4 ">
         {!searchLoading && searchedSongs && (

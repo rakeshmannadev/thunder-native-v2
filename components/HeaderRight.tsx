@@ -1,3 +1,4 @@
+import { colors } from "@/constants/tokens";
 import { useRouter } from "expo-router";
 import { BellIcon, SearchIcon } from "lucide-react-native";
 import React from "react";
@@ -13,10 +14,16 @@ const HeaderRight = () => {
           router.navigate("../search");
         }}
       >
-        <SearchIcon className="rounded-full hover:bg-hover-background p-1 h-8 w-12" />
+        <SearchIcon
+          color={colors.icon}
+          className="rounded-full hover:bg-hover-background p-1 h-8 w-12"
+        />
       </Pressable>
       <Pressable onPress={() => router.navigate("../notification")}>
-        <BellIcon className="rounded-full hover:bg-hover-background p-1 h-8 w-12" />
+        <BellIcon
+          color={colors.icon}
+          className="rounded-full hover:bg-hover-background p-1 h-8 w-12"
+        />
       </Pressable>
     </HStack>
   );

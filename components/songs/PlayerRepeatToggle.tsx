@@ -2,16 +2,9 @@ import { colors } from "@/constants/tokens";
 import { useTrackPlayerRepeatMode } from "@/hooks/useTrackPlayerRepeatMode";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ComponentProps } from "react";
-import { match } from "ts-pattern";
 
 type IconProps = Omit<ComponentProps<typeof MaterialCommunityIcons>, "name">;
 type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
-
-// const repeatOrder = [
-//   RepeatMode.Off,
-//   RepeatMode.Track,
-//   RepeatMode.Queue,
-// ] as const;
 
 export const PlayerRepeatToggle = ({ ...iconProps }: IconProps) => {
   const { repeatMode, changeRepeatMode } = useTrackPlayerRepeatMode();
@@ -34,10 +27,9 @@ export const PlayerRepeatToggle = ({ ...iconProps }: IconProps) => {
 
   return (
     <MaterialCommunityIcons
-      name={"symbol"}
+      name={"repeat"}
       onPress={() => null}
       color={colors.icon}
-      {...iconProps}
     />
   );
 };

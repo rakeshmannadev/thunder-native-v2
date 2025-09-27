@@ -7,7 +7,6 @@ import {
   ViewProps,
 } from "react-native";
 
-import { getGradientColors } from "@/helpers/getGradientColors";
 import { usePlayerBackground } from "@/hooks/usePlayerBackground";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
@@ -42,7 +41,7 @@ const FloatingPlayer = ({ style }: ViewProps) => {
           borderRadius: 12,
           paddingVertical: 10,
         }}
-        colors={getGradientColors(imageColors)}
+        colors={["#000000", "#111111", "#222222"]}
       >
         <Image
           source={{ uri: currentSong?.imageUrl ?? unknownTrackImageUri }}

@@ -4,6 +4,8 @@ import {
   LoaderCircleIcon,
   Pause,
   Play,
+  Repeat,
+  Shuffle,
   SkipForwardIcon,
 } from "lucide-react-native";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
@@ -21,11 +23,15 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.row}>
+        <ShuffleButton />
+
         <SkipToPreviousButton />
 
-        <PlayPauseButton />
+        <PlayPauseButton iconSize={30} />
 
         <SkipToNextButton />
+
+        <RepeatButton />
       </View>
     </View>
   );
@@ -64,6 +70,20 @@ export const SkipToPreviousButton = ({ iconSize = 30 }: PlayerButtonProps) => {
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={() => null}>
       <SkipForwardIcon size={iconSize} color={"#fff"} />
+    </TouchableOpacity>
+  );
+};
+export const RepeatButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+  return (
+    <TouchableOpacity activeOpacity={0.7} onPress={() => null}>
+      <Repeat size={iconSize} color={"#fff"} />
+    </TouchableOpacity>
+  );
+};
+export const ShuffleButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+  return (
+    <TouchableOpacity activeOpacity={0.7} onPress={() => null}>
+      <Shuffle size={iconSize} color={"#fff"} />
     </TouchableOpacity>
   );
 };
