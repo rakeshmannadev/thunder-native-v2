@@ -1,12 +1,12 @@
-import { Image } from "react-native";
+import { PlaylistResult } from "@/types";
+import { Link } from "expo-router";
 import React from "react";
+import { Image } from "react-native";
+import { ThemedText } from "../ThemedText";
 import { Card } from "../ui/card";
 import { HStack } from "../ui/hstack";
-import { VStack } from "../ui/vstack";
-import { ThemedText } from "../ThemedText";
-import { Link } from "expo-router";
-import { PlaylistResult } from "@/types";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
+import { VStack } from "../ui/vstack";
 
 const PlaylistResultCard = ({
   result,
@@ -26,7 +26,7 @@ const PlaylistResultCard = ({
               source={{
                 uri: `${result.image[result.image.length - 1].url}`,
               }}
-              className="w-16 h-20 rounded-xl"
+              className="aspect-square w-24 rounded-xl"
             />
           )}
           <VStack space="md" className="items-start h-full">
@@ -38,7 +38,9 @@ const PlaylistResultCard = ({
             {isLoading ? (
               <SkeletonText className="w-16 h-4" />
             ) : (
-              <ThemedText type="default">{result.type}</ThemedText>
+              <ThemedText type="default">
+                {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
+              </ThemedText>
             )}
           </VStack>
         </HStack>

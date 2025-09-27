@@ -1,14 +1,25 @@
 import Notification from "@/components/notification/Notification";
+import { Colors } from "@/constants/Colors";
 import React from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, useColorScheme } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const index = () => {
+  const colorScheme = useColorScheme();
   return (
-    <ScrollView className="h-screen dark:bg-dark-background p-3 mt-16">
-      <Notification />
-      <Notification />
-      <Notification />
-    </ScrollView>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor:
+          Colors[colorScheme === "light" ? "light" : "dark"].background,
+      }}
+    >
+      <ScrollView style={{ marginTop: 64, padding: 10 }}>
+        <Notification />
+        <Notification />
+        <Notification />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

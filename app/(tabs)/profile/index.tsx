@@ -11,92 +11,67 @@ import {
   PaletteIcon,
 } from "lucide-react-native";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { TouchableOpacity, useColorScheme, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const index = () => {
+  const colorScheme = useColorScheme();
   const [showActionsheet, setShowActionsheet] = React.useState(false);
   const handleClose = () => setShowActionsheet(false);
   const { currentUser } = useUserStore();
   const { logout } = useAuthStore();
   return (
     <SafeAreaView className="flex-1 dark:bg-dark-background p-2">
-      <VStack space="2xl" className="mt-16">
+      <View className="flex flex-col gap-10 mt-16">
         <ProfileCard />
 
-        <VStack space="4xl">
+        <VStack space="4xl" className="p-4">
           {/* Posts */}
-          <Pressable
-            style={({ pressed }) => [
-              {
-                flex: 1,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: 12,
-                borderRadius: 16,
-                backgroundColor: pressed ? "#2A2A2A" : "transparent", // pressed state
-              },
-            ]}
-          >
-            <View className="flex flex-row items-center justify-between ">
-              <View className="flex flex-row gap-4 items-center">
-                <GlobeIcon />
-                <ThemedText type="subtitle">Posts</ThemedText>
-              </View>
-
-              <ChevronRight />
+          <TouchableOpacity className="w-full flex flex-row justify-between ">
+            <View className="flex flex-row gap-4">
+              <GlobeIcon color={colorScheme === "light" ? "black" : "white"} />
+              <ThemedText type="defaultSemiBold">Posts</ThemedText>
             </View>
-          </Pressable>
+
+            <ChevronRight color={colorScheme === "light" ? "black" : "white"} />
+          </TouchableOpacity>
 
           {/* Change theme */}
 
-          <Pressable
+          <TouchableOpacity
             onPress={() => setShowActionsheet(true)}
-            style={({ pressed }) => [
-              {
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: 12,
-                borderRadius: 16,
-                backgroundColor: pressed ? "#2A2A2A" : "transparent", // pressed state
-              },
-            ]}
+            className="w-full flex flex-row justify-between "
           >
-            <View className="flex flex-row items-center justify-between ">
-              <View className="flex flex-row gap-4 items-center">
-                <PaletteIcon />
-                <ThemedText type="subtitle">Theme mode</ThemedText>
-              </View>
-              <ChevronRight />
+            <View className="flex flex-row gap-4">
+              <PaletteIcon
+                color={colorScheme === "light" ? "black" : "white"}
+              />
+              <ThemedText type="defaultSemiBold">Change theme</ThemedText>
             </View>
-          </Pressable>
+
+            <ChevronRight color={colorScheme === "light" ? "black" : "white"} />
+          </TouchableOpacity>
 
           {/* Logout */}
           {currentUser && (
-            <Pressable
-              onPress={() => logout()}
-              className="flex flex-1 flex-row justify-between items-center p-3 hover:bg-hover-background rounded-2xl "
+            <TouchableOpacity
+              onPress={logout}
+              className="w-full flex flex-row justify-between "
             >
-              <View className="flex flex-row items-center gap-5 text-green-500">
-                <LogOutIcon />
-                <ThemedText
-                  type="subtitle"
-                  lightColor="#22c55e"
-                  darkColor="#22c55e"
-                >
-                  Log out
-                </ThemedText>
+              <View className="flex flex-row gap-4">
+                <LogOutIcon
+                  color={colorScheme === "light" ? "black" : "white"}
+                />
+                <ThemedText type="defaultSemiBold">Logout</ThemedText>
               </View>
-            </Pressable>
+            </TouchableOpacity>
           )}
         </VStack>
         <ThemeSheet
           showActionsheet={showActionsheet}
           handleClose={handleClose}
         />
-      </VStack>
+      </View>
     </SafeAreaView>
   );
 };

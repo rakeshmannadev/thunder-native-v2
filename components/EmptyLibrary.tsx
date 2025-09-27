@@ -17,7 +17,7 @@ const EmptyLibrary = () => {
       </ThemedText>
 
       <Button
-        onPress={() => router.navigate("/auth/Login")}
+        onPress={() => router.navigate("/auth")}
         variant="outline"
         size="xl"
         className="rounded-xl w-full p-3"

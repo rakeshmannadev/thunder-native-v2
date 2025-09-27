@@ -1,12 +1,12 @@
-import { Image } from "react-native";
+import { ArtistResult } from "@/types";
+import { Link } from "expo-router";
 import React from "react";
+import { Image } from "react-native";
+import { ThemedText } from "../ThemedText";
 import { Card } from "../ui/card";
 import { HStack } from "../ui/hstack";
-import { VStack } from "../ui/vstack";
-import { ThemedText } from "../ThemedText";
-import { Link } from "expo-router";
-import { ArtistResult } from "@/types";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
+import { VStack } from "../ui/vstack";
 
 const ArtistResultCard = ({
   result,
@@ -26,7 +26,7 @@ const ArtistResultCard = ({
               source={{
                 uri: `${result.image[result.image.length - 1].url}`,
               }}
-              className="w-16 h-20 rounded-xl"
+              className="aspect-square w-24 rounded-xl"
             />
           )}
           <VStack space="md" className="items-start h-full">

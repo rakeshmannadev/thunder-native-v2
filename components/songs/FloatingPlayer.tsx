@@ -41,7 +41,7 @@ const FloatingPlayer = ({ style }: ViewProps) => {
           borderRadius: 12,
           paddingVertical: 10,
         }}
-        colors={["#000000", "#111111", "#222222"]}
+        colors={["#C1272D", "#1B1B1B", "#000000"]}
       >
         <Image
           source={{ uri: currentSong?.imageUrl ?? unknownTrackImageUri }}
@@ -76,7 +76,7 @@ export default FloatingPlayer;
 const styles = StyleSheet.create({
   trackTitle: {
     fontSize: 20,
-    color: "#000",
+    color: "#fff",
     fontWeight: "600",
     paddingLeft: 10,
   },

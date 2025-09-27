@@ -1,12 +1,12 @@
-import { Image } from "react-native";
+import { AlbumResult } from "@/types";
+import { Link } from "expo-router";
 import React from "react";
+import { Image } from "react-native";
+import { ThemedText } from "../ThemedText";
 import { Card } from "../ui/card";
 import { HStack } from "../ui/hstack";
-import { VStack } from "../ui/vstack";
-import { ThemedText } from "../ThemedText";
-import { Link } from "expo-router";
-import { AlbumResult } from "@/types";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
+import { VStack } from "../ui/vstack";
 
 const AlbumResultCard = ({
   result,
@@ -26,7 +26,7 @@ const AlbumResultCard = ({
               source={{
                 uri: `${result.image[result.image.length - 1].url}`,
               }}
-              className="w-16 h-20 rounded-xl"
+              className="aspect-square w-24 rounded-xl"
             />
           )}
           <VStack space="md" className="items-start h-full">
@@ -38,7 +38,9 @@ const AlbumResultCard = ({
             {isLoading ? (
               <SkeletonText className="w-16 h-4" />
             ) : (
-              <ThemedText type="default">{result.artist}</ThemedText>
+              <ThemedText type="default" className="truncate max-w-48">
+                {result.artist}
+              </ThemedText>
             )}
           </VStack>
         </HStack>

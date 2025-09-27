@@ -2,15 +2,17 @@ import AlbumCard from "@/components/AlbumCard";
 import SongCard from "@/components/SongCard";
 import { ThemedText } from "@/components/ThemedText";
 import { VStack } from "@/components/ui/vstack";
-import { FlatList, ScrollView, View } from "react-native";
+import { FlatList, ScrollView, useColorScheme, View } from "react-native";
 
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
+import { Colors } from "@/constants/Colors";
 import useMusicStore from "@/store/useMusicStore";
 import { Album, Song } from "@/types";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
+  const colorScheme = useColorScheme();
   const {
     isLoading,
     madeForYouAlbums,
@@ -28,8 +30,14 @@ export default function HomeScreen() {
   }, []);
   // console.log("madeForYouAlbums", madeForYouAlbums);
   return (
-    <SafeAreaView>
-      <ScrollView className="dark:bg-dark-background  ">
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor:
+          Colors[colorScheme === "light" ? "light" : "dark"].background,
+      }}
+    >
+      <ScrollView>
         {/* Recently played section */}
         <VStack space="md" className=" p-2 mt-16">
           <View className="w-full flex flex-row justify-between items-center pr-2">

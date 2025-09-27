@@ -1,48 +1,78 @@
-import { View, Text } from "react-native";
 import React from "react";
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
-import { Divider } from "@/components/ui/divider";
-import { Link, useRouter } from "expo-router";
-import { User } from "lucide-react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { VStack } from "@/components/ui/vstack";
+import { Divider } from "@/components/ui/divider";
+import { Colors } from "@/constants/Colors";
+import { FontAwesome } from "@expo/vector-icons";
+import { Link, useRouter } from "expo-router";
+import { User2Icon } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const index = () => {
+  const colorScheme = useColorScheme();
   const router = useRouter();
   return (
-    <View className="p-10 flex flex-1 justify-between gap-5 max-w-md mx-auto dark:bg-dark-background">
-      <View>
-        <ThemedText type="title" className="text-center font-bold">
-          Let you in
-        </ThemedText>
-      </View>
-      <VStack space="xl" className="mt-48">
-        <Button
-          variant="outline"
-          className="p-4 rounded-3xl text-center font-semibold text-lg"
-        >
-          <ButtonIcon as={User} className="text-zinc-300" />
-          <ButtonText className="text-zinc-300">
-            Continue with Guest account
-          </ButtonText>
-        </Button>
-        {/* Guest account section */}
-        <View className="flex flex-row items-center justify-center gap-3">
-          <Divider className="w-24" />
-          <span className="text-zinc-200 font-medium">Or</span>
-          <Divider className="w-24" />
-        </View>
-        {/* Sign in with password section */}
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor:
+          Colors[colorScheme === "light" ? "light" : "dark"].background,
+      }}
+    >
+      <View className="flex-1 p-4 justify-between">
         <View>
-          <Button
-            onPress={() => router.navigate("/auth/Login")}
-            className=" bg-green-500 p-4 rounded-3xl text-center font-semibold text-lg"
-          >
-            <ButtonText className="text-gray-900">
-              Sign in with password
-            </ButtonText>
-          </Button>
+          <ThemedText type="title" className="text-center font-bold">
+            Let you in
+          </ThemedText>
+          <View className="flex w-full justify-start items-center mt-20">
+            <View className="flex justify-center items-center">
+              <Image
+                source={require("../../assets/images/Thunder_logo.png")}
+                style={{
+                  width: 70,
+                  height: 70,
+                }}
+              />
+            </View>
+          </View>
+        </View>
+        <View className=" flex flex-col gap-6 mt-48">
+          {/* Guest account section */}
+          <TouchableOpacity className="flex flex-row justify-center rounded-3xl border-white border p-2 mb-2 w-full">
+            <View className="flex flex-row gap-4 items-center">
+              <User2Icon
+                size={20}
+                color={colorScheme === "light" ? "black" : "white"}
+              />
+
+              <ThemedText type="defaultSemiBold">
+                Continue with guest account
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <View className="flex flex-row items-center justify-center gap-3">
+            <Divider className="w-24" />
+            <Text className="text-zinc-200 font-medium">Or</Text>
+            <Divider className="w-24" />
+          </View>
+          {/* Sign in with password section */}
+          <TouchableOpacity className="flex flex-row bg-green-500 justify-center rounded-3xl p-2 mb-2 w-full">
+            <View className="flex flex-row gap-4 items-center">
+              <FontAwesome name="google" size={20} color={"black"} />
+
+              <ThemedText type="defaultSemiBold" style={{ color: "#000" }}>
+                Sign in with email and password
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+
           <Text className="text-zinc-200 text-center mt-4">
             Don't have account?{" "}
             <Link
@@ -53,8 +83,8 @@ const index = () => {
             </Link>{" "}
           </Text>
         </View>
-      </VStack>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 

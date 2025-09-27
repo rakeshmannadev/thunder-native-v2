@@ -1,23 +1,23 @@
-import { View, Text } from "react-native";
+import { CheckIcon, XIcon } from "lucide-react-native";
 import React from "react";
+import { Text } from "react-native";
+import { ThemedText } from "../ThemedText";
+import { Avatar, AvatarFallbackText, AvatarImage } from "../ui/avatar";
+import { Button, ButtonIcon } from "../ui/button";
 import { Card } from "../ui/card";
 import { HStack } from "../ui/hstack";
-import { Avatar, AvatarFallbackText, AvatarImage } from "../ui/avatar";
-import { ThemedText } from "../ThemedText";
 import { VStack } from "../ui/vstack";
-import { Button, ButtonIcon } from "../ui/button";
-import { CheckIcon, XIcon } from "lucide-react-native";
 
 const Notification = () => {
   return (
     <Card size="sm" variant="outline" className="rounded-2xl mb-2 ">
-      <HStack space="sm" className="h-full">
-        <HStack space="sm" style={{ alignItems: "center" }}>
-          <Avatar size="sm">
+      <HStack style={{ justifyContent: "space-between" }}>
+        <HStack space="lg" style={{ alignItems: "center" }}>
+          <Avatar size="lg">
             <AvatarFallbackText>RM</AvatarFallbackText>
             <AvatarImage source={{ uri: "" }} />
           </Avatar>
-          <VStack className="">
+          <VStack>
             <Text className="text-lg dark:text-zinc-200 font-bold truncate">
               Rakesh Manna
             </Text>
@@ -27,20 +27,20 @@ const Notification = () => {
           </VStack>
         </HStack>
 
-        <HStack space="sm" className="h-full" style={{ alignItems: "center" }}>
+        <HStack space="md" className="h-full" style={{ alignItems: "center" }}>
           <Button
             variant="outline"
-            size="sm"
+            size="md"
             className="rounded-xl bg-gray-200/10 data-[]:active:bg-hover-background "
           >
-            <ButtonIcon as={CheckIcon} color="green" />
+            <ButtonIcon size="xl" as={CheckIcon} color="green" />
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="md"
             className="rounded-xl  bg-gray-200/10 data-[]:active:bg-hover-background  "
           >
-            <ButtonIcon as={XIcon} color="red" />
+            <ButtonIcon size="xl" as={XIcon} color="red" />
           </Button>
         </HStack>
       </HStack>
