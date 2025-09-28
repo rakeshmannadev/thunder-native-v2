@@ -5,7 +5,8 @@ import { defaultStyles, utilsStyles } from "@/styles";
 import { useAudioPlayerStatus } from "expo-audio";
 import { StyleSheet, Text, View, ViewProps } from "react-native";
 import { Slider } from "react-native-awesome-slider";
-import { runOnJS, useSharedValue } from "react-native-reanimated";
+import { useSharedValue } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 export const PlayerProgressBar = ({ style }: ViewProps) => {
   const { player } = usePlayer();
@@ -27,7 +28,7 @@ export const PlayerProgressBar = ({ style }: ViewProps) => {
         status.duration > 0 ? status.currentTime / status.duration : 0;
     }
   };
-  runOnJS(updateProgress)();
+  scheduleOnRN(updateProgress);
 
   return (
     <View style={style}>
@@ -45,13 +46,14 @@ export const PlayerProgressBar = ({ style }: ViewProps) => {
         onSlidingStart={() => (isSliding.value = true)}
         onValueChange={async (value) => {
           // await TrackPlayer.seekTo(value * duration);
+          player.seekTo(value * status.duration);
         }}
         onSlidingComplete={async (value) => {
           // if the user is not sliding, we should not update the position
           if (!isSliding.value) return;
 
           isSliding.value = false;
-
+          player.seekTo(value * status.duration);
           // await TrackPlayer.seekTo(value * duration);
         }}
       />

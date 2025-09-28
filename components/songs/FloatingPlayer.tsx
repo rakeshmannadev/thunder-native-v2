@@ -10,20 +10,33 @@ import {
 import { usePlayerBackground } from "@/hooks/usePlayerBackground";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
+import { useAudioPlayerStatus } from "expo-audio";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { PlayPauseButton, SkipToNextButton } from "./PlayerControls";
 import { MovingText } from "./useMovingText";
 
 const FloatingPlayer = ({ style }: ViewProps) => {
-  const { currentSong } = usePlayerStore();
+  const { currentSong, playNext, isPlaying } = usePlayerStore();
+
   const { player } = usePlayer();
+  const status = useAudioPlayerStatus(player);
+
   const unknownTrackImageUri = require("../../assets/images/unknown_track.png");
 
   const { imageColors } = usePlayerBackground(
     currentSong?.imageUrl ?? unknownTrackImageUri
   );
   const router = useRouter();
+
+  // useEffect(() => {
+  //   if (status.isLoaded && !status.playing) {
+  //     return player.play();
+  //   } else if (status.didJustFinish && !status.playing) {
+  //     playNext();
+  //   }
+  // }, [status.didJustFinish, status.isLoaded]);
+
   if (!currentSong) return null;
 
   return (
@@ -64,7 +77,7 @@ const FloatingPlayer = ({ style }: ViewProps) => {
         <View className="flex flex-row items-center gap-5 mr-4 pl-4">
           <PlayPauseButton iconSize={24} />
 
-          <SkipToNextButton iconSize={24} />
+          <SkipToNextButton iconSize={24} handlePress={playNext} />
         </View>
       </LinearGradient>
     </TouchableOpacity>

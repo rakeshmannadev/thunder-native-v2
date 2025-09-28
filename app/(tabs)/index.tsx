@@ -7,6 +7,7 @@ import { FlatList, ScrollView, useColorScheme, View } from "react-native";
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { Colors } from "@/constants/Colors";
 import useMusicStore from "@/store/useMusicStore";
+import usePlayerStore from "@/store/usePlayerStore";
 import { Album, Song } from "@/types";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,12 +24,18 @@ export default function HomeScreen() {
     fetchFeaturedSongs,
   } = useMusicStore();
 
+  const { initializeQueue } = usePlayerStore();
+
   useEffect(() => {
     fetchMadeForYouAlbums();
     fetchTrendingSongs();
     fetchFeaturedSongs();
   }, []);
-  // console.log("madeForYouAlbums", madeForYouAlbums);
+
+  useEffect(() => {
+    initializeQueue([...trending, ...featured]);
+  }, [trending, featured]);
+
   return (
     <SafeAreaView
       style={{
@@ -61,11 +68,11 @@ export default function HomeScreen() {
                 isLoading ? `skeleton-${Math.random()}` : item._id.toString()
               }
               data={isLoading ? Array.from({ length: 5 }) : featured}
-              renderItem={({ item: Song }) =>
+              renderItem={({ item: Song, index }) =>
                 isLoading ? (
                   <SongCardSkeleton />
                 ) : (
-                  <SongCard song={Song} isLoading={isLoading} />
+                  <SongCard song={Song} isLoading={isLoading} index={index} />
                 )
               }
             />
@@ -92,11 +99,11 @@ export default function HomeScreen() {
                 isLoading ? `skeleton-${Math.random()}` : item._id.toString()
               }
               data={isLoading ? Array.from({ length: 5 }) : trending}
-              renderItem={({ item: Song }) =>
+              renderItem={({ item: Song, index }) =>
                 isLoading ? (
                   <SongCardSkeleton />
                 ) : (
-                  <SongCard song={Song} isLoading={isLoading} />
+                  <SongCard song={Song} isLoading={isLoading} index={index} />
                 )
               }
             />

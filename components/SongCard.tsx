@@ -5,13 +5,18 @@ import { ThemedText } from "./ThemedText";
 import { Card } from "./ui/card";
 import { VStack } from "./ui/vstack";
 
-import usePlayerStore from "@/store/usePlayerStore";
 import PlayButton from "./songs/PlayButton";
 import { Skeleton, SkeletonText } from "./ui/skeleton";
 
-const SongCard = ({ song, isLoading }: { song: Song; isLoading: boolean }) => {
-  const { isPlaying } = usePlayerStore();
-
+const SongCard = ({
+  song,
+  isLoading,
+  index,
+}: {
+  song: Song;
+  isLoading: boolean;
+  index: number;
+}) => {
   return (
     <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
       <View>
@@ -26,7 +31,7 @@ const SongCard = ({ song, isLoading }: { song: Song; isLoading: boolean }) => {
             alt="image"
           />
         )}
-        <PlayButton song={song} />
+        <PlayButton song={song} index={index} />
       </View>
 
       <VStack className=" w-36 ">

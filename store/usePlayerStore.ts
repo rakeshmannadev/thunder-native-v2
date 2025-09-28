@@ -17,6 +17,7 @@ interface PlayerStore {
   playNext: () => void;
   playPrevious: () => void;
   setIsPlaying: (state: boolean) => void;
+  hasNext: () => boolean;
 }
 
 const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -167,6 +168,10 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
 
       set({ isPlaying: false });
     }
+  },
+  hasNext: () => {
+    const { currentIndex, queue } = get();
+    return currentIndex < queue.length - 1;
   },
   setIsPlaying: (state) => {
     set({ isPlaying: true });

@@ -1,14 +1,18 @@
+import { Song } from "@/types";
 import React from "react";
 import { Fab, FabIcon } from "../ui/fab";
-import { Song } from "@/types";
 
-import { PauseIcon, PlayIcon } from "lucide-react-native";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
+import { useAudioPlayerStatus } from "expo-audio";
+import { PauseIcon, PlayIcon } from "lucide-react-native";
 
-const PlayButton = ({ song }: { song: Song }) => {
+const PlayButton = ({ song, index }: { song: Song; index: number }) => {
   const { player } = usePlayer();
-  const { currentSong, setCurrentSong } = usePlayerStore();
+  const status = useAudioPlayerStatus(player);
+
+  const { currentSong, setCurrentSong, playAlbum, queue, setIsPlaying } =
+    usePlayerStore();
 
   const currentTrack = currentSong?.title === song.title;
 
@@ -26,9 +30,10 @@ const PlayButton = ({ song }: { song: Song }) => {
 
     player.pause();
   };
+
   return (
     <>
-      {currentTrack && player.playing ? (
+      {currentTrack && status.playing ? (
         <Fab
           onPress={() => handlePauseSong(song)}
           size="md"

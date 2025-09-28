@@ -1,4 +1,5 @@
 import { usePlayer } from "@/providers/PlayerProvider";
+import usePlayerStore from "@/store/usePlayerStore";
 import { useAudioPlayerStatus } from "expo-audio";
 import {
   LoaderCircleIcon,
@@ -17,21 +18,24 @@ type PlayerControlsProps = {
 type PlayerButtonProps = {
   style?: ViewStyle;
   iconSize?: number;
+  handlePress?: () => void;
 };
 
 export const PlayerControls = ({ style }: PlayerControlsProps) => {
+  const { playNext, playPrevious } = usePlayerStore();
+
   return (
     <View style={[styles.container, style]}>
       <View style={styles.row}>
-        <ShuffleButton />
+        <ShuffleButton handlePress={() => null} />
 
-        <SkipToPreviousButton />
+        <SkipToPreviousButton iconSize={30} handlePress={playPrevious} />
 
         <PlayPauseButton iconSize={30} />
 
-        <SkipToNextButton />
+        <SkipToNextButton iconSize={30} handlePress={playNext} />
 
-        <RepeatButton />
+        <RepeatButton handlePress={() => null} />
       </View>
     </View>
   );
@@ -48,7 +52,11 @@ export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
         onPress={status.playing ? () => player.pause() : () => player.play()}
       >
         {status.isBuffering ? (
-          <LoaderCircleIcon size={iconSize} className="animate-spin" />
+          <LoaderCircleIcon
+            size={iconSize}
+            color={"#fff"}
+            className="animate-spin"
+          />
         ) : status.playing ? (
           <Pause size={iconSize} color={"#fff"} />
         ) : (
@@ -59,30 +67,42 @@ export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
   );
 };
 
-export const SkipToNextButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+export const SkipToNextButton = ({
+  iconSize = 30,
+  handlePress,
+}: PlayerButtonProps) => {
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={() => null}>
+    <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       <SkipForwardIcon size={iconSize} color={"#fff"} />
     </TouchableOpacity>
   );
 };
-export const SkipToPreviousButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+export const SkipToPreviousButton = ({
+  iconSize = 30,
+  handlePress,
+}: PlayerButtonProps) => {
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={() => null}>
+    <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       <SkipForwardIcon size={iconSize} color={"#fff"} />
     </TouchableOpacity>
   );
 };
-export const RepeatButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+export const RepeatButton = ({
+  iconSize = 30,
+  handlePress,
+}: PlayerButtonProps) => {
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={() => null}>
+    <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       <Repeat size={iconSize} color={"#fff"} />
     </TouchableOpacity>
   );
 };
-export const ShuffleButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+export const ShuffleButton = ({
+  iconSize = 30,
+  handlePress,
+}: PlayerButtonProps) => {
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={() => null}>
+    <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       <Shuffle size={iconSize} color={"#fff"} />
     </TouchableOpacity>
   );

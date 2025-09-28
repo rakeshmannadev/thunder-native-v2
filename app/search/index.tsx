@@ -2,6 +2,7 @@ import { ThemedText } from "@/components/ThemedText";
 import AlbumResultCard from "@/components/search/AlbumResultCard";
 import ArtistResultCard from "@/components/search/ArtistResultCard";
 import DefaultScreen from "@/components/search/DefaultScreen";
+import NotFound from "@/components/search/NotFound";
 import PlaylistResultCard from "@/components/search/PlaylistResultCard";
 import SongResultCard from "@/components/search/SongResultCard";
 import TopResultCard from "@/components/search/TopResultCard";
@@ -22,7 +23,6 @@ type ResultItem = {
   [key: string]: any;
 };
 
-// 👉 Define section type
 type Section = {
   key: string;
   title: string;
@@ -31,23 +31,18 @@ type Section = {
   component: React.ComponentType<{ result: any; isLoading: boolean }>;
 };
 
-type SearchResultsProps = {
-  searchedSongs: {
-    topQuery: { results: ResultItem[] };
-    songs: { results: ResultItem[] };
-    albums: { results: ResultItem[] };
-    playlists: { results: ResultItem[] };
-    artists: { results: ResultItem[] };
-  } | null;
-  searchLoading: boolean;
-};
-
 const index = () => {
   const colorSchema = useColorScheme();
   const { searchedSongs, searchLoading } = useMusicStore();
 
   // Show default screen when no search has been made
   if (!searchLoading && !searchedSongs) return <DefaultScreen />;
+  if (
+    !searchLoading &&
+    searchedSongs &&
+    Object.keys(searchedSongs).length === 0
+  )
+    return <NotFound />;
   if (!searchedSongs) return null;
 
   const sections: Section[] = [
