@@ -102,7 +102,6 @@ const useMusicStore = create<MusicStore>((set) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.get("/albums");
-      console.log("album fetched: ", response.data.albums);
       set({ madeForYouAlbums: response.data.albums });
     } catch (error: any) {
       console.log("Error in fetching songs", error.response.data.message);

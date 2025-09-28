@@ -31,7 +31,6 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   initializeQueue: (songs: Song[]) => {
     set({
       queue: songs,
-      currentSong: get().currentSong || songs[0],
       currentIndex: get().currentIndex === -1 ? 0 : get().currentIndex,
     });
   },
