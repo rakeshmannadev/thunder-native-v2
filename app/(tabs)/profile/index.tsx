@@ -1,6 +1,5 @@
 import { ThemedText } from "@/components/ThemedText";
 import ProfileCard from "@/components/profile/ProfileCard";
-import ThemeSheet from "@/components/profile/ThemeSheet";
 import { VStack } from "@/components/ui/vstack";
 import useAuthStore from "@/store/useAuthStore";
 import useUserStore from "@/store/useUserStore";
@@ -10,8 +9,9 @@ import {
   LogOutIcon,
   PaletteIcon,
 } from "lucide-react-native";
-import React from "react";
+import React, { useRef } from "react";
 import { TouchableOpacity, useColorScheme, View } from "react-native";
+import { Gesture } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const index = () => {
@@ -20,9 +20,15 @@ const index = () => {
   const handleClose = () => setShowActionsheet(false);
   const { currentUser } = useUserStore();
   const { logout } = useAuthStore();
+  const nativeScrollGesture = Gesture.Native();
+  const menuRef = useRef<View>(null);
   return (
     <SafeAreaView className="flex-1 dark:bg-dark-background p-2">
-      <View className="flex flex-col gap-10 mt-16">
+      <View
+        style={{ zIndex: 10, overflow: "visible" }}
+        pointerEvents="box-none"
+        className="flex flex-col gap-10 mt-16"
+      >
         <ProfileCard />
 
         <VStack space="4xl" className="p-4">
@@ -67,10 +73,10 @@ const index = () => {
             </TouchableOpacity>
           )}
         </VStack>
-        <ThemeSheet
+        {/* <ThemeSheet
           showActionsheet={showActionsheet}
           handleClose={handleClose}
-        />
+        /> */}
       </View>
     </SafeAreaView>
   );

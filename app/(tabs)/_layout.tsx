@@ -92,6 +92,7 @@ export default function TabLayout() {
           left: 8,
           right: 8,
           bottom: 80,
+          pointerEvents: "box-none",
         }}
       />
     </>

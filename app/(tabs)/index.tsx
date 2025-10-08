@@ -51,6 +51,7 @@ export default function HomeScreen() {
             <ThemedText type="subtitle" className="px-3">
               Recently Played
             </ThemedText>
+
             <ThemedText
               type="link"
               className="hover:bg-hover-background p-2 rounded-3xl"

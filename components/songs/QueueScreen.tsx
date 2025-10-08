@@ -1,5 +1,18 @@
-import usePlayerStore from "@/store/usePlayerStore";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+// components/player/QueueScreen.tsx
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React, { useMemo, useRef, useState } from "react";
+import {
+  FlatList,
+  Image,
+  ListRenderItemInfo,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -7,93 +20,255 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-const SCREEN_HEIGHT = 700; // approximate height of your screen
-const QUEUE_HEIGHT = 500; // how tall the queue sheet will be
+import { getGradientColors } from "@/helpers/getGradientColors";
+import { usePlayerBackground } from "@/hooks/usePlayerBackground";
+import { usePlayer } from "@/providers/PlayerProvider";
+import usePlayerStore from "@/store/usePlayerStore";
+import { Song } from "@/types";
+import { MoreVertical } from "lucide-react-native";
+import BottomSheetMenu from "../BottomSheetMenu";
+import { Button, ButtonIcon } from "../ui/button";
+import MusicVisualizer from "./MusicVisualizer";
 
-export function QueueScreen() {
-  const { queue, currentSong } = usePlayerStore();
-  const translateY = useSharedValue(QUEUE_HEIGHT - 80);
+const QUEUE_HEIGHT = 520; // total sheet height
+const PEEK_HEIGHT = 96; // visible when peeked
+
+export default function QueueScreen({
+  gradientColors,
+}: {
+  gradientColors?:
+    | readonly [string, string, string]
+    | readonly [string, string];
+}) {
+  const { queue, currentSong, setCurrentSong, playNext } = usePlayerStore();
+  const { player } = usePlayer();
+  const router = useRouter();
+  const [visible, setVisible] = useState(false);
+
+  // dynamic gradient based on current song art
+  const { imageColors } = usePlayerBackground(currentSong?.imageUrl ?? "");
+
+  // sheet translate (start peeked)
+  const translateY = useSharedValue(QUEUE_HEIGHT - PEEK_HEIGHT);
   const startY = useSharedValue(0);
 
-  const gesture = Gesture.Pan()
-    .onStart(() => {
-      startY.value = translateY.value;
-    })
-    .onUpdate((e) => {
-      translateY.value = Math.max(0, startY.value + e.translationY);
-    })
-    .onEnd(() => {
-      if (translateY.value > QUEUE_HEIGHT / 2) {
-        translateY.value = withSpring(QUEUE_HEIGHT - 80); // close
-      } else {
-        translateY.value = withSpring(0); // open
-      }
-    });
+  // track scroll offset to lock sheet drag while user scrolls
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const listRef = useRef<FlatList<any> | null>(null);
+
+  // native scroll gesture so FlatList can be used inside GestureDetector
+  const nativeScrollGesture = Gesture.Native();
+
+  // create pan gesture; recreate when scrollOffset changes so `enabled(...)` updates
+  const panGesture = useMemo(() => {
+    return Gesture.Pan()
+      .enabled(scrollOffset <= 0) // allow dragging only when list is at top
+      .onStart(() => {
+        startY.value = translateY.value;
+      })
+      .onUpdate((e) => {
+        // clamp between 0 (open) and QUEUE_HEIGHT - PEEK_HEIGHT (peeked)
+        const next = Math.max(
+          0,
+          Math.min(startY.value + e.translationY, QUEUE_HEIGHT - PEEK_HEIGHT)
+        );
+        translateY.value = next;
+      })
+      .onEnd(() => {
+        // snap logic: if dragged more than half, open; else return to peek
+        const THRESHOLD = (QUEUE_HEIGHT - PEEK_HEIGHT) / 3;
+        if (translateY.value < THRESHOLD) {
+          translateY.value = withSpring(0, { stiffness: 160, damping: 20 });
+        } else {
+          translateY.value = withSpring(QUEUE_HEIGHT - PEEK_HEIGHT, {
+            stiffness: 160,
+            damping: 20,
+          });
+        }
+      })
+      .simultaneousWithExternalGesture(nativeScrollGesture);
+  }, [scrollOffset]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
   }));
 
-  return (
-    <GestureDetector gesture={gesture}>
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: QUEUE_HEIGHT,
-            backgroundColor: "#121212",
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 16,
-            zIndex: 50,
-          },
-          animatedStyle,
-        ]}
-      >
-        <View
-          style={{
-            width: 50,
-            height: 6,
-            backgroundColor: "#666",
-            borderRadius: 3,
-            alignSelf: "center",
-            marginBottom: 12,
-          }}
-        />
-        <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
-          🎵 Song Queue
-        </Text>
+  // helpers
+  const openSheet = () => {
+    translateY.value = withSpring(0, { stiffness: 160, damping: 20 });
+  };
+  const closeSheet = () => {
+    translateY.value = withSpring(QUEUE_HEIGHT - PEEK_HEIGHT, {
+      stiffness: 160,
+      damping: 20,
+    });
+  };
 
-        <FlatList
-          data={queue}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => null}
-              style={[
-                {
-                  paddingVertical: 12,
-                  borderBottomWidth: 0.5,
-                  borderColor: "#444",
-                },
-                currentSong?._id === item._id && {
-                  backgroundColor: "rgba(255,255,255,0.05)",
-                },
-              ]}
-            >
-              <Text numberOfLines={1} style={{ fontSize: 10, fontWeight: 500 }}>
+  // FlatList item renderer
+  const renderItem = ({ item }: ListRenderItemInfo<Song>) => {
+    const isCurrent = currentSong?._id === item._id;
+
+    return (
+      <View style={[styles.row, isCurrent && styles.activeRow]}>
+        <TouchableOpacity
+          onPress={() => {
+            setCurrentSong(item);
+            translateY.value = withSpring(0);
+          }}
+          style={{ flex: 1 }}
+          activeOpacity={0.85}
+        >
+          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+            <Image
+              source={{ uri: item.imageUrl }}
+              className="w-10 aspect-square rounded-md"
+            />
+            <View style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <Text numberOfLines={1} style={styles.title}>
                 {item.title}
               </Text>
-              <Text style={{ color: "#aaa", fontSize: 14, marginTop: 2 }}>
-                {item.artists?.primary?.map((a) => a.name).join(", ")}
+              <Text numberOfLines={1} style={styles.subtitle}>
+                {item.artists?.primary?.map((a: any) => a.name).join(", ")}
               </Text>
-            </TouchableOpacity>
-          )}
-        />
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* Visualizer for currently playing */}
+        <View style={{ marginLeft: 12, marginRight: 8 }}>
+          {isCurrent ? <MusicVisualizer playing={true} /> : null}
+        </View>
+
+        {/* Gluestack Menu Trigger wrapped inside Gesture.Native to avoid gesture conflicts */}
+        <GestureDetector gesture={Gesture.Native()}>
+          <Button variant="link" size="lg" onPress={() => setVisible(true)}>
+            <ButtonIcon as={MoreVertical} />
+          </Button>
+        </GestureDetector>
+      </View>
+    );
+  };
+
+  // handle scroll offset
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setScrollOffset(e.nativeEvent.contentOffset.y);
+  };
+
+  return (
+    // GestureHandlerRootView can be at app root; wrapping here is safe
+
+    <GestureDetector gesture={panGesture}>
+      <Animated.View
+        pointerEvents="box-none"
+        style={[
+          styles.sheet,
+          animatedStyle,
+          // allow menu to overflow the rounded corners
+          { overflow: "visible", zIndex: 50 },
+        ]}
+      >
+        {/* gradient background */}
+        <LinearGradient
+          colors={getGradientColors(imageColors)}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.gradient}
+        >
+          {/* handle + title */}
+          <View style={styles.handleContainer}>
+            <View style={styles.handle} />
+            <Text style={styles.sheetTitle}>🎵 Up Next</Text>
+          </View>
+
+          {/* list */}
+          <View style={styles.listContainer}>
+            <GestureDetector gesture={nativeScrollGesture}>
+              <FlatList
+                ref={listRef}
+                data={queue}
+                keyExtractor={(i) => i._id}
+                renderItem={renderItem}
+                showsVerticalScrollIndicator={false}
+                onScroll={onScroll}
+                scrollEventThrottle={16}
+                contentContainerStyle={{ paddingBottom: 80 }}
+              />
+            </GestureDetector>
+          </View>
+          <BottomSheetMenu
+            visible={visible}
+            onClose={() => setVisible(false)}
+            items={[
+              { label: "Go to Album", onPress: () => console.log("Album") },
+              {
+                label: "Add to Playlist",
+                onPress: () => console.log("Playlist"),
+              },
+              {
+                label: "Delete Song",
+                onPress: () => console.log("Delete"),
+                destructive: true,
+              },
+            ]}
+          />
+        </LinearGradient>
       </Animated.View>
     </GestureDetector>
   );
 }
+
+const styles = StyleSheet.create({
+  sheet: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: QUEUE_HEIGHT,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  gradient: {
+    flex: 1,
+    padding: 16,
+  },
+  handleContainer: {
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  handle: {
+    width: 56,
+    height: 6,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    marginBottom: 8,
+  },
+  sheetTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  listContainer: {
+    flex: 1,
+    marginTop: 8,
+  },
+  row: {
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(255,255,255,0.08)",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  activeRow: {
+    backgroundColor: "rgba(255,255,255,0.03)",
+  },
+  title: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  subtitle: {
+    color: "#ddd",
+    fontSize: 13,
+    marginTop: 4,
+  },
+});

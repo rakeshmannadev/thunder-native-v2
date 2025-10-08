@@ -18,7 +18,6 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import PlayerProvider from "@/providers/PlayerProvider";
 import useUserStore from "@/store/useUserStore";
-import { OverlayProvider } from "@gluestack-ui/overlay";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -66,112 +65,111 @@ export default function RootLayout() {
 
   return (
     <GluestackUIProvider mode={colorScheme === "light" ? "light" : "dark"}>
-      <OverlayProvider>
+      <SafeAreaProvider>
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <SafeAreaProvider>
-              <PlayerProvider>
-                <Stack>
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{
-                      headerShown: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="auth"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="search/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                      headerStyle: {
-                        backgroundColor:
-                          Colors[colorScheme === "light" ? "light" : "dark"]
-                            .background,
-                      },
-                      headerRight: () => <SearchBar />,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="notification/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                      headerStyle: {
-                        backgroundColor:
-                          Colors[colorScheme === "light" ? "light" : "dark"]
-                            .background,
-                      },
-                    }}
-                  />
-                  <Stack.Screen
-                    name="player"
-                    options={{
-                      headerShown: false,
-                      presentation: "modal",
-                      gestureEnabled: false,
-                      gestureDirection: "horizontal",
-                      animationDuration: 400,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="album/[id]"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                      headerRight: () => <HeaderRight />,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="song/[id]"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                      headerRight: () => <HeaderRight />,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="playlist/[id]"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                      headerRight: () => <HeaderRight />,
-                    }}
-                  />
-
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-                <FloatingPlayer
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    borderRadius: 0,
-                    display: showFloatingPlayBackScreens.includes(currentPath)
-                      ? "flex"
-                      : "none",
+          <PlayerProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <Stack>
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{
+                    headerShown: false,
                   }}
                 />
-              </PlayerProvider>
-            </SafeAreaProvider>
-          </GestureHandlerRootView>
+                <Stack.Screen
+                  name="auth"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="search/index"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                    headerStyle: {
+                      backgroundColor:
+                        Colors[colorScheme === "light" ? "light" : "dark"]
+                          .background,
+                    },
+                    headerRight: () => <SearchBar />,
+                  }}
+                />
+                <Stack.Screen
+                  name="notification/index"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                    headerStyle: {
+                      backgroundColor:
+                        Colors[colorScheme === "light" ? "light" : "dark"]
+                          .background,
+                    },
+                  }}
+                />
+                <Stack.Screen
+                  name="player"
+                  options={{
+                    headerShown: false,
+                    presentation: "modal",
+                    gestureEnabled: false,
+                    gestureDirection: "horizontal",
+                    animationDuration: 400,
+                  }}
+                />
+                <Stack.Screen
+                  name="album/[id]"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                    headerRight: () => <HeaderRight />,
+                  }}
+                />
+                <Stack.Screen
+                  name="song/[id]"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                    headerRight: () => <HeaderRight />,
+                  }}
+                />
+                <Stack.Screen
+                  name="playlist/[id]"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                    headerRight: () => <HeaderRight />,
+                  }}
+                />
+
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <FloatingPlayer
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 0,
+                  pointerEvents: "box-none",
+                  display: showFloatingPlayBackScreens.includes(currentPath)
+                    ? "flex"
+                    : "none",
+                }}
+              />
+            </GestureHandlerRootView>
+          </PlayerProvider>
         </ThemeProvider>
-      </OverlayProvider>
+      </SafeAreaProvider>
     </GluestackUIProvider>
   );
 }
