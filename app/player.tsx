@@ -38,7 +38,7 @@ import {
 } from "react-native-safe-area-context";
 
 const PlayerScreen = () => {
-  const { addToFavorite, favoriteSongs } = useUserStore();
+  const { addToFavorite, favoriteSongs, currentUser } = useUserStore();
   const { currentSong } = usePlayerStore();
 
   const { player } = usePlayer();
@@ -53,9 +53,9 @@ const PlayerScreen = () => {
   const { top, bottom } = useSafeAreaInsets();
 
   // const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
-  const handleAddToFavorite = () => {
+  const handleAddToFavorite = async () => {
     if (!currentSong) return;
-    addToFavorite(
+    await addToFavorite(
       [""],
       currentSong.imageUrl ?? "",
       currentSong.imageUrl,
@@ -69,14 +69,6 @@ const PlayerScreen = () => {
       "Favorites"
     );
   };
-
-  let isFavorite: boolean = false;
-
-  favoriteSongs.map((song) => {
-    if (song?.songId == currentSong?.songId) {
-      isFavorite = true;
-    }
-  });
 
   // Artwork animation
 
@@ -102,6 +94,8 @@ const PlayerScreen = () => {
     );
   }
 
+  console.log("favsongs", favoriteSongs);
+  console.log("currentSong", currentSong._id);
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient
@@ -156,13 +150,27 @@ const PlayerScreen = () => {
                     </View>
 
                     {/* Favorite button icon */}
-                    <FontAwesome
-                      name={isFavorite ? "heart" : "heart-o"}
-                      size={20}
-                      color={isFavorite ? colors.primary : colors.icon}
-                      style={{ marginHorizontal: 14 }}
-                      onPress={handleAddToFavorite}
-                    />
+                    {currentUser && (
+                      <FontAwesome
+                        name={
+                          favoriteSongs.find(
+                            (song) => song._id === currentSong._id
+                          )
+                            ? "heart"
+                            : "heart-o"
+                        }
+                        size={20}
+                        color={
+                          favoriteSongs.find(
+                            (song) => song._id === currentSong._id
+                          )
+                            ? colors.primary
+                            : colors.icon
+                        }
+                        style={{ marginHorizontal: 14 }}
+                        onPress={handleAddToFavorite}
+                      />
+                    )}
                   </View>
 
                   {/* Track artist */}

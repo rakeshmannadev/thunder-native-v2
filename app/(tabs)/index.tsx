@@ -8,6 +8,7 @@ import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { Colors } from "@/constants/Colors";
 import useMusicStore from "@/store/useMusicStore";
 import usePlayerStore from "@/store/usePlayerStore";
+import useUserStore from "@/store/useUserStore";
 import { Album, Song } from "@/types";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,18 +24,30 @@ export default function HomeScreen() {
     fetchTrendingSongs,
     fetchFeaturedSongs,
   } = useMusicStore();
-
+  const { currentUser, favoriteSongs, getFavoriteSongs } = useUserStore();
   const { initializeQueue } = usePlayerStore();
 
   useEffect(() => {
-    fetchMadeForYouAlbums();
-    fetchTrendingSongs();
-    fetchFeaturedSongs();
+    if (
+      madeForYouAlbums.length <= 0 ||
+      trending.length <= 0 ||
+      featured.length <= 0
+    ) {
+      fetchMadeForYouAlbums();
+      fetchTrendingSongs();
+      fetchFeaturedSongs();
+    }
   }, []);
 
   useEffect(() => {
     initializeQueue([...trending, ...featured]);
   }, [trending, featured]);
+
+  useEffect(() => {
+    if (currentUser && favoriteSongs.length === 0) {
+      getFavoriteSongs();
+    }
+  }, []);
 
   return (
     <SafeAreaView
@@ -73,7 +86,7 @@ export default function HomeScreen() {
                 isLoading ? (
                   <SongCardSkeleton />
                 ) : (
-                  <SongCard song={Song} isLoading={isLoading} index={index} />
+                  <SongCard song={Song} isLoading={isLoading} />
                 )
               }
             />
@@ -104,7 +117,7 @@ export default function HomeScreen() {
                 isLoading ? (
                   <SongCardSkeleton />
                 ) : (
-                  <SongCard song={Song} isLoading={isLoading} index={index} />
+                  <SongCard song={Song} isLoading={isLoading} />
                 )
               }
             />

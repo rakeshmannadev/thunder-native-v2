@@ -6,7 +6,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, useRootNavigationState } from "expo-router";
+import { Stack, useRootNavigationState, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect } from "react";
 import "react-native-reanimated";
@@ -28,11 +28,17 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRootNavigationState();
   const currentPath = router.routes[router.routes.length - 1].name;
-  const showFloatingPlayBackScreens = [
-    "album/[id]",
-    "playlist/[id]",
-    "song/[id]",
+  const hideFloatingPlayerScreens = [
+    "profile",
+    "player",
+    "auth",
+    "Signup",
+    "Login",
   ];
+  const segments = useSegments();
+
+  const currentSegment = segments[segments.length - 1]; // 👈 current tab name
+  console.log("Current screen: ", currentSegment);
 
   const { getCurrentUser } = useUserStore();
 
@@ -156,14 +162,14 @@ export default function RootLayout() {
               <FloatingPlayer
                 style={{
                   position: "absolute",
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
+                  left: 8,
+                  right: 8,
+                  bottom: 80,
                   borderRadius: 0,
                   pointerEvents: "box-none",
-                  display: showFloatingPlayBackScreens.includes(currentPath)
-                    ? "flex"
-                    : "none",
+                  display: hideFloatingPlayerScreens.includes(currentSegment)
+                    ? "none"
+                    : "flex",
                 }}
               />
             </GestureHandlerRootView>

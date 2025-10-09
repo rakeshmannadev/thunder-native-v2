@@ -83,6 +83,7 @@ const useUserStore = create<UserStore>((set, get) => ({
 
     try {
       const response = await axiosInstance.get("/user/getPlaylists");
+      console.log("response playlists", response.data.playlists);
       set({ playlists: response.data.playlists });
     } catch (error: any) {
       console.log(error.response.data.messages);
@@ -133,7 +134,6 @@ const useUserStore = create<UserStore>((set, get) => ({
         songId,
         playListName,
       });
-
       if (response.data.status) {
         const newSong: Song = {
           _id: songId,

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/radio";
 import { VStack } from "@/components/ui/vstack";
 import { Colors } from "@/constants/Colors";
+import useAuthStore from "@/store/useAuthStore";
 import { useRouter } from "expo-router";
 import {
   CircleIcon,
@@ -30,15 +31,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const Signup = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [gender, setGender] = React.useState("male");
+  const [email, setEmail] = React.useState<string>("");
+  const [password, setPassword] = React.useState<string>("");
+  const [name, setName] = React.useState<string>("");
 
   const colorScheme = useColorScheme();
+  const { signup } = useAuthStore();
 
   const handleState = () => {
     setShowPassword((showState) => {
       return !showState;
     });
   };
+  const handleSignUp = async () => {
+    if (!email || !password || !name) return;
+    if (password.length < 6) return;
+    signup({ name, email, password, gender });
+  };
+
   const router = useRouter();
+
   return (
     <SafeAreaView
       style={{
@@ -57,7 +69,12 @@ const Signup = () => {
                   as={Mail}
                   className="ml-2 group-focus-within:text-green-400"
                 />
-                <InputField type="text" placeholder="Email" />
+                <InputField
+                  type="text"
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                />
               </Input>
             </VStack>
             <VStack space="xs">
@@ -66,7 +83,12 @@ const Signup = () => {
                   as={User}
                   className="ml-2 group-focus-within:text-green-400"
                 />
-                <InputField type="text" placeholder="Name" />
+                <InputField
+                  type="text"
+                  placeholder="Name"
+                  value={name}
+                  onChangeText={setName}
+                />
               </Input>
             </VStack>
             <VStack space="xs">
@@ -78,6 +100,8 @@ const Signup = () => {
                 <InputField
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
+                  value={password}
+                  onChangeText={setPassword}
                 />
                 <InputSlot className="pr-3" onPress={handleState}>
                   <InputIcon

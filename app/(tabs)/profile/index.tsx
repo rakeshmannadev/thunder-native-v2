@@ -1,3 +1,4 @@
+import BottomSheetMenu from "@/components/BottomSheetMenu";
 import { ThemedText } from "@/components/ThemedText";
 import ProfileCard from "@/components/profile/ProfileCard";
 import { VStack } from "@/components/ui/vstack";
@@ -73,11 +74,15 @@ const index = () => {
             </TouchableOpacity>
           )}
         </VStack>
-        {/* <ThemeSheet
-          showActionsheet={showActionsheet}
-          handleClose={handleClose}
-        /> */}
       </View>
+      <BottomSheetMenu
+        visible={showActionsheet}
+        onClose={handleClose}
+        items={[
+          { label: "Light", onPress: () => console.log("Light theme") },
+          { label: "Dark", onPress: () => console.log("Dark theme") },
+        ]}
+      />
     </SafeAreaView>
   );
 };

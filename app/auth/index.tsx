@@ -63,7 +63,10 @@ const index = () => {
             <Divider className="w-24" />
           </View>
           {/* Sign in with password section */}
-          <TouchableOpacity className="flex flex-row bg-green-500 justify-center rounded-3xl p-2 mb-2 w-full">
+          <TouchableOpacity
+            onPress={() => router.push("/auth/Login")}
+            className="flex flex-row bg-green-500 justify-center rounded-3xl p-2 mb-2 w-full"
+          >
             <View className="flex flex-row gap-4 items-center">
               <FontAwesome name="google" size={20} color={"black"} />
 

@@ -55,7 +55,8 @@ const Login = () => {
                 <InputField
                   type="text"
                   placeholder="Email"
-                  onChange={(e: any) => setEmail(e.target.value)}
+                  value={email}
+                  onChangeText={setEmail}
                 />
               </Input>
             </View>
@@ -68,7 +69,8 @@ const Login = () => {
                 <InputField
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  onChange={(e: any) => setPassword(e.target.value)}
+                  value={password}
+                  onChangeText={setPassword}
                 />
                 <InputSlot className="pr-3" onPress={handleState}>
                   <InputIcon

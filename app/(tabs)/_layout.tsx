@@ -1,6 +1,5 @@
 import { HapticTab } from "@/components/HapticTab";
 import HeaderRight from "@/components/HeaderRight";
-import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { LogoIcon } from "@/constants/Icons";
@@ -86,7 +85,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <FloatingPlayer
+      {/* <FloatingPlayer
         style={{
           position: "absolute",
           left: 8,
@@ -94,7 +93,7 @@ export default function TabLayout() {
           bottom: 80,
           pointerEvents: "box-none",
         }}
-      />
+      /> */}
     </>
   );
 }

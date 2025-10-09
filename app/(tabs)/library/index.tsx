@@ -15,7 +15,6 @@ const index = () => {
     currentUser,
     fetchPlaylists,
     favoriteSongs,
-    getFavoriteSongs,
     playlists,
     fetchingPlaylist,
   } = useUserStore();
@@ -23,7 +22,6 @@ const index = () => {
   useEffect(() => {
     if (currentUser && !isLoading) {
       fetchPlaylists();
-      getFavoriteSongs();
     }
   }, []);
 

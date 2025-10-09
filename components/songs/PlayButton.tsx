@@ -7,7 +7,7 @@ import usePlayerStore from "@/store/usePlayerStore";
 import { useAudioPlayerStatus } from "expo-audio";
 import { PauseIcon, PlayIcon } from "lucide-react-native";
 
-const PlayButton = ({ song, index }: { song: Song; index: number }) => {
+const PlayButton = ({ song }: { song: Song }) => {
   const { player } = usePlayer();
   const status = useAudioPlayerStatus(player);
 
