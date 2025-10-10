@@ -16,7 +16,11 @@ const SongResultCard = ({
   isLoading: boolean;
 }) => {
   return (
-    <Card size="sm" variant="outline" className="rounded-2xl mb-3 w-full">
+    <Card
+      size="sm"
+      variant="outline"
+      className="rounded-2xl mb-3 w-full overflow-hidden"
+    >
       <Link href={`../../song/${result.id}`}>
         <HStack space="md" className="items-center">
           {isLoading ? (
@@ -29,7 +33,7 @@ const SongResultCard = ({
               className="aspect-square w-24 rounded-xl"
             />
           )}
-          <VStack space="md" className="items-start h-full">
+          <VStack space="md" className="items-start h-full max-w-full">
             {isLoading ? (
               <SkeletonText className="w-20 h-4" />
             ) : (

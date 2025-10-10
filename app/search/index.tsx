@@ -82,7 +82,7 @@ const index = () => {
     const CardComponent = item.component;
     return (
       <View style={styles.sectionContainer}>
-        <ThemedText type="subtitle" className="pl-4 mb-4 ">
+        <ThemedText type="subtitle" className="pl-4 mb-4 truncate ">
           {item.title}:
         </ThemedText>
 

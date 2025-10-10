@@ -2,10 +2,12 @@ import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { useAudioPlayerStatus } from "expo-audio";
 import {
+  ArrowRight,
   LoaderCircleIcon,
   Pause,
   Play,
   Repeat,
+  Repeat1,
   Shuffle,
   SkipForwardIcon,
 } from "lucide-react-native";
@@ -19,15 +21,20 @@ type PlayerButtonProps = {
   style?: ViewStyle;
   iconSize?: number;
   handlePress?: () => void;
+  isShuffle?: boolean;
+  isRepeat?: boolean;
 };
 
 export const PlayerControls = ({ style }: PlayerControlsProps) => {
-  const { playNext, playPrevious } = usePlayerStore();
-
+  const { playNext, playPrevious, setShuffle, isShuffle, isRepeat, setRepeat } =
+    usePlayerStore();
+  const handleShuffle = () => {
+    setShuffle(!isShuffle);
+  };
   return (
     <View style={[styles.container, style]}>
       <View style={styles.row}>
-        <ShuffleButton handlePress={() => null} />
+        <ShuffleButton handlePress={handleShuffle} isShuffle={isShuffle} />
 
         <SkipToPreviousButton iconSize={30} handlePress={playPrevious} />
 
@@ -35,7 +42,10 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
 
         <SkipToNextButton iconSize={30} handlePress={playNext} />
 
-        <RepeatButton handlePress={() => null} />
+        <RepeatButton
+          handlePress={() => setRepeat(!isRepeat)}
+          isRepeat={isRepeat}
+        />
       </View>
     </View>
   );
@@ -90,20 +100,30 @@ export const SkipToPreviousButton = ({
 export const RepeatButton = ({
   iconSize = 30,
   handlePress,
+  isRepeat,
 }: PlayerButtonProps) => {
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
-      <Repeat size={iconSize} color={"#fff"} />
+      {isRepeat ? (
+        <Repeat1 size={iconSize} color={"#fff"} />
+      ) : (
+        <Repeat size={iconSize} color={"#fff"} />
+      )}
     </TouchableOpacity>
   );
 };
 export const ShuffleButton = ({
   iconSize = 30,
   handlePress,
+  isShuffle,
 }: PlayerButtonProps) => {
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
-      <Shuffle size={iconSize} color={"#fff"} />
+      {isShuffle ? (
+        <ArrowRight size={iconSize} color={"#fff"} />
+      ) : (
+        <Shuffle size={iconSize} color={"#fff"} />
+      )}
     </TouchableOpacity>
   );
 };

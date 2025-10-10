@@ -1,12 +1,21 @@
-import React from "react";
-import { VStack } from "@/components/ui/vstack";
 import { ThemedText } from "@/components/ThemedText";
+import { VStack } from "@/components/ui/vstack";
+import { Colors } from "@/constants/Colors";
 import { BirdIcon } from "lucide-react-native";
-import { View } from "react-native";
+import React from "react";
+import { useColorScheme, View } from "react-native";
 
 const NotFound = () => {
+  const colorSchema = useColorScheme();
   return (
-    <VStack space="lg" className="items-center">
+    <VStack
+      style={{
+        backgroundColor:
+          Colors[colorSchema === "light" ? "light" : "dark"].background,
+      }}
+      space="lg"
+      className="flex-1 justify-center items-center"
+    >
       <View className="filter drop-shadow-glow rounded-s-full rounded-t-full rounded-br-3xl  animate-pulse ">
         <BirdIcon className="w-24 h-24 text-green-300 " />
       </View>

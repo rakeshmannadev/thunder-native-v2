@@ -6,14 +6,13 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, useRootNavigationState, useSegments } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import "react-native-reanimated";
 
 import HeaderRight from "@/components/HeaderRight";
 import SearchBar from "@/components/search/SearchBar";
-import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import PlayerProvider from "@/providers/PlayerProvider";
@@ -21,24 +20,10 @@ import useUserStore from "@/store/useUserStore";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const router = useRootNavigationState();
-  const currentPath = router.routes[router.routes.length - 1].name;
-  const hideFloatingPlayerScreens = [
-    "profile",
-    "player",
-    "auth",
-    "Signup",
-    "Login",
-  ];
-  const segments = useSegments();
-
-  const currentSegment = segments[segments.length - 1]; // 👈 current tab name
-  console.log("Current screen: ", currentSegment);
 
   const { getCurrentUser } = useUserStore();
 
@@ -58,16 +43,6 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
-
-  const handleTrackPlayerLoaded = useCallback(() => {
-    SplashScreen.hideAsync();
-  }, []);
-
-  // useSetupTrackPlayer({
-  //   onLoad: handleTrackPlayerLoaded,
-  // });
-
-  // useLogTrackPlayerState();
 
   return (
     <GluestackUIProvider mode={colorScheme === "light" ? "light" : "dark"}>
@@ -123,10 +98,14 @@ export default function RootLayout() {
                   name="player"
                   options={{
                     headerShown: false,
-                    presentation: "modal",
-                    gestureEnabled: false,
-                    gestureDirection: "horizontal",
-                    animationDuration: 400,
+                    presentation: "formSheet",
+                    animation: "slide_from_bottom",
+                    gestureDirection: "vertical",
+                    sheetGrabberVisible: true,
+                    sheetInitialDetentIndex: 1,
+                    sheetAllowedDetents: [0.5, 1],
+                    sheetExpandsWhenScrolledToEdge: true,
+                    sheetElevation: 24,
                   }}
                 />
                 <Stack.Screen
@@ -159,19 +138,6 @@ export default function RootLayout() {
 
                 <Stack.Screen name="+not-found" />
               </Stack>
-              <FloatingPlayer
-                style={{
-                  position: "absolute",
-                  left: 8,
-                  right: 8,
-                  bottom: 80,
-                  borderRadius: 0,
-                  pointerEvents: "box-none",
-                  display: hideFloatingPlayerScreens.includes(currentSegment)
-                    ? "none"
-                    : "flex",
-                }}
-              />
             </GestureHandlerRootView>
           </PlayerProvider>
         </ThemeProvider>

@@ -20,12 +20,11 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { getGradientColors } from "@/helpers/getGradientColors";
 import { usePlayerBackground } from "@/hooks/usePlayerBackground";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Song } from "@/types";
-import { MoreVertical } from "lucide-react-native";
+import { ListMusic, MoreVertical } from "lucide-react-native";
 import BottomSheetMenu from "../BottomSheetMenu";
 import { Button, ButtonIcon } from "../ui/button";
 import MusicVisualizer from "./MusicVisualizer";
@@ -115,7 +114,7 @@ export default function QueueScreen({
             setCurrentSong(item);
             translateY.value = withSpring(0);
           }}
-          style={{ flex: 1 }}
+          style={{ flex: 1, paddingHorizontal: 8, borderRadius: 8 }}
           activeOpacity={0.85}
         >
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
@@ -169,7 +168,8 @@ export default function QueueScreen({
       >
         {/* gradient background */}
         <LinearGradient
-          colors={getGradientColors(imageColors)}
+          // colors={getGradientColors(imageColors)}
+          colors={["#0F2027", "#203A43", "#2C5364"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={styles.gradient}
@@ -177,7 +177,10 @@ export default function QueueScreen({
           {/* handle + title */}
           <View style={styles.handleContainer}>
             <View style={styles.handle} />
-            <Text style={styles.sheetTitle}>🎵 Up Next</Text>
+            <View className="w-full flex flex-row gap-2 items-center justify-center">
+              <ListMusic size={16} color={"#fff"} />
+              <Text style={styles.sheetTitle}>Queue</Text>
+            </View>
           </View>
 
           {/* list */}
@@ -253,13 +256,14 @@ const styles = StyleSheet.create({
   },
   row: {
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255,255,255,0.08)",
+    // borderBottomWidth: StyleSheet.hairlineWidth,
+    // borderColor: "rgba(255,255,255,0.08)",
     flexDirection: "row",
     alignItems: "center",
   },
   activeRow: {
     backgroundColor: "rgba(255,255,255,0.03)",
+    borderRadius: 8,
   },
   title: {
     color: "#fff",

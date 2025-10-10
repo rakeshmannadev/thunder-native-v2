@@ -6,7 +6,6 @@ import { MovingText } from "@/components/songs/useMovingText";
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
 import { getGradientColors } from "@/helpers/getGradientColors";
 import { usePlayerBackground } from "@/hooks/usePlayerBackground";
-import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 
@@ -14,12 +13,14 @@ import { defaultStyles } from "@/styles";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { ChevronDownIcon } from "lucide-react-native";
+import { ChevronDownIcon, Share2 } from "lucide-react-native";
 import { useEffect } from "react";
 
 import {
   ActivityIndicator,
   Image,
+  Pressable,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -41,7 +42,6 @@ const PlayerScreen = () => {
   const { addToFavorite, favoriteSongs, currentUser } = useUserStore();
   const { currentSong } = usePlayerStore();
 
-  const { player } = usePlayer();
   const unknownTrackImageUri = require("../assets/images/unknown_track.png");
 
   const { imageColors } = usePlayerBackground(
@@ -52,7 +52,6 @@ const PlayerScreen = () => {
 
   const { top, bottom } = useSafeAreaInsets();
 
-  // const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
   const handleAddToFavorite = async () => {
     if (!currentSong) return;
     await addToFavorite(
@@ -70,8 +69,27 @@ const PlayerScreen = () => {
     );
   };
 
-  // Artwork animation
+  const handleShare = async () => {
+    if (!currentSong) return;
 
+    try {
+      const shareOptions = {
+        title: currentSong.title,
+        message: `Check out this song: ${
+          currentSong.title
+        } by ${currentSong.artists.primary
+          .map((artist) => artist.name)
+          .join(", ")}`,
+        url: currentSong.imageUrl ?? "",
+      };
+
+      await Share.share(shareOptions);
+    } catch (error) {
+      console.error("Error sharing the song:", error);
+    }
+  };
+
+  // Artwork animation
   const scale = useSharedValue(0.9);
   const opacity = useSharedValue(0);
 
@@ -94,8 +112,6 @@ const PlayerScreen = () => {
     );
   }
 
-  console.log("favsongs", favoriteSongs);
-  console.log("currentSong", currentSong._id);
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient
@@ -171,6 +187,20 @@ const PlayerScreen = () => {
                         onPress={handleAddToFavorite}
                       />
                     )}
+                    {/* Share button icon*/}
+                    <Pressable
+                      onPress={handleShare}
+                      style={({ pressed }) => [
+                        {
+                          backgroundColor: pressed
+                            ? "rgb(210, 230, 255)"
+                            : "white",
+                        },
+                        styles.iconContainer,
+                      ]}
+                    >
+                      <Share2 size={20} color={colors.icon} />
+                    </Pressable>
                   </View>
 
                   {/* Track artist */}
@@ -280,6 +310,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     opacity: 0.8,
     maxWidth: "90%",
+  },
+  iconContainer: {
+    padding: 6,
+    borderRadius: 6,
   },
 });
 

@@ -7,35 +7,32 @@ import {
   ViewProps,
 } from "react-native";
 
+import { colors } from "@/constants/tokens";
 import { usePlayerBackground } from "@/hooks/usePlayerBackground";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { useAudioPlayerStatus } from "expo-audio";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import Animated from "react-native-reanimated";
 import { PlayPauseButton, SkipToNextButton } from "./PlayerControls";
 import { MovingText } from "./useMovingText";
 
 const FloatingPlayer = ({ style }: ViewProps) => {
-  const { currentSong, playNext, isPlaying } = usePlayerStore();
+  const router = useRouter();
 
+  const { currentSong, playNext, isPlaying } = usePlayerStore();
   const { player } = usePlayer();
   const status = useAudioPlayerStatus(player);
+  const { currentTime, duration } = status;
 
   const unknownTrackImageUri = require("../../assets/images/unknown_track.png");
-
   const { imageColors } = usePlayerBackground(
     currentSong?.imageUrl ?? unknownTrackImageUri
   );
-  const router = useRouter();
 
-  // useEffect(() => {
-  //   if (status.isLoaded && !status.playing) {
-  //     return player.play();
-  //   } else if (status.didJustFinish && !status.playing) {
-  //     playNext();
-  //   }
-  // }, [status.didJustFinish, status.isLoaded]);
+  //? Calculate current progress of the song
+  const progress = duration && duration > 0 ? currentTime / duration : 0;
 
   if (!currentSong) return null;
 
@@ -43,7 +40,7 @@ const FloatingPlayer = ({ style }: ViewProps) => {
     <TouchableOpacity
       onPress={() => router.navigate("/player")}
       activeOpacity={0.9}
-      style={[{}, style]}
+      style={[style]}
     >
       <LinearGradient
         style={{
@@ -51,33 +48,45 @@ const FloatingPlayer = ({ style }: ViewProps) => {
           flexDirection: "row",
           alignItems: "center",
           padding: 8,
-          borderRadius: 12,
-          paddingVertical: 10,
+          borderRadius: 8,
+          paddingVertical: 6,
         }}
-        colors={["#C1272D", "#1B1B1B", "#000000"]}
+        colors={["#0F2027", "#203A43", "#2C5364"]}
       >
-        <Image
-          source={{ uri: currentSong?.imageUrl ?? unknownTrackImageUri }}
-          className="w-10 h-10 rounded-xl"
-        />
-        <View className="flex-1 overflow-hidden ml-2">
-          <MovingText
-            text={currentSong.title ?? ""}
-            animationThreshold={25}
-            style={styles.trackTitle}
-          />
-          <MovingText
-            text={
-              currentSong?.artists.primary.map((a) => a.name).join(",") ?? ""
-            }
-            animationThreshold={25}
-            style={styles.trackArtist}
-          />
-        </View>
-        <View className="flex flex-row items-center gap-5 mr-4 pl-4">
-          <PlayPauseButton iconSize={24} />
+        <View style={styles.parentContainer}>
+          <View style={styles.trakDetailsContainer}>
+            <Image
+              source={{ uri: currentSong?.imageUrl ?? unknownTrackImageUri }}
+              className="w-14 aspect-square rounded-md"
+            />
+            <View className="flex-1 overflow-hidden ml-2">
+              <MovingText
+                text={currentSong.title ?? ""}
+                animationThreshold={25}
+                style={styles.trackTitle}
+              />
+              <MovingText
+                text={
+                  currentSong?.artists.primary.map((a) => a.name).join(",") ??
+                  ""
+                }
+                animationThreshold={25}
+                style={styles.trackArtist}
+              />
+            </View>
+            <View className="flex flex-row items-center gap-5 mr-4 pl-4">
+              <PlayPauseButton iconSize={24} />
 
-          <SkipToNextButton iconSize={24} handlePress={playNext} />
+              <SkipToNextButton iconSize={24} handlePress={playNext} />
+            </View>
+          </View>
+          {/* Progress bar */}
+          <View style={styles.progressContainer}>
+            <Animated.View
+              style={{ backgroundColor: colors.primary, flex: progress }}
+            />
+            <View style={{ flex: 1 - progress }} />
+          </View>
         </View>
       </LinearGradient>
     </TouchableOpacity>
@@ -98,5 +107,27 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "500",
     paddingLeft: 8,
+  },
+  progressContainer: {
+    height: 3,
+    flexDirection: "row",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    overflow: "hidden",
+  },
+  progressFill: {
+    backgroundColor: "#ff4d4d",
+  },
+  trakDetailsContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  parentContainer: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+    gap: 4,
   },
 });

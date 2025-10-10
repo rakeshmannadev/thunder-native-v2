@@ -18,6 +18,8 @@ interface PlayerStore {
   playPrevious: () => void;
   setIsPlaying: (state: boolean) => void;
   hasNext: () => boolean;
+  setShuffle: (state: boolean) => void;
+  setRepeat: (state: boolean) => void;
 }
 
 const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -173,7 +175,13 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
     return currentIndex < queue.length - 1;
   },
   setIsPlaying: (state) => {
-    set({ isPlaying: true });
+    set({ isPlaying: state });
+  },
+  setShuffle: (state) => {
+    set({ isShuffle: state });
+  },
+  setRepeat: (state) => {
+    set({ isRepeat: state });
   },
 }));
 
