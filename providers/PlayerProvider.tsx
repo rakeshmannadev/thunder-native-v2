@@ -1,9 +1,15 @@
 import usePlayerStore from "@/store/usePlayerStore";
-import { AudioPlayer, useAudioPlayer } from "expo-audio";
+import {
+  AudioPlayer,
+  AudioStatus,
+  useAudioPlayer,
+  useAudioPlayerStatus,
+} from "expo-audio";
 import { createContext, PropsWithChildren, useContext, useEffect } from "react";
 
 type audiocontext = {
   player: AudioPlayer;
+  status: AudioStatus;
 };
 const PlayerContext = createContext<audiocontext | undefined>(undefined);
 
@@ -13,41 +19,34 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
     { uri: currentSong?.audioUrl },
     { downloadFirst: true }
   );
+  const status = useAudioPlayerStatus(player);
 
   useEffect(() => {
-    if (!player) return;
-
-    const subscription = player.addListener(
-      "playbackStatusUpdate",
-      (status) => {
-        if (status.didJustFinish) {
-          if (hasNext()) {
-            playNext();
-          } else {
-            player.pause();
-          }
-        }
+    if (!status) return;
+    if (status.didJustFinish) {
+      player.seekTo(0);
+      if (hasNext()) {
+        playNext();
+      } else {
+        player.pause();
       }
-    );
-
-    return () => subscription.remove();
-  }, [player, playNext, hasNext]);
+    }
+  }, [status.didJustFinish]);
 
   useEffect(() => {
-    if (player && currentSong?.audioUrl) {
+    if (player && currentSong && status.isLoaded) {
       (async () => {
         try {
-          player.replace({ uri: currentSong.audioUrl });
           player.play();
         } catch (err) {
           console.error("Failed to autoplay:", err);
         }
       })();
     }
-  }, [currentSong?.audioUrl]);
+  }, [status.isLoaded]);
 
   return (
-    <PlayerContext.Provider value={{ player }}>
+    <PlayerContext.Provider value={{ player, status }}>
       {children}
     </PlayerContext.Provider>
   );

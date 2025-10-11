@@ -1,6 +1,5 @@
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
-import { useAudioPlayerStatus } from "expo-audio";
 import {
   ArrowRight,
   LoaderCircleIcon,
@@ -26,8 +25,8 @@ type PlayerButtonProps = {
 };
 
 export const PlayerControls = ({ style }: PlayerControlsProps) => {
-  const { playNext, playPrevious, setShuffle, isShuffle, isRepeat, setRepeat } =
-    usePlayerStore();
+  const { playNext, playPrevious, setShuffle, isShuffle } = usePlayerStore();
+  const { player, status } = usePlayer();
   const handleShuffle = () => {
     setShuffle(!isShuffle);
   };
@@ -43,8 +42,10 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
         <SkipToNextButton iconSize={30} handlePress={playNext} />
 
         <RepeatButton
-          handlePress={() => setRepeat(!isRepeat)}
-          isRepeat={isRepeat}
+          handlePress={() =>
+            status.loop ? (player.loop = false) : (player.loop = true)
+          }
+          isRepeat={status.loop}
         />
       </View>
     </View>
@@ -52,8 +53,7 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
 };
 
 export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
-  const { player } = usePlayer();
-  const status = useAudioPlayerStatus(player);
+  const { player, status } = usePlayer();
 
   return (
     <View style={[{ height: iconSize }, style]}>
@@ -62,11 +62,7 @@ export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
         onPress={status.playing ? () => player.pause() : () => player.play()}
       >
         {status.isBuffering ? (
-          <LoaderCircleIcon
-            size={iconSize}
-            color={"#fff"}
-            className="animate-spin"
-          />
+          <LoaderCircleIcon size={iconSize} color={"#fff"} />
         ) : status.playing ? (
           <Pause size={iconSize} color={"#fff"} />
         ) : (
@@ -119,7 +115,7 @@ export const ShuffleButton = ({
 }: PlayerButtonProps) => {
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
-      {isShuffle ? (
+      {!isShuffle ? (
         <ArrowRight size={iconSize} color={"#fff"} />
       ) : (
         <Shuffle size={iconSize} color={"#fff"} />

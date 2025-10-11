@@ -4,15 +4,12 @@ import { Fab, FabIcon } from "../ui/fab";
 
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
-import { useAudioPlayerStatus } from "expo-audio";
-import { PauseIcon, PlayIcon } from "lucide-react-native";
+import { Loader2, PauseIcon, PlayIcon } from "lucide-react-native";
 
 const PlayButton = ({ song }: { song: Song }) => {
-  const { player } = usePlayer();
-  const status = useAudioPlayerStatus(player);
+  const { player, status } = usePlayer();
 
-  const { currentSong, setCurrentSong, playAlbum, queue, setIsPlaying } =
-    usePlayerStore();
+  const { currentSong, setCurrentSong } = usePlayerStore();
 
   const currentTrack = currentSong?.title === song.title;
 
@@ -30,7 +27,6 @@ const PlayButton = ({ song }: { song: Song }) => {
 
     player.pause();
   };
-
   return (
     <>
       {currentTrack && status.playing ? (
@@ -49,7 +45,11 @@ const PlayButton = ({ song }: { song: Song }) => {
           placement="bottom right"
           className="bg-green-500 hover:bg-green-700 active:bg-green-800"
         >
-          <FabIcon as={PlayIcon} color="black" />
+          {status.isBuffering ? (
+            <FabIcon as={Loader2} color="black" />
+          ) : (
+            <FabIcon as={PlayIcon} color="black" />
+          )}
         </Fab>
       )}
     </>

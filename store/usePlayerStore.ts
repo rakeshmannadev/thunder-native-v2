@@ -82,7 +82,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   playNext: () => {
     const { currentIndex, queue, isShuffle, isRepeat } = get();
     let nextIndex;
-
+    console.log("isShuffle", isShuffle);
     if (isRepeat) {
       // If repeat is active, stay on the current song
       nextIndex = currentIndex % queue.length;

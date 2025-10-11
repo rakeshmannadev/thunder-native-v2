@@ -1,14 +1,17 @@
 import { colors, fontSize } from "@/constants/tokens";
 import { formatSecondsToMinutes } from "@/helpers/miscellaneous";
 import { usePlayer } from "@/providers/PlayerProvider";
+import usePlayerStore from "@/store/usePlayerStore";
 import { defaultStyles, utilsStyles } from "@/styles";
 import { useAudioPlayerStatus } from "expo-audio";
+import { useEffect } from "react";
 import { StyleSheet, Text, View, ViewProps } from "react-native";
 import { Slider } from "react-native-awesome-slider";
 import { useSharedValue } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
 export const PlayerProgressBar = ({ style }: ViewProps) => {
+  const { currentSong } = usePlayerStore();
   const { player } = usePlayer();
   const status = useAudioPlayerStatus(player);
 
@@ -19,9 +22,14 @@ export const PlayerProgressBar = ({ style }: ViewProps) => {
 
   const trackElapsedTime = formatSecondsToMinutes(status.currentTime);
   const trackRemainingTime = formatSecondsToMinutes(
-    status.duration - status.currentTime
+    Math.max(status.duration - status.currentTime, 0)
   );
-
+  useEffect(() => {
+    if (status.didJustFinish) {
+      progress.value = 0;
+      isSliding.value = false;
+    }
+  }, [status.didJustFinish]);
   const updateProgress = () => {
     if (!isSliding.value) {
       progress.value =
