@@ -1,3 +1,4 @@
+import { DiscAlbumIcon, LibraryBigIcon, Mic2Icon } from "lucide-react-native";
 import { Image } from "react-native";
 
 export const HomeIcon = ({ color }: { color: any }) => {
@@ -34,4 +35,10 @@ export const LogoIcon = () => {
       }}
     />
   );
+};
+
+export const ICON_MAPS: Record<string, any> = {
+  album: DiscAlbumIcon,
+  artist: Mic2Icon,
+  playlist: LibraryBigIcon,
 };

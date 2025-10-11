@@ -135,6 +135,34 @@ export default function RootLayout() {
                     headerRight: () => <HeaderRight />,
                   }}
                 />
+                <Stack.Screen
+                  name="menu"
+                  options={{
+                    headerShown: false,
+                    presentation: "formSheet",
+                    animation: "slide_from_bottom",
+                    gestureDirection: "vertical",
+                    sheetGrabberVisible: true,
+                    sheetInitialDetentIndex: 1,
+                    sheetAllowedDetents: [0.25, 0.5, 1],
+                    sheetExpandsWhenScrolledToEdge: true,
+                    sheetCornerRadius: 16,
+                    sheetElevation: 24,
+                  }}
+                />
+                <Stack.Screen
+                  name="modal"
+                  options={{
+                    headerShown: false,
+                    presentation: "formSheet",
+                    animation: "slide_from_bottom",
+                    gestureDirection: "vertical",
+                    sheetGrabberVisible: true,
+                    sheetInitialDetentIndex: 1,
+                    sheetAllowedDetents: [0.5, 1],
+                    sheetExpandsWhenScrolledToEdge: true,
+                  }}
+                />
 
                 <Stack.Screen name="+not-found" />
               </Stack>

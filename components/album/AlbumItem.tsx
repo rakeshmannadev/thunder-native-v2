@@ -1,15 +1,14 @@
-import { View, Text, Pressable, Image, TouchableOpacity } from "react-native";
-import React from "react";
-import { ThemedText } from "../ThemedText";
-import {
-  AudioLines,
-  EllipsisVerticalIcon,
-  PlayIcon,
-} from "lucide-react-native";
-import { Skeleton, SkeletonText } from "../ui/skeleton";
-import { Artist, Song } from "@/types";
+import { colors } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
+import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
+import { Artist, Song } from "@/types";
+import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
+import React from "react";
+import { Image, Pressable, TouchableOpacity, View } from "react-native";
+import MusicVisualizer from "../songs/MusicVisualizer";
+import { ThemedText } from "../ThemedText";
+import { Skeleton, SkeletonText } from "../ui/skeleton";
 
 const AlbumItem = ({
   isLoading,
@@ -21,6 +20,7 @@ const AlbumItem = ({
 
   handleTrackChange: (track: Song) => void;
 }) => {
+  const { status } = usePlayer();
   const { currentSong, isPlaying } = usePlayerStore();
   const isActive = currentSong?.audioUrl == song.audioUrl;
 
@@ -48,13 +48,13 @@ const AlbumItem = ({
         )}
         {isActive && (
           <View
-            className="absolute top-0 left-0 h-10 w-14 rounded-lg flex flex-row items-center justify-center 
+            className="absolute top-0 left-0 h-12 w-16 rounded-lg flex flex-row items-center justify-center 
              bg-gray-600/80"
           >
-            {isPlaying ? (
-              <AudioLines size={25} className=" animate-pulse  " />
+            {status.playing ? (
+              <MusicVisualizer />
             ) : (
-              <PlayIcon size={25} />
+              <PlayIcon color={colors.icon} size={25} />
             )}
           </View>
         )}
@@ -71,17 +71,17 @@ const AlbumItem = ({
           {isLoading ? (
             <SkeletonText className="w-24 h-4" />
           ) : (
-            <>
+            <View className="flex-1 flex-row items-center justify-between">
               <ThemedText className="text-xs truncate">
                 {song.artists.primary
                   .map((artist: Artist) => artist.name)
                   .join(", ")}
               </ThemedText>
-              {"●"}
+
               <ThemedText className="text-xs">
                 {formatDuration(song.duration ?? 0)}
               </ThemedText>
-            </>
+            </View>
           )}
         </View>
       </View>
@@ -89,7 +89,7 @@ const AlbumItem = ({
         onPressIn={(e) => e.stopPropagation()}
         className="w-fit p-2 rounded-full hover:bg-hover-background"
       >
-        <EllipsisVerticalIcon size={18} />
+        <EllipsisVerticalIcon size={20} color={colors.icon} />
       </Pressable>
     </TouchableOpacity>
   );

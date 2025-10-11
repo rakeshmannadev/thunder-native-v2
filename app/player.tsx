@@ -12,9 +12,9 @@ import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { ChevronDownIcon, Share2 } from "lucide-react-native";
-import { useEffect } from "react";
+import { useRouter } from "expo-router";
+import { ChevronDownIcon, MoreVerticalIcon, Share2 } from "lucide-react-native";
+import { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -39,13 +39,16 @@ import {
 } from "react-native-safe-area-context";
 
 const PlayerScreen = () => {
+  const [showBottmSheet, setShowBottomSheet] = useState(false);
+  const router = useRouter();
+
   const { addToFavorite, favoriteSongs, currentUser } = useUserStore();
   const { currentSong } = usePlayerStore();
 
   const unknownTrackImageUri = require("../assets/images/unknown_track.png");
 
   const { imageColors } = usePlayerBackground(
-    currentSong?.imageUrl ?? unknownTrackImageUri
+    currentSong?.imageUrl || unknownTrackImageUri
   );
 
   const gradientColor = getGradientColors(imageColors);
@@ -129,17 +132,61 @@ const PlayerScreen = () => {
         />
         <View style={[styles.overlayContainer]}>
           {/* Close button */}
-          <View style={styles.closeIconContainer}>
+          <View style={styles.topBarIconContainer}>
             <TouchableOpacity activeOpacity={0.7} onPress={() => router.back()}>
               <ChevronDownIcon size={30} color={"#fff"} />
             </TouchableOpacity>
+
+            <View
+              style={{
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() =>
+                  router.push({
+                    pathname: "/menu",
+                    params: {
+                      items: JSON.stringify([
+                        {
+                          key: "go_to_album",
+                          label: "Go to album",
+                          onPress: () => console.log("Go to album"),
+                          icon: "album",
+                          id: currentSong.albumId,
+                        },
+                        {
+                          key: "go_to_artist",
+                          label: "Go to artist",
+                          onPress: () => null,
+                          icon: "artist",
+                          id: currentSong.artists.primary[0].id,
+                        },
+                        {
+                          key: "save_to_playlist",
+                          label: "Save to playlist",
+                          onPress: () => null,
+                          icon: "playlist",
+                          id: currentSong._id,
+                        },
+                      ]),
+                    },
+                  })
+                }
+              >
+                <MoreVerticalIcon size={22} color={"#fff"} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={{ flex: 1, marginTop: top + 70 }}>
             <View style={styles.artworkImageContainer}>
               <Animated.Image
                 source={{
-                  uri: currentSong.imageUrl ?? unknownTrackImageUri,
+                  uri: currentSong.imageUrl,
                 }}
                 resizeMode="cover"
                 style={[styles.artworkImage, animatedArtworkStyle]}
@@ -269,13 +316,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding.horizontal,
     backgroundColor: "rgba(0,0,0,0.5)",
   },
-  closeIconContainer: {
-    height: 40,
-    width: 40,
+  topBarIconContainer: {
+    flexDirection: "row",
+    height: 10,
+    width: " 100%",
     justifyContent: "space-between",
     alignItems: "center",
     paddingInline: 8,
-    paddingTop: 30,
+    paddingTop: 42,
   },
   artworkImageContainer: {
     shadowColor: "#000",
