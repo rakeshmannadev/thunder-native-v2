@@ -124,7 +124,7 @@ export default function HomeScreen() {
           }
         </VStack>
         {/* Albums section */}
-        <VStack space="md" className="mt-2 p-2">
+        <VStack space="md" className="mt-2 mb-12 p-2">
           <View className="w-full flex flex-row justify-between items-center pr-2">
             <ThemedText type="subtitle" className="px-3">
               Albums

@@ -4,8 +4,6 @@ import QueueScreen from "@/components/songs/QueueScreen";
 import { MovingText } from "@/components/songs/useMovingText";
 
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
-import { getGradientColors } from "@/helpers/getGradientColors";
-import { usePlayerBackground } from "@/hooks/usePlayerBackground";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 
@@ -46,12 +44,6 @@ const PlayerScreen = () => {
   const { currentSong } = usePlayerStore();
 
   const unknownTrackImageUri = require("../assets/images/unknown_track.png");
-
-  const { imageColors } = usePlayerBackground(
-    currentSong?.imageUrl || unknownTrackImageUri
-  );
-
-  const gradientColor = getGradientColors(imageColors);
 
   const { top, bottom } = useSafeAreaInsets();
 
@@ -122,7 +114,7 @@ const PlayerScreen = () => {
           StyleSheet.absoluteFillObject,
           { flex: 1, overflow: "visible" },
         ]}
-        colors={gradientColor}
+        colors={["#0F2027", "#203A43", "#2C5364"]}
       >
         <Image
           source={{ uri: currentSong.imageUrl ?? unknownTrackImageUri }}
@@ -276,7 +268,7 @@ const PlayerScreen = () => {
             </View>
           </View>
         </View>
-        <QueueScreen gradientColors={gradientColor} />
+        <QueueScreen imageUrl={currentSong.imageUrl} />
       </LinearGradient>
     </SafeAreaView>
   );

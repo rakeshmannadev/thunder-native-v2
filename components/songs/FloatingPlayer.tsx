@@ -8,7 +8,6 @@ import {
 } from "react-native";
 
 import { colors } from "@/constants/tokens";
-import { usePlayerBackground } from "@/hooks/usePlayerBackground";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { useAudioPlayerStatus } from "expo-audio";
@@ -21,15 +20,12 @@ import { MovingText } from "./useMovingText";
 const FloatingPlayer = ({ style }: ViewProps) => {
   const router = useRouter();
 
-  const { currentSong, playNext, isPlaying } = usePlayerStore();
+  const { currentSong, playNext } = usePlayerStore();
   const { player } = usePlayer();
   const status = useAudioPlayerStatus(player);
   const { currentTime, duration } = status;
 
   const unknownTrackImageUri = require("../../assets/images/unknown_track.png");
-  const { imageColors } = usePlayerBackground(
-    currentSong?.imageUrl ?? unknownTrackImageUri
-  );
 
   //? Calculate current progress of the song
   const progress = duration && duration > 0 ? currentTime / duration : 0;

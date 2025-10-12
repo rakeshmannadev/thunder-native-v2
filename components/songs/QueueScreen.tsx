@@ -20,32 +20,19 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { usePlayerBackground } from "@/hooks/usePlayerBackground";
-import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Song } from "@/types";
 import { ListMusic, MoreVertical } from "lucide-react-native";
-import BottomSheetMenu from "../BottomSheetMenu";
+import GradientBackground from "../GradientBackground";
 import { Button, ButtonIcon } from "../ui/button";
 import MusicVisualizer from "./MusicVisualizer";
 
 const QUEUE_HEIGHT = 520; // total sheet height
 const PEEK_HEIGHT = 96; // visible when peeked
 
-export default function QueueScreen({
-  gradientColors,
-}: {
-  gradientColors?:
-    | readonly [string, string, string]
-    | readonly [string, string];
-}) {
-  const { queue, currentSong, setCurrentSong, playNext } = usePlayerStore();
-  const { player } = usePlayer();
+export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
+  const { queue, currentSong, setCurrentSong } = usePlayerStore();
   const router = useRouter();
-  const [visible, setVisible] = useState(false);
-
-  // dynamic gradient based on current song art
-  const { imageColors } = usePlayerBackground(currentSong?.imageUrl ?? "");
 
   // sheet translate (start peeked)
   const translateY = useSharedValue(QUEUE_HEIGHT - PEEK_HEIGHT);
@@ -92,17 +79,6 @@ export default function QueueScreen({
     transform: [{ translateY: translateY.value }],
   }));
 
-  // helpers
-  const openSheet = () => {
-    translateY.value = withSpring(0, { stiffness: 160, damping: 20 });
-  };
-  const closeSheet = () => {
-    translateY.value = withSpring(QUEUE_HEIGHT - PEEK_HEIGHT, {
-      stiffness: 160,
-      damping: 20,
-    });
-  };
-
   // FlatList item renderer
   const renderItem = ({ item }: ListRenderItemInfo<Song>) => {
     const isCurrent = currentSong?._id === item._id;
@@ -140,7 +116,43 @@ export default function QueueScreen({
 
         {/* Gluestack Menu Trigger wrapped inside Gesture.Native to avoid gesture conflicts */}
         <GestureDetector gesture={Gesture.Native()}>
-          <Button variant="link" size="lg" onPress={() => setVisible(true)}>
+          <Button
+            variant="link"
+            size="lg"
+            onPress={() =>
+              router.push({
+                pathname: "/menu",
+                params: {
+                  items: JSON.stringify([
+                    {
+                      key: "go_to_album",
+                      label: "Go to album",
+                      icon: "album",
+                      id: item.albumId,
+                    },
+                    {
+                      key: "go_to_artist",
+                      label: "Go to artist",
+                      icon: "artist",
+                      id: item.artists.primary[0].id,
+                    },
+                    {
+                      key: "save_to_playlist",
+                      label: "Save to playlist",
+                      icon: "playlist",
+                      id: item._id,
+                    },
+                    {
+                      key: "download",
+                      label: "Download",
+                      icon: "download",
+                      id: item.audioUrl,
+                    },
+                  ]),
+                },
+              })
+            }
+          >
             <ButtonIcon as={MoreVertical} />
           </Button>
         </GestureDetector>
@@ -174,6 +186,7 @@ export default function QueueScreen({
           end={{ x: 0, y: 1 }}
           style={styles.gradient}
         >
+          <GradientBackground imageUrl={imageUrl} />
           {/* handle + title */}
           <View style={styles.handleContainer}>
             <View style={styles.handle} />
@@ -198,22 +211,6 @@ export default function QueueScreen({
               />
             </GestureDetector>
           </View>
-          <BottomSheetMenu
-            visible={visible}
-            onClose={() => setVisible(false)}
-            items={[
-              { label: "Go to Album", onPress: () => console.log("Album") },
-              {
-                label: "Add to Playlist",
-                onPress: () => console.log("Playlist"),
-              },
-              {
-                label: "Delete Song",
-                onPress: () => console.log("Delete"),
-                destructive: true,
-              },
-            ]}
-          />
         </LinearGradient>
       </Animated.View>
     </GestureDetector>

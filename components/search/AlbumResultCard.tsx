@@ -16,7 +16,11 @@ const AlbumResultCard = ({
   isLoading: boolean;
 }) => {
   return (
-    <Card size="sm" variant="outline" className="rounded-2xl mb-3 w-full">
+    <Card
+      size="sm"
+      variant="outline"
+      className="rounded-2xl mb-3 w-full overflow-hidden"
+    >
       <Link href={`../../album/${result.id}`}>
         <HStack space="md" className="items-center">
           {isLoading ? (
@@ -33,12 +37,14 @@ const AlbumResultCard = ({
             {isLoading ? (
               <SkeletonText className="w-20 h-4" />
             ) : (
-              <ThemedText type="subtitle">{result.title}</ThemedText>
+              <ThemedText type="subtitle" numberOfLines={1}>
+                {result.title}
+              </ThemedText>
             )}
             {isLoading ? (
               <SkeletonText className="w-16 h-4" />
             ) : (
-              <ThemedText type="default" className="truncate max-w-48">
+              <ThemedText type="default" numberOfLines={1}>
                 {result.artist}
               </ThemedText>
             )}

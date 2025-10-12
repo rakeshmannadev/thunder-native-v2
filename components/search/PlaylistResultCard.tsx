@@ -1,12 +1,10 @@
 import { PlaylistResult } from "@/types";
 import { Link } from "expo-router";
 import React from "react";
-import { Image } from "react-native";
+import { Image, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { Card } from "../ui/card";
-import { HStack } from "../ui/hstack";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
-import { VStack } from "../ui/vstack";
 
 const PlaylistResultCard = ({
   result,
@@ -16,9 +14,13 @@ const PlaylistResultCard = ({
   isLoading: boolean;
 }) => {
   return (
-    <Card size="sm" variant="outline" className="rounded-2xl mb-3 w-full">
+    <Card
+      size="sm"
+      variant="outline"
+      className="rounded-2xl mb-3 w-full overflow-hidden"
+    >
       <Link href={`../../playlist/${result.id}`}>
-        <HStack space="md" className="items-center">
+        <View className="flex-row gap-2 items-center w-full">
           {isLoading ? (
             <Skeleton className="w-16 h-20 rounded-xl" />
           ) : (
@@ -29,21 +31,23 @@ const PlaylistResultCard = ({
               className="aspect-square w-24 rounded-xl"
             />
           )}
-          <VStack space="md" className="items-start h-full">
+          <View className="items-start h-full max-w-full gap-2">
             {isLoading ? (
               <SkeletonText className="w-20 h-4" />
             ) : (
-              <ThemedText type="subtitle">{result.title}</ThemedText>
+              <ThemedText type="subtitle" numberOfLines={1}>
+                {result.title}
+              </ThemedText>
             )}
             {isLoading ? (
               <SkeletonText className="w-16 h-4" />
             ) : (
-              <ThemedText type="default">
+              <ThemedText type="default" numberOfLines={1}>
                 {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
               </ThemedText>
             )}
-          </VStack>
-        </HStack>
+          </View>
+        </View>
       </Link>
     </Card>
   );

@@ -102,8 +102,8 @@ export default function RootLayout() {
                     animation: "slide_from_bottom",
                     gestureDirection: "vertical",
                     sheetGrabberVisible: true,
-                    sheetInitialDetentIndex: 1,
-                    sheetAllowedDetents: [0.5, 1],
+                    sheetInitialDetentIndex: 0,
+                    sheetAllowedDetents: [1],
                     sheetExpandsWhenScrolledToEdge: true,
                     sheetElevation: 24,
                   }}

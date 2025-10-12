@@ -2,6 +2,7 @@ import usePlayerStore from "@/store/usePlayerStore";
 import {
   AudioPlayer,
   AudioStatus,
+  setAudioModeAsync,
   useAudioPlayer,
   useAudioPlayerStatus,
 } from "expo-audio";
@@ -22,9 +23,24 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
   const status = useAudioPlayerStatus(player);
 
   useEffect(() => {
+    (async () => {
+      try {
+        await setAudioModeAsync({
+          playsInSilentMode: true,
+          shouldPlayInBackground: true,
+          interruptionModeAndroid: "doNotMix",
+          interruptionMode: "doNotMix",
+          shouldRouteThroughEarpiece: true,
+        });
+      } catch (error) {
+        console.log("Error while setting audio mode:", error);
+      }
+    })();
+  }, [player]);
+
+  useEffect(() => {
     if (!status) return;
     if (status.didJustFinish) {
-      player.seekTo(0);
       if (hasNext()) {
         playNext();
       } else {

@@ -1,16 +1,13 @@
 import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import AlbumItem from "@/components/album/AlbumItem";
+import GradientBackground from "@/components/GradientBackground";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
-import { fontSize, screenPadding } from "@/constants/tokens";
-import { getGradientColors } from "@/helpers/getGradientColors";
-import { songToTrack } from "@/helpers/SongToTrack";
-import { usePlayerBackground } from "@/hooks/usePlayerBackground";
+import { colors, fontSize, screenPadding } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
-import { Song } from "@/types";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import {
@@ -19,39 +16,20 @@ import {
   PlayCircleIcon,
 } from "lucide-react-native";
 import React, { useEffect } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const SongScreen = () => {
   const { fetchSingle, isLoading, single } = useMusicStore();
   const { favoriteSongs, addToFavorite } = useUserStore();
-  const unknownTrackImageUri = require("../../assets/images/unknown_track.png");
-  const { bottom } = useSafeAreaInsets();
+  const { bottom, top } = useSafeAreaInsets();
   const { id }: { id: string } = useLocalSearchParams();
 
   useEffect(() => {
     fetchSingle(id);
   }, [id, fetchSingle]);
-
-  const { imageColors } = usePlayerBackground(
-    single?.imageUrl ?? unknownTrackImageUri
-  );
-  const handleTrackChange = async (selectedTrack: Song) => {
-    const trackToAdd = songToTrack(selectedTrack);
-
-    // await TrackPlayer.reset();
-
-    // construct new queue
-    // await TrackPlayer.add(trackToAdd);
-
-    // await TrackPlayer.play();
-  };
-  const handlePlay = async () => {
-    if (!single) return;
-    const tracks = songToTrack(single);
-    // await TrackPlayer.reset();
-    // await TrackPlayer.add(tracks);
-    // await TrackPlayer.play();
-  };
 
   const handleAddToFavorite = () => {
     if (!single) return;
@@ -78,130 +56,141 @@ const SongScreen = () => {
     }
   });
   return (
-    <LinearGradient style={{ flex: 1 }} colors={getGradientColors(imageColors)}>
-      <ScrollView style={styles.overlayContainer} className="my-16">
-        <View
-          style={{
-            flex: 1,
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient
+        style={{ flex: 1 }}
+        colors={["#0F2027", "#203A43", "#2C5364"]}
+      >
+        {!isLoading && <GradientBackground imageUrl={single?.imageUrl} />}
 
-            display: "flex",
-            flexDirection: "row",
-            gap: 15,
-            marginTop: 10,
-            marginBottom: bottom,
-          }}
-        >
-          <View style={styles.artworkImageContainer}>
+        {/* --- Album Header Section --- */}
+        <View style={[styles.headerSection, { marginTop: top + 36 }]}>
+          <View style={styles.artworkContainer}>
             {isLoading ? (
               <Skeleton variant="sharp" />
             ) : (
               <Image
                 source={{
-                  uri: single?.imageUrl ?? unknownTrackImageUri,
+                  uri: single?.imageUrl,
                 }}
+                style={styles.artwork}
                 resizeMode="cover"
-                style={styles.artworkImage}
               />
             )}
           </View>
-          {/* Track details */}
-          <View style={styles.trackTitleContainer}>
+
+          <View style={styles.infoContainer}>
             {isLoading ? (
               <SkeletonText _lines={1} className="w-20 h-4" />
             ) : (
-              <ThemedText style={styles.trackTitleText}>
-                {single?.title ?? "Test title"}
+              <ThemedText style={styles.title}>
+                {single?.title ?? "Unknown Album"}
               </ThemedText>
             )}
-            {/* Track artists */}
+
             {isLoading ? (
               <SkeletonText className="w-16 h-4" />
             ) : (
-              <ThemedText
-                style={styles.trackArtistText}
-                className="w-full max-h-12 truncate  "
-              >
-                {single?.artists.primary
-                  .map((artist) => artist.name)
-                  .join(", ") ?? "Test title"}
+              <ThemedText style={styles.artist}>
+                {single?.artists.primary.map((a) => a.name).join(", ") ?? ""}
               </ThemedText>
             )}
-            {/* Release year */}
-            {isLoading ? (
-              <SkeletonText className="w-12 h-4" />
-            ) : (
-              <ThemedText type="default">{single?.releaseYear}</ThemedText>
-            )}
-            {/* 3dot menu */}
-            <View className="flex flex-row gap-1 items-center   w-fit">
-              <Pressable
-                onPress={handleAddToFavorite}
-                className="hover:bg-hover-background w-fit rounded-full p-2"
-              >
+
+            <View style={styles.controls}>
+              <Pressable onPress={() => null} style={styles.iconButton}>
                 <HeartIcon
-                  size={18}
-                  color={isAlreadyfavorite ? "green" : "white"}
-                  fill={isAlreadyfavorite ? "green" : ""}
+                  size={20}
+                  fill={isAlreadyfavorite ? "green" : "none"}
+                  color={isAlreadyfavorite ? "green" : colors.icon}
                 />
               </Pressable>
-              <Pressable
-                onPress={handlePlay}
-                className="hover:bg-hover-background w-fit rounded-full p-2"
-              >
-                <PlayCircleIcon size={18} />
+
+              <Pressable onPress={() => null} style={styles.iconButton}>
+                <PlayCircleIcon size={22} color={colors.icon} />
               </Pressable>
 
-              <Pressable className="hover:bg-hover-background w-fit rounded-full p-2 ">
-                <EllipsisVertical size={18} />
+              <Pressable style={styles.iconButton}>
+                <EllipsisVertical size={22} color={colors.icon} />
               </Pressable>
             </View>
           </View>
         </View>
-        {/* Song lists */}
-        <View className="mt-5">
-          {single && (
-            <AlbumItem
-              isLoading={isLoading}
-              song={single}
-              handleTrackChange={handleTrackChange}
-            />
-          )}
-        </View>
-      </ScrollView>
-    </LinearGradient>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottom + 40 },
+          ]}
+        >
+          {/* Song lists */}
+          <View className="mt-5">
+            {single && <AlbumItem isLoading={isLoading} song={single} />}
+          </View>
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  headerSection: {
+    flexDirection: "row",
+    gap: 15,
+    marginBottom: 20,
+    padding: screenPadding.horizontal,
+  },
   overlayContainer: {
     ...defaultStyles.container,
 
     paddingHorizontal: screenPadding.horizontal,
     backgroundColor: "rgba(0,0,0,0.5)",
   },
-  artworkImageContainer: {
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.44,
-    shadowRadius: 11.0,
-    flexDirection: "row",
-    justifyContent: "center",
-    height: "90%",
-    width: "55%",
+  artworkContainer: {
+    width: 150,
+    height: 150,
+    borderRadius: 12,
+    overflow: "hidden",
+    elevation: 6,
   },
-  artworkImage: {
+  scrollContent: {
+    paddingHorizontal: screenPadding.horizontal,
+    paddingTop: 20,
+  },
+  artwork: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
     borderRadius: 12,
   },
-  trackTitleContainer: {
-    marginTop: 15,
+  infoContainer: {
     flex: 1,
-    overflow: "hidden",
-    gap: 10,
-    lineHeight: 15,
+    justifyContent: "space-between",
+    paddingVertical: 4,
+  },
+  title: {
+    ...defaultStyles.text,
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  controls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 10,
+  },
+  iconButton: {
+    padding: 6,
+    borderRadius: 50,
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  artist: {
+    ...defaultStyles.text,
+    fontSize: fontSize.base,
+    opacity: 0.8,
+    marginVertical: 6,
   },
   trackPlayingIconIndicator: {
     position: "absolute",

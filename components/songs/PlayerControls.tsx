@@ -30,16 +30,27 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
   const handleShuffle = () => {
     setShuffle(!isShuffle);
   };
+
+  const handlePlayNext = () => {
+    player.pause();
+    player.seekTo(0);
+    playNext();
+  };
+  const handlePlayPrevious = () => {
+    player.pause();
+    player.seekTo(0);
+    playPrevious();
+  };
   return (
     <View style={[styles.container, style]}>
       <View style={styles.row}>
         <ShuffleButton handlePress={handleShuffle} isShuffle={isShuffle} />
 
-        <SkipToPreviousButton iconSize={30} handlePress={playPrevious} />
+        <SkipToPreviousButton iconSize={30} handlePress={handlePlayPrevious} />
 
         <PlayPauseButton iconSize={30} />
 
-        <SkipToNextButton iconSize={30} handlePress={playNext} />
+        <SkipToNextButton iconSize={30} handlePress={handlePlayNext} />
 
         <RepeatButton
           handlePress={() =>

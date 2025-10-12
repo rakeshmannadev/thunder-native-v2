@@ -10,24 +10,15 @@ import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
 
-const AlbumItem = ({
-  isLoading,
-  song,
-  handleTrackChange,
-}: {
-  isLoading: boolean;
-  song: Song;
-
-  handleTrackChange: (track: Song) => void;
-}) => {
+const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
   const { status } = usePlayer();
-  const { currentSong, isPlaying } = usePlayerStore();
+  const { currentSong, setCurrentSong } = usePlayerStore();
   const isActive = currentSong?.audioUrl == song.audioUrl;
 
   return (
     <TouchableOpacity
-      onPress={() => handleTrackChange(song)}
-      className="flex flex-row gap-5 justify-between items-center p-2 rounded-xl  mb-1 "
+      onPress={() => setCurrentSong(song)}
+      className="flex flex-row gap-5 justify-between items-center p-2 rounded-xl  mb-4 "
     >
       <View>
         {isLoading ? (
@@ -42,7 +33,7 @@ const AlbumItem = ({
               width: 56,
               height: 40,
               objectFit: "cover",
-              borderRadius: 10,
+              borderRadius: 8,
             }}
           />
         )}
@@ -59,11 +50,11 @@ const AlbumItem = ({
           </View>
         )}
       </View>
-      <View className="flex flex-1 gap-1 ">
+      <View className="flex flex-1 gap-1 pr-4 ">
         {isLoading ? (
           <SkeletonText className="w-28 h-4" />
         ) : (
-          <ThemedText className="text-sm text-white font-semibold line-clamp-1 truncate">
+          <ThemedText numberOfLines={1} type="defaultSemiBold">
             {song.title}
           </ThemedText>
         )}
@@ -71,11 +62,12 @@ const AlbumItem = ({
           {isLoading ? (
             <SkeletonText className="w-24 h-4" />
           ) : (
-            <View className="flex-1 flex-row items-center justify-between">
-              <ThemedText className="text-xs truncate">
+            <View className="flex-1 flex-row items-center justify-start gap-2">
+              <ThemedText numberOfLines={1} type="default">
                 {song.artists.primary
                   .map((artist: Artist) => artist.name)
-                  .join(", ")}
+                  .join(", ")}{" "}
+                {"●"}
               </ThemedText>
 
               <ThemedText className="text-xs">

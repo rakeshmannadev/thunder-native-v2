@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "permissions": [
@@ -26,7 +29,9 @@
         "BLUETOOTH_CONNECT",
         "BLUETOOTH_SCAN",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -57,7 +62,8 @@
           }
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -68,6 +74,7 @@
       "eas": {
         "projectId": "bdcca3db-4e72-426d-9a4e-85ddd0fcbb46"
       }
-    }
+    },
+    "owner": "dev.rakesh"
   }
 }

@@ -20,23 +20,21 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
+import GradientBackground from "@/components/GradientBackground";
 import { ThemedText } from "@/components/ThemedText";
 import AlbumItem from "@/components/album/AlbumItem";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
-import { usePlayerBackground } from "@/hooks/usePlayerBackground";
 import useMusicStore from "@/store/useMusicStore";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 
 const AlbumScreen = () => {
   const { id }: { id: string } = useLocalSearchParams();
-  const { bottom } = useSafeAreaInsets();
+  const { bottom, top } = useSafeAreaInsets();
 
   const { addAlbumToPlaylist, playlists } = useUserStore();
   const { isLoading, fetchAlbumById, currentAlbum } = useMusicStore();
-
-  const unknownTrackImageUri = require("../../assets/images/unknown_track.png");
 
   useEffect(() => {
     if (id) {
@@ -44,10 +42,6 @@ const AlbumScreen = () => {
       fetchAlbumById(id);
     }
   }, [id, fetchAlbumById]);
-
-  const { imageColors } = usePlayerBackground(
-    currentAlbum?.imageUrl ?? unknownTrackImageUri
-  );
 
   const isAddedToPlaylist = playlists.find(
     (p) => p.albumId === currentAlbum?.albumId
@@ -74,12 +68,72 @@ const AlbumScreen = () => {
         colors={["#0F2027", "#203A43", "#2C5364"]}
         style={StyleSheet.absoluteFillObject}
       />
-      <Image
-        source={{ uri: currentAlbum?.imageUrl }}
-        blurRadius={50}
-        style={[StyleSheet.absoluteFillObject, { opacity: 0.25 }]}
-        resizeMode="cover"
-      />
+      {!isLoading && <GradientBackground imageUrl={currentAlbum?.imageUrl} />}
+
+      {/* --- Album Header Section --- */}
+      <View style={[styles.headerSection, { marginTop: top + 36 }]}>
+        <View style={styles.artworkContainer}>
+          {isLoading ? (
+            <Skeleton variant="sharp" />
+          ) : (
+            <Image
+              source={{
+                uri: currentAlbum?.imageUrl,
+              }}
+              style={styles.artwork}
+              resizeMode="cover"
+            />
+          )}
+        </View>
+
+        <View style={styles.infoContainer}>
+          {isLoading ? (
+            <SkeletonText _lines={1} className="w-20 h-4" />
+          ) : (
+            <ThemedText style={styles.title}>
+              {currentAlbum?.title ?? "Unknown Album"}
+            </ThemedText>
+          )}
+
+          {isLoading ? (
+            <SkeletonText className="w-16 h-4" />
+          ) : (
+            <ThemedText style={styles.artist}>
+              {currentAlbum?.artists.primary.map((a) => a.name).join(", ") ??
+                ""}
+            </ThemedText>
+          )}
+
+          <ThemedText style={styles.songCount}>
+            {currentAlbum?.songs.length ?? 0} Songs
+          </ThemedText>
+
+          <View style={styles.controls}>
+            <Pressable
+              onPress={handleAddAlbumToPlaylist}
+              style={styles.iconButton}
+            >
+              <HeartIcon
+                size={20}
+                fill={isAddedToPlaylist ? "green" : "none"}
+                color={isAddedToPlaylist ? "green" : colors.icon}
+              />
+            </Pressable>
+
+            <Pressable onPress={handlePlay} style={styles.iconButton}>
+              <PlayCircleIcon size={22} color={colors.icon} />
+            </Pressable>
+
+            <Pressable onPress={handleShufflePlay} style={styles.iconButton}>
+              <Shuffle size={22} color={colors.icon} />
+            </Pressable>
+
+            <Pressable style={styles.iconButton}>
+              <EllipsisVertical size={22} color={colors.icon} />
+            </Pressable>
+          </View>
+        </View>
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -88,82 +142,13 @@ const AlbumScreen = () => {
           { paddingBottom: bottom + 40 },
         ]}
       >
-        {/* --- Album Header Section --- */}
-        <View style={styles.headerSection}>
-          <View style={styles.artworkContainer}>
-            {isLoading ? (
-              <Skeleton variant="sharp" />
-            ) : (
-              <Image
-                source={{
-                  uri: currentAlbum?.imageUrl ?? unknownTrackImageUri,
-                }}
-                style={styles.artwork}
-                resizeMode="cover"
-              />
-            )}
-          </View>
-
-          <View style={styles.infoContainer}>
-            {isLoading ? (
-              <SkeletonText _lines={1} className="w-20 h-4" />
-            ) : (
-              <ThemedText style={styles.title}>
-                {currentAlbum?.title ?? "Unknown Album"}
-              </ThemedText>
-            )}
-
-            {isLoading ? (
-              <SkeletonText className="w-16 h-4" />
-            ) : (
-              <ThemedText style={styles.artist}>
-                {currentAlbum?.artists.primary.map((a) => a.name).join(", ") ??
-                  ""}
-              </ThemedText>
-            )}
-
-            <ThemedText style={styles.songCount}>
-              {currentAlbum?.songs.length ?? 0} Songs
-            </ThemedText>
-
-            <View style={styles.controls}>
-              <Pressable
-                onPress={handleAddAlbumToPlaylist}
-                style={styles.iconButton}
-              >
-                <HeartIcon
-                  size={20}
-                  fill={isAddedToPlaylist ? "green" : "none"}
-                  color={isAddedToPlaylist ? "green" : colors.icon}
-                />
-              </Pressable>
-
-              <Pressable onPress={handlePlay} style={styles.iconButton}>
-                <PlayCircleIcon size={22} color={colors.icon} />
-              </Pressable>
-
-              <Pressable onPress={handleShufflePlay} style={styles.iconButton}>
-                <Shuffle size={22} color={colors.icon} />
-              </Pressable>
-
-              <Pressable style={styles.iconButton}>
-                <EllipsisVertical size={22} color={colors.icon} />
-              </Pressable>
-            </View>
-          </View>
-        </View>
-
         {/* --- Tracklist Section --- */}
         <FlatList
           data={currentAlbum?.songs ?? []}
           keyExtractor={(item) => item._id}
           scrollEnabled={false}
           renderItem={({ item: song }) => (
-            <AlbumItem
-              isLoading={isLoading}
-              song={song}
-              handleTrackChange={() => null}
-            />
+            <AlbumItem isLoading={isLoading} song={song} />
           )}
         />
       </ScrollView>
@@ -185,7 +170,8 @@ const styles = StyleSheet.create({
   headerSection: {
     flexDirection: "row",
     gap: 15,
-    marginVertical: 40,
+    marginBottom: 20,
+    padding: screenPadding.horizontal,
   },
   artworkContainer: {
     width: 150,

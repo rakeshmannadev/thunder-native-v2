@@ -61,7 +61,7 @@ export default function MenuSheet() {
             activeOpacity={0.7}
             onPress={() => {
               handleMenuActions(item.key, item.id);
-              router.canGoBack(); // close sheet
+              // router.canGoBack(); // close sheet
             }}
           >
             <View style={styles.item}>

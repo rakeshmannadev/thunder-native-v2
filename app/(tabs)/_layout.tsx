@@ -8,10 +8,14 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs, useSegments } from "expo-router";
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
+
+  const insets = useSafeAreaInsets();
+  const bottomOffSet = insets.bottom + 50;
 
   const currentSegment = segments[segments.length - 1]; //
   const hideFloatingPlayerScreens = [
@@ -102,7 +106,7 @@ export default function TabLayout() {
           position: "absolute",
           left: 8,
           right: 8,
-          bottom: 80,
+          bottom: bottomOffSet,
           borderRadius: 0,
           pointerEvents: "box-none",
           display: hideFloatingPlayerScreens.includes(currentSegment)

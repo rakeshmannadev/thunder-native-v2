@@ -82,7 +82,7 @@ const index = () => {
     const CardComponent = item.component;
     return (
       <View style={styles.sectionContainer}>
-        <ThemedText type="subtitle" className="pl-4 mb-4 truncate ">
+        <ThemedText type="subtitle" numberOfLines={1}>
           {item.title}:
         </ThemedText>
 
@@ -128,5 +128,6 @@ const styles = StyleSheet.create({
     marginTop: 50,
     paddingHorizontal: 16,
     marginBottom: 24,
+    gap: 4,
   },
 });
