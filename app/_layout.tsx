@@ -6,27 +6,50 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 
 import HeaderRight from "@/components/HeaderRight";
 import SearchBar from "@/components/search/SearchBar";
+import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import PlayerProvider from "@/providers/PlayerProvider";
 import useUserStore from "@/store/useUserStore";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
+const hideFloatingPlayerScreens = [
+  "profile",
+  "player",
+  "auth",
+  "Signup",
+  "Login",
+];
+const withoutTabBarScreens = [
+  "library_content",
+  "search",
+  "notification",
+  "[id]",
+];
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const segments = useSegments();
+
+  const { bottom } = useSafeAreaInsets();
+  const bottomOffSet = bottom + 50;
+
+  const currentSegment = segments[segments.length - 1]; //
 
   const { getCurrentUser } = useUserStore();
-
+  console.log("cur", currentSegment);
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -83,6 +106,19 @@ export default function RootLayout() {
                 />
                 <Stack.Screen
                   name="notification/index"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                    headerStyle: {
+                      backgroundColor:
+                        Colors[colorScheme === "light" ? "light" : "dark"]
+                          .background,
+                    },
+                  }}
+                />
+                <Stack.Screen
+                  name="library_content/index"
                   options={{
                     headerShown: true,
                     headerTitle: "",
@@ -166,6 +202,35 @@ export default function RootLayout() {
 
                 <Stack.Screen name="+not-found" />
               </Stack>
+              <FloatingPlayer
+                style={{
+                  position: "absolute",
+                  left: 8,
+                  right: 8,
+                  bottom: withoutTabBarScreens.includes(currentSegment)
+                    ? 16
+                    : bottomOffSet,
+                  borderRadius: 0,
+                  pointerEvents: "box-none",
+                  display: hideFloatingPlayerScreens.includes(currentSegment)
+                    ? "none"
+                    : "flex",
+                  shadowColor: "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 2,
+                  },
+                  animationName: "fadeInUp",
+                  animationDuration: "500ms",
+                  animationDirection: "normal",
+                  animationPlayState: "running",
+                  animationFillMode: "forwards",
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                  overflow: "hidden",
+                  zIndex: 10,
+                }}
+              />
             </GestureHandlerRootView>
           </PlayerProvider>
         </ThemeProvider>

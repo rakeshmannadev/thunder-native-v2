@@ -1,31 +1,16 @@
 import { HapticTab } from "@/components/HapticTab";
 import HeaderRight from "@/components/HeaderRight";
-import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { LogoIcon } from "@/constants/Icons";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { FontAwesome } from "@expo/vector-icons";
-import { Tabs, useSegments } from "expo-router";
+import { Tabs } from "expo-router";
 import React from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const segments = useSegments();
 
-  const insets = useSafeAreaInsets();
-  const bottomOffSet = insets.bottom + 50;
-
-  const currentSegment = segments[segments.length - 1]; //
-  const hideFloatingPlayerScreens = [
-    "profile",
-    "player",
-    "auth",
-    "Signup",
-    "Login",
-    "search",
-  ];
   return (
     <>
       <Tabs
@@ -101,19 +86,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <FloatingPlayer
-        style={{
-          position: "absolute",
-          left: 8,
-          right: 8,
-          bottom: bottomOffSet,
-          borderRadius: 0,
-          pointerEvents: "box-none",
-          display: hideFloatingPlayerScreens.includes(currentSegment)
-            ? "none"
-            : "flex",
-        }}
-      />
     </>
   );
 }

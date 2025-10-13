@@ -1,15 +1,55 @@
 import EmptyLibrary from "@/components/EmptyLibrary";
-import PlaylistCard from "@/components/PlaylistCard";
-import SongCard from "@/components/SongCard";
 import { ThemedText } from "@/components/ThemedText";
-import { VStack } from "@/components/ui/vstack";
+import { Colors } from "@/constants/Colors";
+import { screenPadding } from "@/constants/tokens";
 import useUserStore from "@/store/useUserStore";
-import { Playlist, Song } from "@/types";
-import { Loader, View } from "lucide-react-native";
+import { defaultStyles } from "@/styles";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useEffect } from "react";
-import { FlatList, ScrollView } from "react-native";
+import {
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+
+const Categories = [
+  {
+    key: "liked",
+    name: "Liked",
+    icon: "heart-outline",
+    path: "/library_content/index",
+  },
+  {
+    key: "downloaded",
+    name: "Downloaded",
+    icon: "download-outline",
+    path: "/library_content/index",
+  },
+  {
+    key: "albums",
+    name: "Albums",
+    icon: "albums-outline",
+    path: "/library_content/index",
+  },
+  {
+    key: "playlists",
+    name: "Playlists",
+    icon: "list-outline",
+    path: "/library_content/index",
+  },
+];
 
 const index = () => {
+  const router = useRouter();
+
   const {
     isLoading,
     currentUser,
@@ -17,30 +57,87 @@ const index = () => {
     favoriteSongs,
     playlists,
     fetchingPlaylist,
+    getFavoriteSongs,
   } = useUserStore();
 
   useEffect(() => {
-    if (currentUser && !isLoading) {
+    if (currentUser) {
       fetchPlaylists();
+      getFavoriteSongs();
     }
   }, []);
 
-  if (isLoading)
-    return (
-      <View className="flex flex-1 justify-center items-center dark:bg-dark-background">
-        <Loader className="animate-spin h-4 w-4 text-white " />
-      </View>
-    );
+  const colorSchema = useColorScheme();
+  const { top } = useSafeAreaInsets();
+
+  // if (isLoading)
+  //   return (
+  //     <View className="flex flex-1 justify-center items-center dark:bg-dark-background">
+  //       <ActivityIndicator
+  //         size={"large"}
+  //         color={colors.primary}
+  //         animating={isLoading}
+  //       />
+  //     </View>
+  //   );
+
+  // console.log("fav: ", favoriteSongs);
 
   if (!currentUser) return <EmptyLibrary />;
   return (
-    <ScrollView className="dark:bg-dark-background mt-7">
-      {/* Favorites section */}
-      <VStack space="md" className="mt-10 p-2">
+    <SafeAreaView
+      style={[
+        {
+          backgroundColor:
+            colorSchema === "dark"
+              ? Colors["dark"].background
+              : Colors["light"].background,
+        },
+        styles.container,
+      ]}
+    >
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ marginTop: top + 40 }}>
+          <View style={styles.sectionContiner}>
+            <FlatList
+              data={Categories}
+              keyExtractor={(item) => item.key.toString()}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              ItemSeparatorComponent={() => <View style={{ width: 20 }} />}
+              contentContainerStyle={{
+                paddingVertical: 10,
+                flexGrow: 1,
+                alignItems: "center",
+                flexWrap: "wrap",
+                width: "100%",
+              }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/library_content",
+                      params: { pagename: item.key },
+                    })
+                  }
+                >
+                  <Ionicons name={item.icon as any} size={32} color="white" />
+                  <ThemedText type="defaultSemiBold" numberOfLines={1}>
+                    {item.name}
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* <VStack space="md" className="mt-10 p-2">
         <ThemedText type="subtitle" className="px-3">
           Favorites
         </ThemedText>
-        <ScrollView>
+
           {
             <FlatList
               horizontal={true}
@@ -52,9 +149,9 @@ const index = () => {
               )}
             />
           }
-        </ScrollView>
+
       </VStack>
-      {/* Albums section */}
+
       <VStack space="md" className="mt-2 p-2">
         <ThemedText type="subtitle" className="px-3">
           Saved albums
@@ -76,7 +173,7 @@ const index = () => {
           }
         </ScrollView>
       </VStack>
-      {/* Playlists section */}
+
       <VStack space="md" className="mt-2 p-2 mb-16">
         <ThemedText type="subtitle" className="px-3">
           Saved playlists
@@ -97,9 +194,30 @@ const index = () => {
             />
           }
         </ScrollView>
-      </VStack>
-    </ScrollView>
+      </VStack> */}
+    </SafeAreaView>
   );
 };
 
 export default index;
+
+const styles = StyleSheet.create({
+  container: {
+    ...defaultStyles.container,
+    paddingHorizontal: screenPadding.horizontal,
+  },
+  sectionContiner: {
+    width: "100%",
+    paddingHorizontal: screenPadding.horizontal,
+  },
+  card: {
+    minWidth: 100,
+    minHeight: 100,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginBottom: 10,
+    gap: 8,
+    backgroundColor: "rgba(255,255,255,0.025)",
+  },
+});
