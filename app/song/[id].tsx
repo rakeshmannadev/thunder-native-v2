@@ -6,10 +6,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
+import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   EllipsisVertical,
   HeartIcon,
@@ -22,10 +23,13 @@ import {
 } from "react-native-safe-area-context";
 
 const SongScreen = () => {
-  const { fetchSingle, isLoading, single } = useMusicStore();
-  const { favoriteSongs, addToFavorite } = useUserStore();
   const { bottom, top } = useSafeAreaInsets();
   const { id }: { id: string } = useLocalSearchParams();
+  const router = useRouter();
+
+  const { fetchSingle, isLoading, single } = useMusicStore();
+  const { favoriteSongs, addToFavorite } = useUserStore();
+  const { playAlbum } = usePlayerStore();
 
   useEffect(() => {
     fetchSingle(id);
@@ -48,6 +52,10 @@ const SongScreen = () => {
     );
   };
 
+  const handlePlay = () => {
+    if (!single) return;
+    playAlbum([single], 0);
+  };
   let isAlreadyfavorite: boolean = false;
 
   favoriteSongs.map((song) => {
@@ -58,7 +66,7 @@ const SongScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient
-        style={{ flex: 1 }}
+        style={[StyleSheet.absoluteFillObject, { flex: 1 }]}
         colors={["#0F2027", "#203A43", "#2C5364"]}
       >
         {!isLoading && <GradientBackground imageUrl={single?.imageUrl} />}
@@ -97,7 +105,10 @@ const SongScreen = () => {
             )}
 
             <View style={styles.controls}>
-              <Pressable onPress={() => null} style={styles.iconButton}>
+              <Pressable
+                onPress={handleAddToFavorite}
+                style={styles.iconButton}
+              >
                 <HeartIcon
                   size={20}
                   fill={isAlreadyfavorite ? "green" : "none"}
@@ -105,11 +116,64 @@ const SongScreen = () => {
                 />
               </Pressable>
 
-              <Pressable onPress={() => null} style={styles.iconButton}>
+              <Pressable onPress={handlePlay} style={styles.iconButton}>
                 <PlayCircleIcon size={22} color={colors.icon} />
               </Pressable>
 
-              <Pressable style={styles.iconButton}>
+              <Pressable
+                onPressIn={() =>
+                  router.push({
+                    pathname: "/menu",
+                    params: {
+                      items: JSON.stringify([
+                        {
+                          key: "play_next",
+                          label: "Play next",
+                          icon: "play_next",
+                          data: single,
+                        },
+                        {
+                          key: "add_to_queue",
+                          label: "Add to Queue",
+                          icon: "queue",
+                          data: single,
+                        },
+                        {
+                          key: "add_to_playlist",
+                          label: "Add to Playlist",
+                          icon: "playlist",
+                          data: single,
+                        },
+                        {
+                          key: "go_to_artist",
+                          label: "Go to Artist",
+                          icon: "artist",
+                          data: single?.artists.primary[0],
+                        },
+                        {
+                          key: "go_to_album",
+                          label: "Go to Album",
+                          icon: "album",
+                          data: single?.albumId,
+                        },
+                        {
+                          key: "download",
+                          label: "Download",
+                          icon: "download",
+                          data: single,
+                        },
+                        {
+                          key: "share",
+                          label: "Share",
+                          icon: "share",
+                          data: single,
+                        },
+                      ]),
+                    },
+                  })
+                }
+                style={styles.iconButton}
+              >
                 <EllipsisVertical size={22} color={colors.icon} />
               </Pressable>
             </View>

@@ -20,6 +20,8 @@ interface PlayerStore {
   hasNext: () => boolean;
   setShuffle: (state: boolean) => void;
   setRepeat: (state: boolean) => void;
+  addToQueue: (songs: Song[]) => void;
+  insertToQueue: (song: Song, position: number) => void;
 }
 
 const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -35,6 +37,19 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
       queue: songs,
       currentIndex: get().currentIndex === -1 ? 0 : get().currentIndex,
     });
+  },
+  addToQueue(songs: Song[]) {
+    set({
+      queue: [...get().queue, ...songs],
+    });
+  },
+  insertToQueue(song: Song, position: number) {
+    const queue = [...get().queue];
+    if (position < 0 || position > queue.length) {
+      position = queue.length; // Append to the end if position is out of bounds
+    }
+    queue.splice(position, 0, song);
+    set({ queue });
   },
   playAlbum: (songs: Song[], startIndex = 0) => {
     if (songs.length === 0) return;

@@ -30,6 +30,7 @@ const hideFloatingPlayerScreens = [
   "auth",
   "Signup",
   "Login",
+  "menu",
 ];
 const withoutTabBarScreens = [
   "library_content",
@@ -123,11 +124,6 @@ export default function RootLayout() {
                     headerShown: true,
                     headerTitle: "",
                     headerTransparent: true,
-                    headerStyle: {
-                      backgroundColor:
-                        Colors[colorScheme === "light" ? "light" : "dark"]
-                          .background,
-                    },
                   }}
                 />
                 <Stack.Screen

@@ -12,14 +12,13 @@ import {
   View,
 } from "react-native";
 
-type menuItems = {
+export interface menuItems {
   key: string;
-  id?: number;
+  data?: any;
   label: string;
-  onPress: () => void;
   destructive?: boolean;
   icon?: string | null;
-};
+}
 
 export default function MenuSheet() {
   const colorScheme = useColorScheme();
@@ -60,7 +59,7 @@ export default function MenuSheet() {
             style={styles.item}
             activeOpacity={0.7}
             onPress={() => {
-              handleMenuActions(item.key, item.id);
+              handleMenuActions(item.key, item.data);
               // router.canGoBack(); // close sheet
             }}
           >

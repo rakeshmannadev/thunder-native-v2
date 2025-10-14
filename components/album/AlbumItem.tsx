@@ -3,6 +3,7 @@ import { formatDuration } from "@/helpers";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Artist, Song } from "@/types";
+import { useRouter } from "expo-router";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React from "react";
 import { Image, Pressable, TouchableOpacity, View } from "react-native";
@@ -11,6 +12,8 @@ import { ThemedText } from "../ThemedText";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
 
 const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
+  const router = useRouter();
+
   const { status } = usePlayer();
   const { currentSong, setCurrentSong } = usePlayerStore();
   const isActive = currentSong?.audioUrl == song.audioUrl;
@@ -78,7 +81,57 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
         </View>
       </View>
       <Pressable
-        onPressIn={(e) => e.stopPropagation()}
+        onPressIn={() =>
+          router.push({
+            pathname: "/menu",
+            params: {
+              items: JSON.stringify([
+                {
+                  key: "play_next",
+                  label: "Play next",
+                  icon: "play_next",
+                  data: song,
+                },
+                {
+                  key: "add_to_queue",
+                  label: "Add to Queue",
+                  icon: "queue",
+                  data: song,
+                },
+                {
+                  key: "add_to_playlist",
+                  label: "Add to Playlist",
+                  icon: "playlist",
+                  data: song,
+                },
+                {
+                  key: "go_to_artist",
+                  label: "Go to Artist",
+                  icon: "artist",
+                  data: song.artists.primary[0],
+                },
+                {
+                  key: "go_to_album",
+                  label: "Go to Album",
+                  icon: "album",
+                  data: song.albumId,
+                },
+                {
+                  key: "download",
+                  label: "Download",
+                  icon: "download",
+                  data: song,
+                },
+                {
+                  key: "share",
+                  label: "Share",
+                  icon: "share",
+                  data: song,
+                },
+              ]),
+            },
+          })
+        }
         className="w-fit p-2 rounded-full hover:bg-hover-background"
       >
         <EllipsisVerticalIcon size={20} color={colors.icon} />

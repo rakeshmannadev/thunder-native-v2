@@ -1,3 +1,4 @@
+import GradientBackground from "@/components/GradientBackground";
 import { PlayerControls } from "@/components/songs/PlayerControls";
 import { PlayerProgressBar } from "@/components/songs/PlayerProgressbar";
 import QueueScreen from "@/components/songs/QueueScreen";
@@ -12,11 +13,10 @@ import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ChevronDownIcon, MoreVerticalIcon, Share2 } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   Share,
   StyleSheet,
@@ -37,15 +37,12 @@ import {
 } from "react-native-safe-area-context";
 
 const PlayerScreen = () => {
-  const [showBottmSheet, setShowBottomSheet] = useState(false);
   const router = useRouter();
 
   const { addToFavorite, favoriteSongs, currentUser } = useUserStore();
   const { currentSong } = usePlayerStore();
 
-  const unknownTrackImageUri = require("../assets/images/unknown_track.png");
-
-  const { top, bottom } = useSafeAreaInsets();
+  const { top } = useSafeAreaInsets();
 
   const handleAddToFavorite = async () => {
     if (!currentSong) return;
@@ -116,12 +113,7 @@ const PlayerScreen = () => {
         ]}
         colors={["#0F2027", "#203A43", "#2C5364"]}
       >
-        <Image
-          source={{ uri: currentSong.imageUrl ?? unknownTrackImageUri }}
-          blurRadius={50}
-          style={[StyleSheet.absoluteFillObject, { opacity: 0.3 }]}
-          resizeMode="cover"
-        />
+        <GradientBackground imageUrl={currentSong?.imageUrl} />
         <View style={[styles.overlayContainer]}>
           {/* Close button */}
           <View style={styles.topBarIconContainer}>
@@ -148,21 +140,21 @@ const PlayerScreen = () => {
                           label: "Go to album",
                           onPress: () => console.log("Go to album"),
                           icon: "album",
-                          id: currentSong.albumId,
+                          data: currentSong.albumId,
                         },
                         {
                           key: "go_to_artist",
                           label: "Go to artist",
                           onPress: () => null,
                           icon: "artist",
-                          id: currentSong.artists.primary[0].id,
+                          data: currentSong.artists.primary[0].id,
                         },
                         {
                           key: "save_to_playlist",
                           label: "Save to playlist",
                           onPress: () => null,
                           icon: "playlist",
-                          id: currentSong._id,
+                          data: currentSong._id,
                         },
                       ]),
                     },
@@ -306,7 +298,7 @@ const styles = StyleSheet.create({
   overlayContainer: {
     ...defaultStyles.container,
     paddingHorizontal: screenPadding.horizontal,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    // backgroundColor: "rgba(0,0,0,0.5)",
   },
   topBarIconContainer: {
     flexDirection: "row",

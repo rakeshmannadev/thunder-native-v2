@@ -3,15 +3,15 @@ import GradientBackground from "@/components/GradientBackground";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
+import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 import { Song } from "@/types";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { EllipsisVertical, PlayCircleIcon, Shuffle } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   Pressable,
@@ -27,12 +27,12 @@ import {
 const index = () => {
   const { bottom, top } = useSafeAreaInsets();
   const params = useLocalSearchParams();
+  const router = useRouter();
   const pagename = params.pagename as string;
 
   const { isLoading, currentUser, favoriteSongs, getFavoriteSongs } =
     useUserStore();
-
-  console.log("pagename", pagename);
+  const { playAlbum, setShuffle } = usePlayerStore();
 
   useEffect(() => {
     if (currentUser) {
@@ -51,11 +51,19 @@ const index = () => {
 
   const songs: Song[] = pagename === "liked" ? favoriteSongs : [];
 
-  const handlePlay = () => {};
-  const handleShufflePlay = () => {};
+  const handlePlay = () => {
+    if (songs.length === 0) return;
+    setShuffle(false);
+    playAlbum(songs, 0);
+  };
+  const handleShufflePlay = () => {
+    if (songs.length === 0) return;
+    setShuffle(true);
+    playAlbum(songs, Math.floor(Math.random() * songs.length));
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ActivityIndicator animating={isLoading} size={"large"} />
+      {/* <ActivityIndicator animating={isLoading} size={"large"} /> */}
       {/* --- Background Section --- */}
       <LinearGradient
         colors={["#0F2027", "#203A43", "#2C5364"]}
@@ -114,7 +122,31 @@ const index = () => {
               <Shuffle size={22} color={colors.icon} />
             </Pressable>
 
-            <Pressable style={styles.iconButton}>
+            <Pressable
+              style={styles.iconButton}
+              onPress={() =>
+                router.push({
+                  pathname: "/menu",
+                  params: {
+                    items: JSON.stringify([
+                      {
+                        key: "add_to_queue",
+                        label: "Add to Queue",
+                        icon: "queue",
+                        data: songs,
+                      },
+
+                      {
+                        key: "remove_from_playlist",
+                        label: "Remove from Playlist",
+                        icon: "delete",
+                        destructive: true,
+                      },
+                    ]),
+                  },
+                })
+              }
+            >
               <EllipsisVertical size={22} color={colors.icon} />
             </Pressable>
           </View>

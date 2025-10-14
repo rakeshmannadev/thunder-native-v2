@@ -28,7 +28,7 @@ import { Button, ButtonIcon } from "../ui/button";
 import MusicVisualizer from "./MusicVisualizer";
 
 const QUEUE_HEIGHT = 520; // total sheet height
-const PEEK_HEIGHT = 96; // visible when peeked
+const PEEK_HEIGHT = 80; // visible when peeked
 
 export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
   const { queue, currentSong, setCurrentSong } = usePlayerStore();
@@ -48,12 +48,11 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
   // create pan gesture; recreate when scrollOffset changes so `enabled(...)` updates
   const panGesture = useMemo(() => {
     return Gesture.Pan()
-      .enabled(scrollOffset <= 0) // allow dragging only when list is at top
+      .enabled(scrollOffset <= 0)
       .onStart(() => {
         startY.value = translateY.value;
       })
       .onUpdate((e) => {
-        // clamp between 0 (open) and QUEUE_HEIGHT - PEEK_HEIGHT (peeked)
         const next = Math.max(
           0,
           Math.min(startY.value + e.translationY, QUEUE_HEIGHT - PEEK_HEIGHT)
@@ -61,7 +60,6 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
         translateY.value = next;
       })
       .onEnd(() => {
-        // snap logic: if dragged more than half, open; else return to peek
         const THRESHOLD = (QUEUE_HEIGHT - PEEK_HEIGHT) / 3;
         if (translateY.value < THRESHOLD) {
           translateY.value = withSpring(0, { stiffness: 160, damping: 20 });
@@ -128,25 +126,25 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
                       key: "go_to_album",
                       label: "Go to album",
                       icon: "album",
-                      id: item.albumId,
+                      data: item.albumId,
                     },
                     {
                       key: "go_to_artist",
                       label: "Go to artist",
                       icon: "artist",
-                      id: item.artists.primary[0].id,
+                      data: item.artists.primary[0].id,
                     },
                     {
                       key: "save_to_playlist",
                       label: "Save to playlist",
                       icon: "playlist",
-                      id: item._id,
+                      data: item._id,
                     },
                     {
                       key: "download",
                       label: "Download",
                       icon: "download",
-                      id: item.audioUrl,
+                      data: item.audioUrl,
                     },
                   ]),
                 },
@@ -181,7 +179,7 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
         {/* gradient background */}
         <LinearGradient
           // colors={getGradientColors(imageColors)}
-          colors={["#0F2027", "#203A43", "#2C5364"]}
+          colors={["#2C5364", "#203A43", "#0F2027"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={styles.gradient}

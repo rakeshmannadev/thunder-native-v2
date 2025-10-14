@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   EllipsisVertical,
   HeartIcon,
@@ -26,15 +26,18 @@ import AlbumItem from "@/components/album/AlbumItem";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
+import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 
 const AlbumScreen = () => {
   const { id }: { id: string } = useLocalSearchParams();
   const { bottom, top } = useSafeAreaInsets();
+  const router = useRouter();
 
   const { addAlbumToPlaylist, playlists } = useUserStore();
   const { isLoading, fetchAlbumById, currentAlbum } = useMusicStore();
+  const { playAlbum, setShuffle } = usePlayerStore();
 
   useEffect(() => {
     if (id) {
@@ -47,9 +50,20 @@ const AlbumScreen = () => {
     (p) => p.albumId === currentAlbum?.albumId
   );
 
-  const handlePlay = () => {};
-  const handleShufflePlay = () => {};
-  const handleAddAlbumToPlaylist = () => {
+  const handlePlay = () => {
+    if (!currentAlbum) return;
+    setShuffle(false);
+    playAlbum(currentAlbum.songs, 0);
+  };
+  const handleShufflePlay = () => {
+    if (!currentAlbum) return;
+    setShuffle(true);
+    playAlbum(
+      currentAlbum.songs,
+      Math.floor(Math.random() * currentAlbum.songs.length)
+    );
+  };
+  const handleAddAlbumToFavorite = () => {
     if (!currentAlbum) return;
     const songs = currentAlbum.songs.map((s) => s._id);
     addAlbumToPlaylist(
@@ -104,34 +118,72 @@ const AlbumScreen = () => {
             </ThemedText>
           )}
 
-          <ThemedText style={styles.songCount}>
-            {currentAlbum?.songs.length ?? 0} Songs
-          </ThemedText>
+          {isLoading ? (
+            <SkeletonText className="w-10 h-4" />
+          ) : (
+            <ThemedText style={styles.songCount}>
+              {currentAlbum?.songs.length ?? 0} Songs
+            </ThemedText>
+          )}
 
-          <View style={styles.controls}>
-            <Pressable
-              onPress={handleAddAlbumToPlaylist}
-              style={styles.iconButton}
-            >
-              <HeartIcon
-                size={20}
-                fill={isAddedToPlaylist ? "green" : "none"}
-                color={isAddedToPlaylist ? "green" : colors.icon}
-              />
-            </Pressable>
+          {isLoading ? (
+            <SkeletonText className="w-32 h-8" />
+          ) : (
+            <View style={styles.controls}>
+              <Pressable
+                onPress={handleAddAlbumToFavorite}
+                style={styles.iconButton}
+              >
+                <HeartIcon
+                  size={20}
+                  fill={isAddedToPlaylist ? "green" : "none"}
+                  color={isAddedToPlaylist ? "green" : colors.icon}
+                />
+              </Pressable>
 
-            <Pressable onPress={handlePlay} style={styles.iconButton}>
-              <PlayCircleIcon size={22} color={colors.icon} />
-            </Pressable>
+              <Pressable onPress={handlePlay} style={styles.iconButton}>
+                <PlayCircleIcon size={22} color={colors.icon} />
+              </Pressable>
 
-            <Pressable onPress={handleShufflePlay} style={styles.iconButton}>
-              <Shuffle size={22} color={colors.icon} />
-            </Pressable>
+              <Pressable onPress={handleShufflePlay} style={styles.iconButton}>
+                <Shuffle size={22} color={colors.icon} />
+              </Pressable>
 
-            <Pressable style={styles.iconButton}>
-              <EllipsisVertical size={22} color={colors.icon} />
-            </Pressable>
-          </View>
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/menu",
+                    params: {
+                      items: JSON.stringify([
+                        {
+                          key: "add_to_queue",
+                          label: "Add to Queue",
+                          icon: "queue",
+                          data: currentAlbum?.songs ?? [],
+                        },
+
+                        {
+                          key: "add_to_playlist",
+                          label: "Add to Playlist",
+                          icon: "playlist",
+                          data: currentAlbum,
+                          sub_menu: true,
+                        },
+                        {
+                          key: "share",
+                          label: "Share",
+                          icon: "share",
+                        },
+                      ]),
+                    },
+                  })
+                }
+                style={styles.iconButton}
+              >
+                <EllipsisVertical size={22} color={colors.icon} />
+              </Pressable>
+            </View>
+          )}
         </View>
       </View>
 
