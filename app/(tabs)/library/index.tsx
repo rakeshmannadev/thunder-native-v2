@@ -29,7 +29,7 @@ const Categories = [
   },
   {
     key: "downloaded",
-    name: "Downloaded",
+    name: "Downloads",
     icon: "download-outline",
     path: "/library_content/index",
   },
@@ -37,6 +37,12 @@ const Categories = [
     key: "albums",
     name: "Albums",
     icon: "albums-outline",
+    path: "/library_content/index",
+  },
+  {
+    key: "artists",
+    name: "Artists",
+    icon: "person-outline",
     path: "/library_content/index",
   },
   {
@@ -50,15 +56,7 @@ const Categories = [
 const index = () => {
   const router = useRouter();
 
-  const {
-    isLoading,
-    currentUser,
-    fetchPlaylists,
-    favoriteSongs,
-    playlists,
-    fetchingPlaylist,
-    getFavoriteSongs,
-  } = useUserStore();
+  const { currentUser, fetchPlaylists, getFavoriteSongs } = useUserStore();
 
   useEffect(() => {
     if (currentUser) {
@@ -104,11 +102,11 @@ const index = () => {
               keyExtractor={(item) => item.key.toString()}
               horizontal={true}
               showsHorizontalScrollIndicator={false}
-              ItemSeparatorComponent={() => <View style={{ width: 20 }} />}
               contentContainerStyle={{
                 paddingVertical: 10,
                 flexGrow: 1,
-                alignItems: "center",
+                alignItems: "flex-start",
+                gap: 24,
                 flexWrap: "wrap",
                 width: "100%",
               }}
@@ -204,11 +202,13 @@ export default index;
 const styles = StyleSheet.create({
   container: {
     ...defaultStyles.container,
+
     paddingHorizontal: screenPadding.horizontal,
   },
   sectionContiner: {
     width: "100%",
     paddingHorizontal: screenPadding.horizontal,
+    alignItems: "center",
   },
   card: {
     minWidth: 100,

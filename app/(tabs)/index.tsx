@@ -6,10 +6,12 @@ import { FlatList, ScrollView, useColorScheme, View } from "react-native";
 
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { Colors } from "@/constants/Colors";
+import { colors } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { Album, Song } from "@/types";
+import { ArrowRightIcon } from "lucide-react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -61,16 +63,15 @@ export default function HomeScreen() {
         {/* Recently played section */}
         <VStack space="md" className=" p-2 mt-16">
           <View className="w-full flex flex-row justify-between items-center pr-2">
-            <ThemedText type="subtitle" className="px-3">
+            <ThemedText
+              type="subtitle"
+              className="px-3"
+              style={{ color: colors.textMuted }}
+            >
               Recently Played
             </ThemedText>
 
-            <ThemedText
-              type="link"
-              className="hover:bg-hover-background p-2 rounded-3xl"
-            >
-              See all
-            </ThemedText>
+            <ArrowRightIcon size={20} color={colors.textMuted} />
           </View>
 
           {/* Song card component */}
@@ -82,7 +83,7 @@ export default function HomeScreen() {
                 isLoading ? `skeleton-${Math.random()}` : item._id.toString()
               }
               data={isLoading ? Array.from({ length: 5 }) : featured}
-              renderItem={({ item: Song, index }) =>
+              renderItem={({ item: Song }) =>
                 isLoading ? (
                   <SongCardSkeleton />
                 ) : (
@@ -95,15 +96,14 @@ export default function HomeScreen() {
         {/* Trending section */}
         <VStack space="md" className="mt-2 p-2">
           <View className="w-full flex flex-row justify-between items-center pr-2">
-            <ThemedText type="subtitle" className="px-3">
+            <ThemedText
+              type="subtitle"
+              className="px-3"
+              style={{ color: colors.textMuted }}
+            >
               Trending
             </ThemedText>
-            <ThemedText
-              type="link"
-              className="hover:bg-hover-background p-2 rounded-3xl"
-            >
-              See all
-            </ThemedText>
+            <ArrowRightIcon size={20} color={colors.textMuted} />
           </View>
           {
             <FlatList
@@ -113,7 +113,7 @@ export default function HomeScreen() {
                 isLoading ? `skeleton-${Math.random()}` : item._id.toString()
               }
               data={isLoading ? Array.from({ length: 5 }) : trending}
-              renderItem={({ item: Song, index }) =>
+              renderItem={({ item: Song }) =>
                 isLoading ? (
                   <SongCardSkeleton />
                 ) : (
@@ -126,15 +126,14 @@ export default function HomeScreen() {
         {/* Albums section */}
         <VStack space="md" className="mt-2 mb-12 p-2">
           <View className="w-full flex flex-row justify-between items-center pr-2">
-            <ThemedText type="subtitle" className="px-3">
+            <ThemedText
+              type="subtitle"
+              className="px-3"
+              style={{ color: colors.textMuted }}
+            >
               Albums
             </ThemedText>
-            <ThemedText
-              type="link"
-              className="hover:bg-hover-background p-2 rounded-3xl"
-            >
-              See all
-            </ThemedText>
+            <ArrowRightIcon size={20} color={colors.textMuted} />
           </View>
           {
             <FlatList

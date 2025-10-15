@@ -3,9 +3,11 @@ import HeaderRight from "@/components/HeaderRight";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { LogoIcon } from "@/constants/Icons";
+import { colors, fontSize } from "@/constants/tokens";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { CoffeeIcon, LibraryBig, LibraryIcon } from "lucide-react-native";
 import React from "react";
 
 export default function TabLayout() {
@@ -43,16 +45,25 @@ export default function TabLayout() {
             headerTitle: "Thunder",
             headerShown: true,
             headerTransparent: true,
-            headerTitleStyle: { marginLeft: 10 },
+            headerTitleStyle: {
+              marginLeft: 4,
+              color: colors.text,
+              fontSize: fontSize.lg,
+              fontWeight: "600",
+              letterSpacing: 1,
+            },
           }}
         />
         <Tabs.Screen
           name="library/index"
           options={{
             title: "Library",
-            tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="bookmark" color={color} />
-            ),
+            tabBarIcon: ({ focused, color }) =>
+              focused ? (
+                <LibraryBig size={28} color={color} />
+              ) : (
+                <LibraryIcon size={28} color={color} />
+              ),
             headerTitle: "Library",
             headerShown: true,
             headerTransparent: true,
@@ -63,9 +74,12 @@ export default function TabLayout() {
           name="rooms/index"
           options={{
             title: "Rooms",
-            tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="coffee" color={color} />
-            ),
+            tabBarIcon: ({ color, focused }) =>
+              focused ? (
+                <CoffeeIcon size={28} color={color} />
+              ) : (
+                <FontAwesome size={28} name="coffee" color={color} />
+              ),
             headerTitle: "Rooms",
             headerShown: true,
             headerTransparent: true,
