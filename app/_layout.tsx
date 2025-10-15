@@ -150,6 +150,15 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
+                  name="artist/[id]"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                    headerRight: () => <HeaderRight />,
+                  }}
+                />
+                <Stack.Screen
                   name="song/[id]"
                   options={{
                     headerShown: true,

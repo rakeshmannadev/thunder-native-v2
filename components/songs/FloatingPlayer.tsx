@@ -47,7 +47,7 @@ const FloatingPlayer = ({ style }: ViewProps) => {
           borderRadius: 8,
           paddingVertical: 6,
         }}
-        colors={["#0F2027", "#203A43", "#2C5364"]}
+        colors={["#2C5364", "#203A43", "#0F2027"]}
       >
         <View style={styles.parentContainer}>
           <View style={styles.trakDetailsContainer}>
