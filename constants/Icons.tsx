@@ -12,7 +12,7 @@ import {
   SunIcon,
   TrashIcon,
 } from "lucide-react-native";
-import { Image } from "react-native";
+import { Image, ImageStyle } from "react-native";
 
 export const HomeIcon = ({ color }: { color: any }) => {
   return (
@@ -35,16 +35,17 @@ export const PersonIcon = ({ color }: { color: any }) => {
     <Image source={require("../assets/icons/person.svg")} tintColor={color} />
   );
 };
-export const LogoIcon = () => {
+export const LogoIcon = ({ styles }: { styles?: ImageStyle }) => {
   return (
     <Image
       source={require("../assets/images/Thunder_logo.png")}
       style={{
         width: 38,
-        height: 38,
+        aspectRatio: 1,
         marginLeft: 10,
         marginTop: 12,
         marginRight: 5,
+        ...styles,
       }}
     />
   );

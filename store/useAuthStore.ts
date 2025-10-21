@@ -1,6 +1,7 @@
 import { axiosInstance } from "@/lib/axios";
-import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ToastAndroid } from "react-native";
+import { create } from "zustand";
 import useUserStore from "./useUserStore";
 
 interface AuthStore {
@@ -39,10 +40,12 @@ const useAuthStore = create<AuthStore>((set) => ({
         await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
         await AsyncStorage.setItem("accessToken", response.data.accessToken);
         // toast.success(response.data.message);
+        ToastAndroid.show(response.data.message, ToastAndroid.SHORT);
       }
     } catch (error: any) {
       console.log(error.response.data.message);
       //   toast.error(error.response.data.message);
+      ToastAndroid.show(error.response.data.message, ToastAndroid.SHORT);
     } finally {
       set({ isLoading: false });
     }

@@ -155,16 +155,16 @@ const index = () => {
                   params: {
                     items: JSON.stringify([
                       {
-                        key: "light",
-                        label: "Light",
-
-                        icon: "sun",
+                        key: "low",
+                        label: "Low",
                       },
                       {
-                        key: "dark",
-                        label: "Dark",
-
-                        icon: "moon",
+                        key: "medium",
+                        label: "Medium",
+                      },
+                      {
+                        key: "high",
+                        label: "High",
                       },
                     ]),
                   },

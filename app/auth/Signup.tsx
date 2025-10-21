@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/radio";
 import { VStack } from "@/components/ui/vstack";
 import { Colors } from "@/constants/Colors";
+import { LogoIcon } from "@/constants/Icons";
 import useAuthStore from "@/store/useAuthStore";
 import { useRouter } from "expo-router";
 import {
@@ -25,7 +26,7 @@ import {
   User,
 } from "lucide-react-native";
 import React from "react";
-import { Text, useColorScheme, View } from "react-native";
+import { Text, ToastAndroid, useColorScheme, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Signup = () => {
@@ -44,8 +45,23 @@ const Signup = () => {
     });
   };
   const handleSignUp = async () => {
-    if (!email || !password || !name) return;
-    if (password.length < 6) return;
+    if (
+      email.trim() === "" ||
+      name.trim() === "" ||
+      password.trim() === "" ||
+      gender.trim() === ""
+    ) {
+      return ToastAndroid.show(
+        "Please enter all detail to create an account.",
+        ToastAndroid.SHORT
+      );
+    }
+    if (password.length < 6) {
+      return ToastAndroid.show(
+        "Password must have 6 characters",
+        ToastAndroid.SHORT
+      );
+    }
     signup({ name, email, password, gender });
   };
 
@@ -60,7 +76,10 @@ const Signup = () => {
       }}
     >
       <Center className="mt-10 ">
-        <Heading className=" text-2xl text-center">SignUp</Heading>
+        <View className="gap-8">
+          <LogoIcon styles={{ width: 86 }} />
+          <Heading className=" text-4xl text-center">Sign up</Heading>
+        </View>
         <FormControl className="p-4 mt-10">
           <VStack space="4xl">
             <VStack space="xs">
@@ -129,7 +148,10 @@ const Signup = () => {
                 </HStack>
               </RadioGroup>
             </VStack>
-            <Button className="ml-auto w-full rounded-3xl bg-green-500 hover:!bg-green-800">
+            <Button
+              onPressIn={handleSignUp}
+              className="ml-auto w-full rounded-3xl bg-green-500 hover:!bg-green-800"
+            >
               <ButtonText className="text-typography-0 ">Sign Up</ButtonText>
             </Button>
             {/* Divider section */}
