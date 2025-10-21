@@ -1,12 +1,12 @@
 // app/menu.tsx
+import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { ICON_MAPS } from "@/constants/Icons";
 import useMenuActions from "@/hooks/useMenuActions";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -22,7 +22,6 @@ export interface menuItems {
 
 export default function MenuSheet() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
   const params = useLocalSearchParams();
 
   const { handleMenuActions } = useMenuActions();
@@ -34,6 +33,7 @@ export default function MenuSheet() {
     console.log("Error parsing menu items:", error);
   }
 
+  console.log("menuitems: ", menuItems);
   return (
     <View
       style={[
@@ -46,8 +46,20 @@ export default function MenuSheet() {
         },
       ]}
     >
-      <View style={styles.handle} />
-      <Text style={styles.title}>{params.title ?? "Song Options"}</Text>
+      <View
+        style={[
+          styles.handle,
+          {
+            backgroundColor:
+              colorScheme === "dark"
+                ? "rgba(255,255,255,0.25)"
+                : "rgba(201, 201, 201)",
+          },
+        ]}
+      />
+      <ThemedText style={styles.title}>
+        {params.title ?? "Song Options"}
+      </ThemedText>
 
       {menuItems.map((item, index) => {
         const iconName = item?.icon ? item.icon : null;
@@ -56,7 +68,6 @@ export default function MenuSheet() {
         return (
           <TouchableOpacity
             key={index}
-            style={styles.item}
             activeOpacity={0.7}
             onPress={() => {
               handleMenuActions(item.key, item.data);
@@ -67,17 +78,18 @@ export default function MenuSheet() {
               {Icon && (
                 <Icon
                   size={20}
-                  color={item?.destructive ? "#ff6b6b" : "#fff"}
+                  color={
+                    item?.destructive
+                      ? "#ff6b6b"
+                      : colorScheme === "light"
+                      ? "black"
+                      : "white"
+                  }
                 />
               )}
-              <Text
-                style={[
-                  styles.itemText,
-                  item?.destructive && { color: "#ff6b6b" },
-                ]}
-              >
+              <ThemedText style={[item?.destructive && { color: "#ff6b6b" }]}>
                 {item.label}
-              </Text>
+              </ThemedText>
             </View>
           </TouchableOpacity>
         );
@@ -95,13 +107,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.25)",
     alignSelf: "center",
     marginBottom: 12,
   },
   title: {
     fontSize: 18,
-    color: "#fff",
     fontWeight: "700",
     marginBottom: 16,
   },
@@ -109,12 +119,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#333",
-  },
-  itemText: {
-    color: "#fff",
-    fontSize: 16,
   },
 });

@@ -1,4 +1,4 @@
-import { Song } from "@/types";
+import { AudioPreferenceType, qualites, Song } from "@/types";
 import { create } from "zustand";
 // import useSocketStore from "./useSocketStore";
 
@@ -9,6 +9,7 @@ interface PlayerStore {
   isRepeat: boolean;
   queue: Song[];
   currentIndex: number;
+  audioPreference: AudioPreferenceType;
 
   initializeQueue: (songs: Song[]) => void;
   playAlbum: (songs: Song[], startIndex: number) => void;
@@ -22,6 +23,7 @@ interface PlayerStore {
   setRepeat: (state: boolean) => void;
   addToQueue: (songs: Song[]) => void;
   insertToQueue: (song: Song, position: number) => void;
+  setAudioPreference: (pref: Partial<AudioPreferenceType>) => void;
 }
 
 const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -31,6 +33,10 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   isRepeat: false,
   queue: [],
   currentIndex: -1,
+  audioPreference: {
+    downloadFirst: true,
+    quality: qualites.medium,
+  },
 
   initializeQueue: (songs: Song[]) => {
     set({
@@ -197,6 +203,10 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
   setRepeat: (state) => {
     set({ isRepeat: state });
+  },
+  setAudioPreference: (pref) => {
+    const currentPref = get().audioPreference;
+    set({ audioPreference: { ...currentPref, ...pref } });
   },
 }));
 

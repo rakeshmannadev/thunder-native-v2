@@ -15,11 +15,13 @@ type audiocontext = {
 const PlayerContext = createContext<audiocontext | undefined>(undefined);
 
 export default function PlayerProvider({ children }: PropsWithChildren) {
-  const { currentSong, playNext, hasNext } = usePlayerStore();
+  const { currentSong, playNext, hasNext, audioPreference } = usePlayerStore();
+
   const player = useAudioPlayer(
     { uri: currentSong?.audioUrl },
-    { downloadFirst: true }
+    { downloadFirst: audioPreference.downloadFirst }
   );
+
   const status = useAudioPlayerStatus(player);
 
   useEffect(() => {

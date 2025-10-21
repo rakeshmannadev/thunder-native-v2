@@ -195,3 +195,14 @@ export interface Requests {
   status: string;
   room: Room;
 }
+
+export interface AudioPreferenceType {
+  downloadFirst: boolean;
+  quality: qualites;
+}
+
+export enum qualites {
+  low = "low",
+  medium = "medium",
+  high = "high",
+}

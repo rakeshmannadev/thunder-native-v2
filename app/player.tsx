@@ -147,7 +147,7 @@ const PlayerScreen = () => {
                           label: "Go to artist",
                           onPress: () => null,
                           icon: "artist",
-                          data: currentSong.artists.primary[0].id,
+                          data: currentSong.artists.primary[0].artistId,
                         },
                         {
                           key: "save_to_playlist",

@@ -1,9 +1,11 @@
 import usePlayerStore from "@/store/usePlayerStore";
 import { useRouter } from "expo-router";
+import { Appearance } from "react-native";
 
 const useMenuActions = () => {
   const router = useRouter();
-  const { addToQueue, currentIndex, insertToQueue } = usePlayerStore();
+  const { addToQueue, currentIndex, insertToQueue, setAudioPreference } =
+    usePlayerStore();
 
   const handleMenuActions = (action: string, params?: number | any) => {
     switch (action) {
@@ -23,6 +25,22 @@ const useMenuActions = () => {
         if (params) {
           insertToQueue(params, currentIndex + 1);
         }
+        router.back();
+        break;
+      case "light":
+        Appearance.setColorScheme("light");
+        router.back();
+        break;
+      case "dark":
+        Appearance.setColorScheme("dark");
+        router.back();
+        break;
+      case "download_first":
+        setAudioPreference({ downloadFirst: true });
+        router.back();
+        break;
+      case "streaming":
+        setAudioPreference({ downloadFirst: false });
         router.back();
         break;
 

@@ -1,11 +1,15 @@
 import {
   DiscAlbumIcon,
   DownloadIcon,
+  Headphones,
   ListMusicIcon,
   ListPlusIcon,
   ListVideoIcon,
+  LucideCoffee,
   Mic2Icon,
+  MoonIcon,
   Share2Icon,
+  SunIcon,
   TrashIcon,
 } from "lucide-react-native";
 import { Image } from "react-native";
@@ -55,4 +59,8 @@ export const ICON_MAPS: Record<string, any> = {
   delete: TrashIcon,
   download: DownloadIcon,
   play_next: ListVideoIcon,
+  sun: SunIcon,
+  moon: MoonIcon,
+  mug: LucideCoffee,
+  headphones: Headphones,
 };

@@ -1,28 +1,28 @@
-import BottomSheetMenu from "@/components/BottomSheetMenu";
 import { ThemedText } from "@/components/ThemedText";
 import ProfileCard from "@/components/profile/ProfileCard";
 import { VStack } from "@/components/ui/vstack";
 import useAuthStore from "@/store/useAuthStore";
 import useUserStore from "@/store/useUserStore";
+import { useRouter } from "expo-router";
 import {
   ChevronRight,
   GlobeIcon,
   LogOutIcon,
   PaletteIcon,
+  SettingsIcon,
 } from "lucide-react-native";
-import React, { useRef } from "react";
+import React from "react";
 import { TouchableOpacity, useColorScheme, View } from "react-native";
-import { Gesture } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const index = () => {
   const colorScheme = useColorScheme();
+  const router = useRouter();
   const [showActionsheet, setShowActionsheet] = React.useState(false);
   const handleClose = () => setShowActionsheet(false);
   const { currentUser } = useUserStore();
   const { logout } = useAuthStore();
-  const nativeScrollGesture = Gesture.Native();
-  const menuRef = useRef<View>(null);
+
   return (
     <SafeAreaView className="flex-1 dark:bg-dark-background p-2">
       <View
@@ -46,7 +46,25 @@ const index = () => {
           {/* Change theme */}
 
           <TouchableOpacity
-            onPress={() => setShowActionsheet(true)}
+            onPress={() =>
+              router.push({
+                pathname: "/menu",
+                params: {
+                  items: JSON.stringify([
+                    {
+                      key: "light",
+                      label: "Light theme",
+                      icon: "sun",
+                    },
+                    {
+                      key: "dark",
+                      label: "Dark theme",
+                      icon: "moon",
+                    },
+                  ]),
+                },
+              })
+            }
             className="w-full flex flex-row justify-between "
           >
             <View className="flex flex-row gap-4">
@@ -58,12 +76,22 @@ const index = () => {
 
             <ChevronRight color={colorScheme === "light" ? "black" : "white"} />
           </TouchableOpacity>
-
+          <TouchableOpacity
+            onPress={() => router.push("/settings")}
+            className="w-full flex flex-row justify-between "
+          >
+            <View className="flex flex-row gap-4">
+              <SettingsIcon
+                color={colorScheme === "light" ? "black" : "white"}
+              />
+              <ThemedText type="defaultSemiBold">Settings</ThemedText>
+            </View>
+          </TouchableOpacity>
           {/* Logout */}
           {currentUser && (
             <TouchableOpacity
               onPress={logout}
-              className="w-full flex flex-row justify-between "
+              // className="w-full flex flex-row justify-between "
             >
               <View className="flex flex-row gap-4">
                 <LogOutIcon
@@ -75,14 +103,6 @@ const index = () => {
           )}
         </VStack>
       </View>
-      <BottomSheetMenu
-        visible={showActionsheet}
-        onClose={handleClose}
-        items={[
-          { label: "Light", onPress: () => console.log("Light theme") },
-          { label: "Dark", onPress: () => console.log("Dark theme") },
-        ]}
-      />
     </SafeAreaView>
   );
 };

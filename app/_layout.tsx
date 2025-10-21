@@ -15,9 +15,9 @@ import HeaderRight from "@/components/HeaderRight";
 import SearchBar from "@/components/search/SearchBar";
 import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import PlayerProvider from "@/providers/PlayerProvider";
 import useUserStore from "@/store/useUserStore";
+import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   SafeAreaProvider,
@@ -31,6 +31,7 @@ const hideFloatingPlayerScreens = [
   "Signup",
   "Login",
   "menu",
+  "settings",
 ];
 const withoutTabBarScreens = [
   "library_content",
@@ -92,6 +93,14 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
+                  name="settings/index"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                  }}
+                />
+                <Stack.Screen
                   name="search/index"
                   options={{
                     headerShown: true,
@@ -118,6 +127,7 @@ export default function RootLayout() {
                     },
                   }}
                 />
+
                 <Stack.Screen
                   name="library_content/index"
                   options={{

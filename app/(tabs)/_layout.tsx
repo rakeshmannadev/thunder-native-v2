@@ -4,11 +4,12 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { LogoIcon } from "@/constants/Icons";
 import { colors, fontSize } from "@/constants/tokens";
-import { useColorScheme } from "@/hooks/useColorScheme";
+
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { CoffeeIcon, LibraryBig, LibraryIcon } from "lucide-react-native";
 import React from "react";
+import { useColorScheme } from "react-native";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
