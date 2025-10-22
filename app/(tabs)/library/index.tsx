@@ -106,8 +106,8 @@ const index = () => {
                 paddingVertical: 10,
                 flexGrow: 1,
                 alignItems: "flex-start",
-                gap: 24,
                 flexWrap: "wrap",
+                gap: 24,
                 width: "100%",
               }}
               renderItem={({ item }) => (

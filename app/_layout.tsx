@@ -51,7 +51,7 @@ export default function RootLayout() {
   const currentSegment = segments[segments.length - 1]; //
 
   const { getCurrentUser } = useUserStore();
-  console.log("cur", currentSegment);
+
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });

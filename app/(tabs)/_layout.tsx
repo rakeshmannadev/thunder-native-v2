@@ -48,7 +48,7 @@ export default function TabLayout() {
             headerTransparent: true,
             headerTitleStyle: {
               marginLeft: 4,
-              color: colors.text,
+              color: colorScheme === "dark" ? colors.textMuted : colors.text,
               fontSize: fontSize.lg,
               fontWeight: "600",
               letterSpacing: 1,

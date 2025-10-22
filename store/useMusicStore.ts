@@ -112,9 +112,12 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchTrendingSongs: async () => {
     try {
       const response = await axiosInstance.get("/songs/trending");
-      set({ trending: response.data.songs });
+      set({ trending: response.data?.songs });
     } catch (error: any) {
-      console.log("Error in fetching songs", error.response.data.message);
+      console.log(
+        "Error in fetching trending songs",
+        error.response.data?.message
+      );
     } finally {
       set({ isLoading: false });
     }
