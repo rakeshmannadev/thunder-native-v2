@@ -69,6 +69,8 @@ export default function RootLayout() {
     return null;
   }
 
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
     <GluestackUIProvider mode={colorScheme === "light" ? "light" : "dark"}>
       <SafeAreaProvider>
@@ -107,9 +109,7 @@ export default function RootLayout() {
                     headerTitle: "",
                     headerTransparent: true,
                     headerStyle: {
-                      backgroundColor:
-                        Colors[colorScheme === "light" ? "light" : "dark"]
-                          .background,
+                      backgroundColor: colors.background,
                     },
                     headerRight: () => <SearchBar />,
                   }}
@@ -121,9 +121,7 @@ export default function RootLayout() {
                     headerTitle: "",
                     headerTransparent: true,
                     headerStyle: {
-                      backgroundColor:
-                        Colors[colorScheme === "light" ? "light" : "dark"]
-                          .background,
+                      backgroundColor: colors.background,
                     },
                   }}
                 />

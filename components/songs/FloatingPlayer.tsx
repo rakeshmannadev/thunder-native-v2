@@ -3,11 +3,12 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
+  useColorScheme,
   View,
   ViewProps,
 } from "react-native";
 
-import { colors } from "@/constants/tokens";
+import { Colors } from "@/constants/Colors";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { useAudioPlayerStatus } from "expo-audio";
@@ -18,6 +19,10 @@ import { PlayPauseButton, SkipToNextButton } from "./PlayerControls";
 import { MovingText } from "./useMovingText";
 
 const FloatingPlayer = ({ style }: ViewProps) => {
+  const colorScheme = useColorScheme();
+
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   const router = useRouter();
 
   const { currentSong, playNext } = usePlayerStore();
@@ -79,7 +84,7 @@ const FloatingPlayer = ({ style }: ViewProps) => {
           {/* Progress bar */}
           <View style={styles.progressContainer}>
             <Animated.View
-              style={{ backgroundColor: colors.primary, flex: progress }}
+              style={{ backgroundColor: colors.accent, flex: progress }}
             />
             <View style={{ flex: 1 - progress }} />
           </View>

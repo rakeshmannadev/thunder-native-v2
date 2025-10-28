@@ -3,7 +3,7 @@ import HeaderRight from "@/components/HeaderRight";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { LogoIcon } from "@/constants/Icons";
-import { colors, fontSize } from "@/constants/tokens";
+import { fontSize } from "@/constants/tokens";
 
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
@@ -13,25 +13,24 @@ import { useColorScheme } from "react-native";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   return (
     <>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          tabBarActiveTintColor: colors.accent,
           headerShown: true,
           headerTransparent: true,
           headerLeft: () => <LogoIcon />,
           headerRight: () => <HeaderRight />,
           headerStyle: {
-            backgroundColor:
-              Colors[colorScheme === "light" ? "light" : "dark"].background,
+            backgroundColor: colors.background,
           },
           tabBarButton: HapticTab,
           tabBarBackground: TabBarBackground,
           tabBarStyle: {
-            backgroundColor:
-              Colors[colorScheme === "light" ? "light" : "dark"].background,
+            backgroundColor: colors.background,
             borderWidth: 0,
           },
         }}
@@ -48,7 +47,7 @@ export default function TabLayout() {
             headerTransparent: true,
             headerTitleStyle: {
               marginLeft: 4,
-              color: colorScheme === "dark" ? colors.textMuted : colors.text,
+              color: colors.text,
               fontSize: fontSize.lg,
               fontWeight: "600",
               letterSpacing: 1,

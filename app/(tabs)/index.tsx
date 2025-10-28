@@ -6,7 +6,6 @@ import { FlatList, ScrollView, useColorScheme, View } from "react-native";
 
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { Colors } from "@/constants/Colors";
-import { colors } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
@@ -51,12 +50,13 @@ export default function HomeScreen() {
     }
   }, []);
 
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor:
-          Colors[colorScheme === "light" ? "light" : "dark"].background,
+        backgroundColor: colors.background,
       }}
     >
       <ScrollView>
@@ -66,12 +66,12 @@ export default function HomeScreen() {
             <ThemedText
               type="subtitle"
               className="px-3"
-              style={{ color: colors.textMuted }}
+              style={{ color: colors.text }}
             >
               Recently Played
             </ThemedText>
 
-            <ArrowRightIcon size={20} color={colors.textMuted} />
+            <ArrowRightIcon size={20} color={colors.text} />
           </View>
 
           {/* Song card component */}
@@ -99,11 +99,11 @@ export default function HomeScreen() {
             <ThemedText
               type="subtitle"
               className="px-3"
-              style={{ color: colors.textMuted }}
+              style={{ color: colors.text }}
             >
               Trending
             </ThemedText>
-            <ArrowRightIcon size={20} color={colors.textMuted} />
+            <ArrowRightIcon size={20} color={colors.text} />
           </View>
           {
             <FlatList
@@ -129,11 +129,11 @@ export default function HomeScreen() {
             <ThemedText
               type="subtitle"
               className="px-3"
-              style={{ color: colors.textMuted }}
+              style={{ color: colors.text }}
             >
               Albums
             </ThemedText>
-            <ArrowRightIcon size={20} color={colors.textMuted} />
+            <ArrowRightIcon size={20} color={colors.text} />
           </View>
           {
             <FlatList

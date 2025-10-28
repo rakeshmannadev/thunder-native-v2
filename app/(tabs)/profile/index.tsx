@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import ProfileCard from "@/components/profile/ProfileCard";
 import { VStack } from "@/components/ui/vstack";
+import { Colors } from "@/constants/Colors";
 import useAuthStore from "@/store/useAuthStore";
 import useUserStore from "@/store/useUserStore";
 import { useRouter } from "expo-router";
@@ -17,14 +18,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const index = () => {
   const colorScheme = useColorScheme();
+
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   const router = useRouter();
-  const [showActionsheet, setShowActionsheet] = React.useState(false);
-  const handleClose = () => setShowActionsheet(false);
   const { currentUser } = useUserStore();
   const { logout } = useAuthStore();
 
   return (
-    <SafeAreaView className="flex-1 dark:bg-dark-background p-2">
+    <SafeAreaView
+      style={{ backgroundColor: colors.background }}
+      className="flex-1 p-2"
+    >
       <View
         style={{ zIndex: 10, overflow: "visible" }}
         pointerEvents="box-none"
@@ -36,11 +41,11 @@ const index = () => {
           {/* Posts */}
           <TouchableOpacity className="w-full flex flex-row justify-between ">
             <View className="flex flex-row gap-4">
-              <GlobeIcon color={colorScheme === "light" ? "black" : "white"} />
+              <GlobeIcon color={colors.icon} />
               <ThemedText type="defaultSemiBold">Posts</ThemedText>
             </View>
 
-            <ChevronRight color={colorScheme === "light" ? "black" : "white"} />
+            <ChevronRight color={colors.icon} />
           </TouchableOpacity>
 
           {/* Change theme */}

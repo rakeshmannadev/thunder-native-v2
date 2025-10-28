@@ -1,6 +1,10 @@
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { colors, fontSize, screenPadding } from "@/constants/tokens";
+import {
+  colors as constantColors,
+  fontSize,
+  screenPadding,
+} from "@/constants/tokens";
 import usePlayerStore from "@/store/usePlayerStore";
 import { defaultStyles } from "@/styles";
 import { FontAwesome } from "@expo/vector-icons";
@@ -25,14 +29,14 @@ const index = () => {
   const { top } = useSafeAreaInsets();
 
   const { currentSong, audioPreference } = usePlayerStore();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   return (
     <SafeAreaView
       style={[
         styles.safeArea,
         {
-          backgroundColor:
-            Colors[colorScheme === "light" ? "light" : "dark"].background,
+          backgroundColor: colors.background,
         },
       ]}
     >
@@ -63,19 +67,21 @@ const index = () => {
                   },
                 })
               }
-              className="w-full flex flex-row justify-between rounded-3xl p-4"
+              className="w-full flex flex-row justify-between items-center rounded-3xl p-4"
               style={{
                 backgroundColor:
                   colorScheme === "dark"
                     ? "rgba(255,255,255,0.25)"
-                    : "rgb(201, 201, 201)",
+                    : "rgb(240, 240, 240)",
               }}
             >
               <View className="flex flex-row items-center gap-4">
                 <FontAwesome
                   name={colorScheme === "dark" ? "moon-o" : "sun-o"}
-                  color={colorScheme === "dark" ? "white" : "black"}
+                  color={colors.icon}
                   size={20}
+                  className="p-2 rounded-xl"
+                  style={{ backgroundColor: colors.secondaryBackground }}
                 />
                 <ThemedText type="defaultSemiBold">
                   {colorScheme &&
@@ -84,9 +90,7 @@ const index = () => {
                 </ThemedText>
               </View>
 
-              <ChevronRight
-                color={colorScheme === "light" ? "black" : "white"}
-              />
+              <ChevronRight color={colors.icon} />
             </TouchableOpacity>
           </View>
 
@@ -101,7 +105,7 @@ const index = () => {
                 backgroundColor:
                   colorScheme === "dark"
                     ? "rgba(255,255,255,0.25)"
-                    : "rgb(201, 201, 201)",
+                    : "rgb(240, 240, 240)",
               }}
               onPress={() =>
                 router.push({
@@ -122,13 +126,15 @@ const index = () => {
                   },
                 })
               }
-              className="w-full flex flex-row justify-between rounded-3xl p-4"
+              className="w-full flex flex-row justify-between items-center rounded-3xl p-4"
             >
               <View className="flex flex-row items-center gap-4">
                 <FontAwesome
                   name="cog"
-                  color={colorScheme === "dark" ? "white" : "black"}
+                  color={colors.icon}
                   size={20}
+                  className="p-2 rounded-xl"
+                  style={{ backgroundColor: colors.secondaryBackground }}
                 />
                 <ThemedText type="defaultSemiBold">
                   {audioPreference.downloadFirst
@@ -137,9 +143,7 @@ const index = () => {
                 </ThemedText>
               </View>
 
-              <ChevronRight
-                color={colorScheme === "light" ? "black" : "white"}
-              />
+              <ChevronRight color={colors.icon} />
             </TouchableOpacity>
             {/* Audio quality */}
             <TouchableOpacity
@@ -147,7 +151,7 @@ const index = () => {
                 backgroundColor:
                   colorScheme === "dark"
                     ? "rgba(255,255,255,0.25)"
-                    : "rgb(201, 201, 201)",
+                    : "rgb(240, 240, 240)",
               }}
               onPress={() =>
                 router.push({
@@ -170,13 +174,15 @@ const index = () => {
                   },
                 })
               }
-              className="w-full flex flex-row justify-between rounded-3xl p-4"
+              className="w-full flex flex-row justify-between items-center rounded-3xl p-4"
             >
               <View className="flex flex-row items-center gap-4">
                 <FontAwesome
                   name="headphones"
-                  color={colorScheme === "dark" ? "white" : "black"}
+                  color={colors.icon}
                   size={20}
+                  className="p-2 rounded-xl"
+                  style={{ backgroundColor: colors.secondaryBackground }}
                 />
                 <ThemedText type="defaultSemiBold">
                   {audioPreference.quality.charAt(0).toUpperCase() +
@@ -184,9 +190,7 @@ const index = () => {
                 </ThemedText>
               </View>
 
-              <ChevronRight
-                color={colorScheme === "light" ? "black" : "white"}
-              />
+              <ChevronRight color={colors.icon} />
             </TouchableOpacity>
           </View>
         </View>
@@ -200,7 +204,7 @@ export default index;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: constantColors.background,
   },
   scrollContent: {
     paddingHorizontal: screenPadding.horizontal,

@@ -9,16 +9,23 @@ import { Card } from "@/components/ui/card";
 import { Divider } from "@/components/ui/divider";
 import { Heading } from "@/components/ui/heading";
 import { VStack } from "@/components/ui/vstack";
-import { ThemedText } from "../ThemedText";
+import { Colors } from "@/constants/Colors";
 import useUserStore from "@/store/useUserStore";
+import { useColorScheme } from "react-native";
+import { ThemedText } from "../ThemedText";
 
 const ProfileCard = () => {
+  const colorScheme = useColorScheme();
+
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   const { currentUser } = useUserStore();
   return (
     <Card
       variant="elevated"
       size="sm"
-      className="p-6 rounded-3xl max-w-[360px] m-3 bg-gray-600/20 "
+      className="p-6 rounded-3xl max-w-[360px] m-3  "
+      style={{ backgroundColor: colors.secondaryBackground }}
     >
       <Box className="flex-row">
         <Avatar className="mr-4">

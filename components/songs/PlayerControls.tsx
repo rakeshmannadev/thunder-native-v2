@@ -10,7 +10,14 @@ import {
   Shuffle,
   SkipForwardIcon,
 } from "lucide-react-native";
+import { useEffect } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 
 type PlayerControlsProps = {
   style?: ViewStyle;
@@ -66,6 +73,32 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
 export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
   const { player, status } = usePlayer();
 
+  const rotation = useSharedValue(0);
+
+  const rotationAnimationSyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          rotate: `${rotation.value}deg`,
+        },
+      ],
+    };
+  });
+  useEffect(() => {
+    if (status.isBuffering) {
+      rotation.value = 0;
+      rotation.value = withRepeat(
+        withTiming(360, { duration: 1000 }),
+        -1,
+        false
+      );
+    }
+
+    return () => {
+      rotation.value = 0;
+    };
+  }, [status.isBuffering]);
+
   return (
     <View style={[{ height: iconSize }, style]}>
       <TouchableOpacity
@@ -73,7 +106,9 @@ export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
         onPress={status.playing ? () => player.pause() : () => player.play()}
       >
         {status.isBuffering ? (
-          <LoaderCircleIcon size={iconSize} color={"#fff"} />
+          <Animated.View style={rotationAnimationSyle}>
+            <LoaderCircleIcon size={iconSize} color={"#fff"} />
+          </Animated.View>
         ) : status.playing ? (
           <Pause size={iconSize} color={"#fff"} />
         ) : (

@@ -1,13 +1,22 @@
 import { ThemedText } from "@/components/ThemedText";
 import { VStack } from "@/components/ui/vstack";
+import { Colors } from "@/constants/Colors";
 import React from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, useColorScheme } from "react-native";
 import JoinedRoom from "../../../components/rooms/JoinedRoom";
 import PublicRoom from "../../../components/rooms/PublicRoom";
 
 const index = () => {
+  const colorScheme = useColorScheme();
+
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
-    <VStack space="xl" className="mt-16 dark:bg-dark-background h-screen">
+    <VStack
+      style={{ backgroundColor: colors.background }}
+      space="xl"
+      className="mt-16 h-screen"
+    >
       <ThemedText type="subtitle" className="pl-4">
         Public rooms
       </ThemedText>
