@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "thunder-native-v2",
+    "name": "Thunder",
     "slug": "thunder-native-v2",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,7 +16,6 @@
     },
     "android": {
       "permissions": [
-        "RECORD_AUDIO",
         "WAKE_LOCK",
         "FOREGROUND_SERVICE",
         "INTERNET",
@@ -24,13 +23,8 @@
         "ACCESS_WIFI_STATE",
         "VIBRATE",
         "MODIFY_AUDIO_SETTINGS",
-        "BLUETOOTH",
-        "BLUETOOTH_ADMIN",
-        "BLUETOOTH_CONNECT",
-        "BLUETOOTH_SCAN",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "adaptiveIcon": {

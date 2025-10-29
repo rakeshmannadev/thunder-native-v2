@@ -5,7 +5,7 @@ export const Colors = {
   light: {
     primary: "#16707e",
     secondary: "#747ee7",
-    accent: "#6f6490",
+    accent: "#4169e1",
     textMuted: "#9ca3af",
     text: "#041216",
     background: "#f0f5f5",
@@ -18,7 +18,7 @@ export const Colors = {
   dark: {
     primary: "#81dce9",
     secondary: "#18218c",
-    accent: "#8b66af",
+    accent: "#4169e1",
     textMuted: "#9ca3af",
     text: "#e9f7fb",
     background: "#0a0f0f", //"#151718",
