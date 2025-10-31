@@ -15,7 +15,9 @@ import HeaderRight from "@/components/HeaderRight";
 import SearchBar from "@/components/search/SearchBar";
 import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import { Colors } from "@/constants/Colors";
+import { getAudioPreference } from "@/helpers";
 import PlayerProvider from "@/providers/PlayerProvider";
+import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -44,6 +46,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
+  const { setAudioPreference } = usePlayerStore();
 
   const { bottom } = useSafeAreaInsets();
   const bottomOffSet = bottom + 50;
@@ -61,6 +64,15 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    const setPreference = async () => {
+      const preference = await getAudioPreference();
+      setAudioPreference(preference!);
+    };
+    setPreference();
+  }, []);
+
   useEffect(() => {
     getCurrentUser();
   }, []);

@@ -67,6 +67,7 @@ const index = () => {
 
   const colorSchema = useColorScheme();
   const { top } = useSafeAreaInsets();
+  const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
 
   // if (isLoading)
   //   return (
@@ -86,10 +87,7 @@ const index = () => {
     <SafeAreaView
       style={[
         {
-          backgroundColor:
-            colorSchema === "dark"
-              ? Colors["dark"].background
-              : Colors["light"].background,
+          backgroundColor: colors.background,
         },
         styles.container,
       ]}
@@ -112,7 +110,7 @@ const index = () => {
               }}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.card}
+                  style={[styles.card, { backgroundColor: colors.card }]}
                   onPress={() =>
                     router.push({
                       pathname: "/library_content",
@@ -120,7 +118,11 @@ const index = () => {
                     })
                   }
                 >
-                  <Ionicons name={item.icon as any} size={32} color="white" />
+                  <Ionicons
+                    name={item.icon as any}
+                    size={32}
+                    color={colors.icon}
+                  />
                   <ThemedText type="defaultSemiBold" numberOfLines={1}>
                     {item.name}
                   </ThemedText>
@@ -218,6 +220,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 10,
     gap: 8,
-    backgroundColor: "rgba(255,255,255,0.025)",
   },
 });

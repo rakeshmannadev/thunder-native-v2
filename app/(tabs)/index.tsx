@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { VStack } from "@/components/ui/vstack";
 import { FlatList, ScrollView, useColorScheme, View } from "react-native";
 
+import SearchBox from "@/components/searchbox/SearchBox";
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { Colors } from "@/constants/Colors";
 import useMusicStore from "@/store/useMusicStore";
@@ -62,6 +63,7 @@ export default function HomeScreen() {
       <ScrollView>
         {/* Recently played section */}
         <VStack space="md" className=" p-2 mt-16">
+          <SearchBox />
           <View className="w-full flex flex-row justify-between items-center pr-2">
             <ThemedText
               type="subtitle"

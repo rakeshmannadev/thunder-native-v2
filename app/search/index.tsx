@@ -10,13 +10,17 @@ import { Colors } from "@/constants/Colors";
 import useMusicStore from "@/store/useMusicStore";
 import React from "react";
 import {
+  ActivityIndicator,
   FlatList,
   ListRenderItem,
   StyleSheet,
   useColorScheme,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 type ResultItem = {
   id?: string | number;
@@ -34,7 +38,23 @@ type Section = {
 const index = () => {
   const colorSchema = useColorScheme();
   const { searchedSongs, searchLoading } = useMusicStore();
+  const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
+  const { top } = useSafeAreaInsets();
+
+  if (searchLoading)
+    return (
+      <View
+        style={{ backgroundColor: colors.background }}
+        className="flex flex-1 justify-center items-center"
+      >
+        <ActivityIndicator
+          size={"large"}
+          color={colors.primary}
+          animating={searchLoading}
+        />
+      </View>
+    );
   // Show default screen when no search has been made
   if (!searchLoading && !searchedSongs) return <DefaultScreen />;
   if (
@@ -81,9 +101,9 @@ const index = () => {
   const renderSection: ListRenderItem<Section> = ({ item }) => {
     const CardComponent = item.component;
     return (
-      <View style={styles.sectionContainer}>
+      <View style={[styles.sectionContainer, { marginTop: top + 40 }]}>
         <ThemedText type="subtitle" numberOfLines={1}>
-          {item.title}:
+          {item.title}
         </ThemedText>
 
         <FlatList
@@ -125,9 +145,8 @@ const index = () => {
 export default index;
 const styles = StyleSheet.create({
   sectionContainer: {
-    marginTop: 50,
     paddingHorizontal: 16,
     marginBottom: 24,
-    gap: 4,
+    gap: 8,
   },
 });

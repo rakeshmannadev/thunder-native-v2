@@ -31,6 +31,7 @@ const index = () => {
   const { currentSong, audioPreference } = usePlayerStore();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
+  console.log("audioPRef: ", audioPreference);
   return (
     <SafeAreaView
       style={[

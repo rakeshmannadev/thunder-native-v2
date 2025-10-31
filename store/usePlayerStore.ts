@@ -1,3 +1,4 @@
+import { setAudioPreference } from "@/helpers";
 import { AudioPreferenceType, qualites, Song } from "@/types";
 import { create } from "zustand";
 // import useSocketStore from "./useSocketStore";
@@ -204,9 +205,10 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   setRepeat: (state) => {
     set({ isRepeat: state });
   },
-  setAudioPreference: (pref) => {
+  setAudioPreference: async (pref) => {
     const currentPref = get().audioPreference;
     set({ audioPreference: { ...currentPref, ...pref } });
+    await setAudioPreference({ ...currentPref, ...pref });
   },
 }));
 

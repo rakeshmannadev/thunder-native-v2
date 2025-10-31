@@ -21,6 +21,7 @@ interface MusicStore {
   fetchAlbumById: (albumId: string) => Promise<void>;
   searchSong: (query: string) => Promise<void>;
   fetchSingle: (id: string) => Promise<void>;
+  setSearchedSongs: (songs: SearchedSong | null) => void;
 }
 
 const useMusicStore = create<MusicStore>((set) => ({
@@ -147,6 +148,9 @@ const useMusicStore = create<MusicStore>((set) => ({
     } finally {
       set({ searchLoading: false });
     }
+  },
+  setSearchedSongs(songs) {
+    set({ searchedSongs: songs });
   },
 }));
 export default useMusicStore;
