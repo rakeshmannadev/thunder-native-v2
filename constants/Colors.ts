@@ -11,7 +11,7 @@ export const Colors = {
     background: "#f0f5f5",
     component: "#d1d5db",
     tint: tintColorLight,
-    icon: "#fff",
+    icon: "#000",
     tabIconDefault: "#687076",
     tabIconSelected: tintColorLight,
     secondaryBackground: "#d1d5db",

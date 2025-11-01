@@ -9,10 +9,10 @@ import {
 } from "react-native";
 
 import { Colors } from "@/constants/Colors";
+import { borderRadius } from "@/constants/tokens";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { useAudioPlayerStatus } from "expo-audio";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
 import { PlayPauseButton, SkipToNextButton } from "./PlayerControls";
@@ -41,9 +41,17 @@ const FloatingPlayer = ({ style }: ViewProps) => {
     <TouchableOpacity
       onPress={() => router.navigate("/player")}
       activeOpacity={0.9}
-      style={[style]}
+      style={[
+        style,
+        {
+          backgroundColor: colors.component,
+          borderRadius: borderRadius.md,
+          padding: 8,
+          marginInline: 2,
+        },
+      ]}
     >
-      <LinearGradient
+      {/* <LinearGradient
         style={{
           flex: 1,
           flexDirection: "row",
@@ -53,43 +61,45 @@ const FloatingPlayer = ({ style }: ViewProps) => {
           paddingVertical: 6,
         }}
         colors={["#2C5364", "#203A43", "#0F2027"]}
+      > */}
+      <View
+        style={[styles.parentContainer, { backgroundColor: colors.component }]}
+        className="backdrop-blur-lg shadow-2xl"
       >
-        <View style={styles.parentContainer}>
-          <View style={styles.trakDetailsContainer}>
-            <Image
-              source={{ uri: currentSong?.imageUrl ?? unknownTrackImageUri }}
-              className="w-14 aspect-square rounded-md"
+        <View style={styles.trakDetailsContainer}>
+          <Image
+            source={{ uri: currentSong?.imageUrl ?? unknownTrackImageUri }}
+            className="w-14 aspect-square rounded-md"
+          />
+          <View className="flex-1 overflow-hidden ml-2 ">
+            <MovingText
+              text={currentSong.title ?? ""}
+              animationThreshold={25}
+              style={[styles.trackTitle, { color: colors.text }]}
             />
-            <View className="flex-1 overflow-hidden ml-2">
-              <MovingText
-                text={currentSong.title ?? ""}
-                animationThreshold={25}
-                style={styles.trackTitle}
-              />
-              <MovingText
-                text={
-                  currentSong?.artists.primary.map((a) => a.name).join(",") ??
-                  ""
-                }
-                animationThreshold={25}
-                style={styles.trackArtist}
-              />
-            </View>
-            <View className="flex flex-row items-center gap-5 mr-4 pl-4">
-              <PlayPauseButton iconSize={24} />
-
-              <SkipToNextButton iconSize={24} handlePress={playNext} />
-            </View>
+            <MovingText
+              text={
+                currentSong?.artists.primary.map((a) => a.name).join(",") ?? ""
+              }
+              animationThreshold={25}
+              style={[styles.trackArtist, { color: colors.textMuted }]}
+            />
           </View>
-          {/* Progress bar */}
-          <View style={styles.progressContainer}>
-            <Animated.View
-              style={{ backgroundColor: colors.accent, flex: progress }}
-            />
-            <View style={{ flex: 1 - progress }} />
+          <View className="flex flex-row items-center gap-5 mr-4 pl-4">
+            <PlayPauseButton iconSize={24} />
+
+            <SkipToNextButton iconSize={24} handlePress={playNext} />
           </View>
         </View>
-      </LinearGradient>
+        {/* Progress bar */}
+        <View style={styles.progressContainer}>
+          <Animated.View
+            style={{ backgroundColor: colors.accent, flex: progress }}
+          />
+          <View style={{ flex: 1 - progress }} />
+        </View>
+      </View>
+      {/* </LinearGradient> */}
     </TouchableOpacity>
   );
 };
@@ -99,18 +109,18 @@ export default FloatingPlayer;
 const styles = StyleSheet.create({
   trackTitle: {
     fontSize: 20,
-    color: "#fff",
     fontWeight: "600",
     paddingLeft: 10,
+    letterSpacing: 0.5,
   },
   trackArtist: {
     fontSize: 16,
-    color: "#fff",
     fontWeight: "500",
     paddingLeft: 8,
+    letterSpacing: 0.25,
   },
   progressContainer: {
-    height: 3,
+    height: 4,
     flexDirection: "row",
     backgroundColor: "rgba(255,255,255,0.15)",
     borderBottomLeftRadius: 12,

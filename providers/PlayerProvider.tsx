@@ -24,6 +24,7 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
 
   const status = useAudioPlayerStatus(player);
 
+  // * Set audio mode to play in background and silent mode
   useEffect(() => {
     (async () => {
       try {
@@ -40,6 +41,7 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
     })();
   }, [player]);
 
+  // * Auto play next song when current song finishes
   useEffect(() => {
     if (!status) return;
     if (status.didJustFinish) {
@@ -51,6 +53,7 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
     }
   }, [status.didJustFinish]);
 
+  // * Auto play when a new song is loaded
   useEffect(() => {
     if (player && currentSong && status.isLoaded) {
       (async () => {

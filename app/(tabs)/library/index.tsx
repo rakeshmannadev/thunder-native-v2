@@ -1,14 +1,15 @@
 import EmptyLibrary from "@/components/EmptyLibrary";
 import { ThemedText } from "@/components/ThemedText";
+import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
-import { screenPadding } from "@/constants/tokens";
+import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { ChevronRightIcon, PlusIcon } from "lucide-react-native";
 import { useEffect } from "react";
 import {
-  FlatList,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -69,19 +70,6 @@ const index = () => {
   const { top } = useSafeAreaInsets();
   const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
 
-  // if (isLoading)
-  //   return (
-  //     <View className="flex flex-1 justify-center items-center dark:bg-dark-background">
-  //       <ActivityIndicator
-  //         size={"large"}
-  //         color={colors.primary}
-  //         animating={isLoading}
-  //       />
-  //     </View>
-  //   );
-
-  // console.log("fav: ", favoriteSongs);
-
   if (!currentUser) return <EmptyLibrary />;
   return (
     <SafeAreaView
@@ -93,108 +81,176 @@ const index = () => {
       ]}
     >
       <ScrollView style={{ flex: 1 }}>
-        <View style={{ marginTop: top + 40 }}>
-          <View style={styles.sectionContiner}>
-            <FlatList
-              data={Categories}
-              keyExtractor={(item) => item.key.toString()}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingVertical: 10,
-                flexGrow: 1,
-                alignItems: "flex-start",
-                flexWrap: "wrap",
-                gap: 24,
-                width: "100%",
-              }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.card, { backgroundColor: colors.card }]}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/library_content",
-                      params: { pagename: item.key },
-                    })
-                  }
+        <View style={{ marginTop: top + 60, gap: 16 }}>
+          <Button
+            variant="solid"
+            size="lg"
+            action="secondary"
+            className="w-full"
+            style={{
+              borderRadius: borderRadius.sm,
+              backgroundColor: colors.accent,
+              marginBottom: 24,
+            }}
+          >
+            <ButtonIcon color={colors.text} size={"xl"} as={PlusIcon} />
+            <ButtonText style={{ color: colors.text }} size="xl">
+              Create Playlist
+            </ButtonText>
+          </Button>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            pressRetentionOffset={12}
+            onPress={() =>
+              router.push({
+                pathname: "/library_content",
+                params: { pagename: "liked" },
+              })
+            }
+            style={styles.sectionContiner}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <View
+                style={[styles.card, { backgroundColor: colors.component }]}
+              >
+                <Ionicons
+                  name={"heart-outline"}
+                  size={fontSize.lg}
+                  color={colors.icon}
+                />
+              </View>
+              <View>
+                <ThemedText type="subtitle">{`Liked Songs`}</ThemedText>
+                <ThemedText
+                  type="defaultSemiBold"
+                  darkColor={colors.textMuted}
+                  lightColor={colors.textMuted}
                 >
-                  <Ionicons
-                    name={item.icon as any}
-                    size={32}
-                    color={colors.icon}
-                  />
-                  <ThemedText type="defaultSemiBold" numberOfLines={1}>
-                    {item.name}
-                  </ThemedText>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
+                  20 Songs
+                </ThemedText>
+              </View>
+            </View>
+            <ChevronRightIcon size={fontSize.lg} color={colors.text} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            pressRetentionOffset={12}
+            onPress={() =>
+              router.push({
+                pathname: "/library_content",
+                params: { pagename: "playlists" },
+              })
+            }
+            style={styles.sectionContiner}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                height: "100%",
+              }}
+            >
+              <View
+                style={[styles.card, { backgroundColor: colors.component }]}
+              >
+                <Ionicons
+                  name={"list-outline"}
+                  size={fontSize.lg}
+                  color={colors.icon}
+                />
+              </View>
+              <View style={{ alignContent: "flex-start" }}>
+                <ThemedText type="subtitle">My Playlists</ThemedText>
+                <ThemedText
+                  type="defaultSemiBold"
+                  darkColor={colors.textMuted}
+                  lightColor={colors.textMuted}
+                >
+                  20 Songs
+                </ThemedText>
+              </View>
+            </View>
+            <ChevronRightIcon size={fontSize.lg} color={colors.text} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            pressRetentionOffset={12}
+            onPress={() =>
+              router.push({
+                pathname: "/library_content",
+                params: { pagename: "albums" },
+              })
+            }
+            style={styles.sectionContiner}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <View
+                style={[styles.card, { backgroundColor: colors.component }]}
+              >
+                <Ionicons
+                  name={"albums-outline"}
+                  size={fontSize.lg}
+                  color={colors.icon}
+                />
+              </View>
+              <View>
+                <ThemedText type="subtitle">Saved Albums</ThemedText>
+                <ThemedText
+                  type="defaultSemiBold"
+                  darkColor={colors.textMuted}
+                  lightColor={colors.textMuted}
+                >
+                  20 Songs
+                </ThemedText>
+              </View>
+            </View>
+            <ChevronRightIcon size={fontSize.lg} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            pressRetentionOffset={12}
+            onPress={() =>
+              router.push({
+                pathname: "/library_content",
+                params: { pagename: "downloads" },
+              })
+            }
+            style={styles.sectionContiner}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <View
+                style={[styles.card, { backgroundColor: colors.component }]}
+              >
+                <Ionicons
+                  name={"download-outline"}
+                  size={fontSize.lg}
+                  color={colors.icon}
+                />
+              </View>
+              <View>
+                <ThemedText type="subtitle"> Downloads</ThemedText>
+                <ThemedText
+                  type="defaultSemiBold"
+                  darkColor={colors.textMuted}
+                  lightColor={colors.textMuted}
+                >
+                  20 Songs
+                </ThemedText>
+              </View>
+            </View>
+            <ChevronRightIcon size={fontSize.lg} color={colors.text} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* <VStack space="md" className="mt-10 p-2">
-        <ThemedText type="subtitle" className="px-3">
-          Favorites
-        </ThemedText>
-
-          {
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              data={favoriteSongs}
-              keyExtractor={(item: Song) => item._id.toString()}
-              renderItem={({ item: Song }) => (
-                <SongCard song={Song} isLoading={fetchingPlaylist} />
-              )}
-            />
-          }
-
-      </VStack>
-
-      <VStack space="md" className="mt-2 p-2">
-        <ThemedText type="subtitle" className="px-3">
-          Saved albums
-        </ThemedText>
-        <ScrollView>
-          {
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              data={playlists.filter((playlist) => playlist.albumId != null)}
-              keyExtractor={(item: Playlist) => item._id.toString()}
-              renderItem={({ item: playlist }) => (
-                <PlaylistCard
-                  playlist={playlist}
-                  isLoading={fetchingPlaylist}
-                />
-              )}
-            />
-          }
-        </ScrollView>
-      </VStack>
-
-      <VStack space="md" className="mt-2 p-2 mb-16">
-        <ThemedText type="subtitle" className="px-3">
-          Saved playlists
-        </ThemedText>
-        <ScrollView>
-          {
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              data={playlists.filter((playlist) => playlist.albumId == null)}
-              keyExtractor={(item: Playlist) => item._id.toString()}
-              renderItem={({ item: playlist }) => (
-                <PlaylistCard
-                  playlist={playlist}
-                  isLoading={fetchingPlaylist}
-                />
-              )}
-            />
-          }
-        </ScrollView>
-      </VStack> */}
     </SafeAreaView>
   );
 };
@@ -208,16 +264,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding.horizontal,
   },
   sectionContiner: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 24,
     width: "100%",
     paddingHorizontal: screenPadding.horizontal,
     alignItems: "center",
   },
   card: {
-    minWidth: 100,
-    minHeight: 100,
+    height: 56,
+    width: 56,
+    flexShrink: 0,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
     marginBottom: 10,
     gap: 8,
   },
