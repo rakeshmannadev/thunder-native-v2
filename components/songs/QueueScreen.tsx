@@ -132,7 +132,7 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
                       key: "go_to_artist",
                       label: "Go to artist",
                       icon: "artist",
-                      data: item.artists.primary[0].id,
+                      data: item.artists.primary[0]._id,
                     },
                     {
                       key: "save_to_playlist",

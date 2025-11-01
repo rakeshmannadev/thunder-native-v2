@@ -1,5 +1,7 @@
+import { Colors } from "@/constants/Colors";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
+import { usePathname } from "expo-router";
 import {
   ArrowRight,
   LoaderCircleIcon,
@@ -8,10 +10,17 @@ import {
   Repeat,
   Repeat1,
   Shuffle,
+  SkipBackIcon,
   SkipForwardIcon,
 } from "lucide-react-native";
 import { useEffect } from "react";
-import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+  ViewStyle,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -71,6 +80,10 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
 };
 
 export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
+  const location = usePathname();
+
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const { player, status } = usePlayer();
 
   const rotation = useSharedValue(0);
@@ -107,12 +120,18 @@ export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
       >
         {status.isBuffering ? (
           <Animated.View style={rotationAnimationSyle}>
-            <LoaderCircleIcon size={iconSize} color={"#fff"} />
+            <LoaderCircleIcon size={iconSize} color={colors.text} />
           </Animated.View>
         ) : status.playing ? (
-          <Pause size={iconSize} color={"#fff"} />
+          <Pause
+            size={iconSize}
+            color={location === "/player" ? "#fff" : colors.text}
+          />
         ) : (
-          <Play size={iconSize} color={"#fff"} />
+          <Play
+            size={iconSize}
+            color={location === "/player" ? "#fff" : colors.text}
+          />
         )}
       </TouchableOpacity>
     </View>
@@ -123,9 +142,16 @@ export const SkipToNextButton = ({
   iconSize = 30,
   handlePress,
 }: PlayerButtonProps) => {
+  const location = usePathname();
+
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
-      <SkipForwardIcon size={iconSize} color={"#fff"} />
+      <SkipForwardIcon
+        size={iconSize}
+        color={location === "/player" ? "#fff" : colors.text}
+      />
     </TouchableOpacity>
   );
 };
@@ -133,9 +159,17 @@ export const SkipToPreviousButton = ({
   iconSize = 30,
   handlePress,
 }: PlayerButtonProps) => {
+  const location = usePathname();
+
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
-      <SkipForwardIcon size={iconSize} color={"#fff"} />
+      <SkipBackIcon
+        size={iconSize}
+        color={location === "/player" ? "#fff" : colors.text}
+      />
     </TouchableOpacity>
   );
 };
@@ -144,12 +178,22 @@ export const RepeatButton = ({
   handlePress,
   isRepeat,
 }: PlayerButtonProps) => {
+  const location = usePathname();
+
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       {isRepeat ? (
-        <Repeat1 size={iconSize} color={"#fff"} />
+        <Repeat1
+          size={iconSize}
+          color={location === "/player" ? "#fff" : colors.text}
+        />
       ) : (
-        <Repeat size={iconSize} color={"#fff"} />
+        <Repeat
+          size={iconSize}
+          color={location === "/player" ? "#fff" : colors.text}
+        />
       )}
     </TouchableOpacity>
   );
@@ -159,12 +203,22 @@ export const ShuffleButton = ({
   handlePress,
   isShuffle,
 }: PlayerButtonProps) => {
+  const location = usePathname();
+
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       {!isShuffle ? (
-        <ArrowRight size={iconSize} color={"#fff"} />
+        <ArrowRight
+          size={iconSize}
+          color={location === "/player" ? "#fff" : colors.text}
+        />
       ) : (
-        <Shuffle size={iconSize} color={"#fff"} />
+        <Shuffle
+          size={iconSize}
+          color={location === "/player" ? "#fff" : colors.text}
+        />
       )}
     </TouchableOpacity>
   );

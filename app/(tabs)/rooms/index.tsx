@@ -123,7 +123,6 @@ const index = () => {
             <View
               className="min-w-full"
               style={{
-                paddingBlock: 4,
                 marginBottom: 16,
               }}
               // onTouchEnd={() => router.push("/search")}

@@ -22,6 +22,8 @@ export interface menuItems {
 
 export default function MenuSheet() {
   const colorScheme = useColorScheme();
+
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const params = useLocalSearchParams();
 
   const { handleMenuActions } = useMenuActions();
@@ -33,16 +35,12 @@ export default function MenuSheet() {
     console.log("Error parsing menu items:", error);
   }
 
-  console.log("menuitems: ", menuItems);
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor:
-            colorScheme === "light"
-              ? Colors["light"].background
-              : Colors["dark"].background,
+          backgroundColor: colors.background,
         },
       ]}
     >

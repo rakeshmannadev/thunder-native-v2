@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import {
+  borderRadius,
   colors as constantColors,
   fontSize,
   screenPadding,
@@ -28,10 +29,9 @@ const index = () => {
   const colorScheme = useColorScheme();
   const { top } = useSafeAreaInsets();
 
-  const { currentSong, audioPreference } = usePlayerStore();
+  const { audioPreference } = usePlayerStore();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  console.log("audioPRef: ", audioPreference);
   return (
     <SafeAreaView
       style={[
@@ -68,12 +68,10 @@ const index = () => {
                   },
                 })
               }
-              className="w-full flex flex-row justify-between items-center rounded-3xl p-4"
+              className="w-full flex flex-row justify-between items-center p-4"
               style={{
-                backgroundColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.25)"
-                    : "rgb(240, 240, 240)",
+                backgroundColor: colors.component,
+                borderRadius: borderRadius.md,
               }}
             >
               <View className="flex flex-row items-center gap-4">
@@ -103,10 +101,8 @@ const index = () => {
             {/* Audio preference */}
             <TouchableOpacity
               style={{
-                backgroundColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.25)"
-                    : "rgb(240, 240, 240)",
+                backgroundColor: colors.component,
+                borderRadius: borderRadius.md,
               }}
               onPress={() =>
                 router.push({
@@ -149,10 +145,8 @@ const index = () => {
             {/* Audio quality */}
             <TouchableOpacity
               style={{
-                backgroundColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.25)"
-                    : "rgb(240, 240, 240)",
+                backgroundColor: colors.component,
+                borderRadius: borderRadius.md,
               }}
               onPress={() =>
                 router.push({
