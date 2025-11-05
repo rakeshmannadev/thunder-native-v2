@@ -197,6 +197,14 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
+                  name="room/[id]"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                  }}
+                />
+                <Stack.Screen
                   name="menu"
                   options={{
                     headerShown: false,

@@ -4,8 +4,10 @@ import { Divider } from "@/components/ui/divider";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Colors } from "@/constants/Colors";
 import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
+import useRoomStore from "@/store/useRoomStore";
+import useUserStore from "@/store/useUserStore";
 import { SearchIcon } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Text,
@@ -25,6 +27,30 @@ const index = () => {
 
   const [activeTab, setActiveTab] = useState("joined");
 
+  const {
+    fetchingRoom,
+    currentRoom,
+    createRoom,
+    fetchRoomMembers,
+    getRoomById,
+    joinPublicRoom,
+  } = useRoomStore();
+
+  const {
+    fetchJoinedRooms,
+    publicRooms,
+    fetchPublicRooms,
+    rooms,
+    currentUser,
+  } = useUserStore();
+
+  useEffect(() => {
+    console.log("called");
+    fetchJoinedRooms();
+    fetchPublicRooms();
+  }, []);
+
+  if (!currentUser) return null;
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View
@@ -73,11 +99,11 @@ const index = () => {
             <Text
               style={{
                 color:
-                  activeTab === "active" ? colors.primary : colors.textMuted,
+                  activeTab === "public" ? colors.primary : colors.textMuted,
                 fontSize: fontSize.sm,
               }}
             >
-              Active Rooms
+              Explore Rooms
             </Text>
           </TouchableOpacity>
         </View>
@@ -103,9 +129,11 @@ const index = () => {
           >
             <FlatList
               showsVerticalScrollIndicator={false}
-              data={[1, 2, 3, 4, 5]}
-              renderItem={({ item }) => <JoinedRoom key={item} />}
-              keyExtractor={(item) => item.toString()}
+              data={rooms}
+              renderItem={({ item }) => (
+                <JoinedRoom room={item} key={item._id} />
+              )}
+              keyExtractor={(item) => item._id.toString()}
             />
           </View>
         )}
@@ -151,9 +179,11 @@ const index = () => {
 
             <FlatList
               showsVerticalScrollIndicator={false}
-              data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-              renderItem={({ item }) => <PublicRoom key={item} />}
-              keyExtractor={(item) => item.toString()}
+              data={publicRooms}
+              renderItem={({ item }) => (
+                <PublicRoom room={item} key={item._id} />
+              )}
+              keyExtractor={(item) => item._id.toString()}
             />
           </View>
         )}

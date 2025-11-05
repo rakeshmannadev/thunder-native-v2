@@ -195,6 +195,14 @@ export interface Requests {
   status: string;
   room: Room;
 }
+export interface SongRequest {
+  _id: string;
+  title: string;
+  albumId: string;
+  imageUrl: string;
+  userName: string;
+  userId: string;
+}
 
 export interface AudioPreferenceType {
   downloadFirst: boolean;
