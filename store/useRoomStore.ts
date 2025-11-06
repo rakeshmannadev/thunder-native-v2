@@ -88,10 +88,10 @@ const useRoomStore = create<RoomStore>((set) => ({
   },
   getRoomById: async (roomId) => {
     set({ fetchingRoom: true });
-    console.log("Fetching room with ID: ", roomId);
+
     try {
       const response = await axiosInstance.get(`/rooms/getRoomById/${roomId}`);
-      console.log("room response: ", response.data);
+
       if (response.data.status) {
         set({ currentRoom: response.data.room });
       }

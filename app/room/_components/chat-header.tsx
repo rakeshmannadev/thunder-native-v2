@@ -22,7 +22,9 @@ const ChatHeader = ({ room }: { room: Room }) => {
         paddingTop: 10,
         flexDirection: "row",
         justifyContent: "space-between",
+        borderColor: colors.borderColor,
       }}
+      className="border-b pb-2"
     >
       {/* Room image section */}
       <Image
