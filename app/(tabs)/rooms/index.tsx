@@ -1,192 +1,98 @@
-import JoinedRoom from "@/components/rooms/JoinedRoom";
-import PublicRoom from "@/components/rooms/PublicRoom";
 import { Divider } from "@/components/ui/divider";
-import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Colors } from "@/constants/Colors";
-import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
-import useRoomStore from "@/store/useRoomStore";
+import { fontSize, screenPadding } from "@/constants/tokens";
 import useUserStore from "@/store/useUserStore";
-import { SearchIcon } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  FlatList,
   Text,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { TabView } from "react-native-tab-view";
+import JoinedRoomsTab from "../../../components/rooms/joined-rooms-tab";
+import PublicRoomsTab from "../../../components/rooms/public-rooms-tab";
 
 const index = () => {
+  const layout = useWindowDimensions();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const { top, bottom } = useSafeAreaInsets();
 
-  const [activeTab, setActiveTab] = useState("joined");
+  const { currentUser } = useUserStore();
 
-  const {
-    fetchingRoom,
-    currentRoom,
-    createRoom,
-    fetchRoomMembers,
-    getRoomById,
-    joinPublicRoom,
-  } = useRoomStore();
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: "joined", title: "Joined Rooms" },
+    { key: "public", title: "Explore Rooms" },
+  ]);
 
-  const {
-    fetchJoinedRooms,
-    publicRooms,
-    fetchPublicRooms,
-    rooms,
-    currentUser,
-  } = useUserStore();
+  const LazySceneRender = ({ route }: any) => {
+    if (route.key === "joined") return <JoinedRoomsTab />;
+    if (route.key === "public") return <PublicRoomsTab />;
+    return null;
+  };
 
-  useEffect(() => {
-    console.log("called");
-    fetchJoinedRooms();
-    fetchPublicRooms();
-  }, []);
-
-  if (!currentUser) return null;
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+  const renderTabBar = () => (
+    <>
       <View
         style={{
-          paddingTop: top + 40,
-          flex: 1,
-          alignItems: "center",
+          flexDirection: "row",
+          paddingHorizontal: screenPadding.horizontal,
         }}
       >
-        {/* Tabs section */}
-        <View
-          style={{
-            flexDirection: "row",
-            paddingInline: screenPadding.horizontal,
-            justifyContent: "center",
-          }}
-        >
-          <TouchableOpacity
-            activeOpacity={0.7}
-            className=" flex-1 justify-center items-center min-h-12 "
-            onPress={() => setActiveTab("joined")}
-            style={{
-              borderBottomWidth: activeTab === "joined" ? 2 : 0,
-              borderBottomColor: colors.primary,
-            }}
-          >
-            <Text
+        {routes.map((route, i) => {
+          const isActive = index === i;
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={() => setIndex(i)}
               style={{
-                color:
-                  activeTab === "joined" ? colors.primary : colors.textMuted,
-                fontSize: fontSize.sm,
+                flex: 1,
+                alignItems: "center",
+                paddingVertical: 12,
+                borderBottomWidth: isActive ? 2 : 0,
+                borderBottomColor: colors.primary,
               }}
             >
-              Joined Rooms
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            className="flex-1 justify-center items-center min-h-12"
-            onPress={() => setActiveTab("public")}
-            style={{
-              borderBottomWidth: activeTab === "public" ? 2 : 0,
-              borderBottomColor: colors.primary,
-            }}
-          >
-            <Text
-              style={{
-                color:
-                  activeTab === "public" ? colors.primary : colors.textMuted,
-                fontSize: fontSize.sm,
-              }}
-            >
-              Explore Rooms
-            </Text>
-          </TouchableOpacity>
-        </View>
-        {/* Divider section */}
-        <View
-          style={{
-            width: "100%",
-            paddingInline: screenPadding.horizontal,
-            // marginTop: 12,
-          }}
-        >
-          <Divider />
-        </View>
-
-        {/* Joined rooms section */}
-        {activeTab === "joined" && (
-          <View
-            style={{
-              paddingHorizontal: screenPadding.horizontal,
-              marginTop: 24,
-              paddingBottom: bottom + 50,
-            }}
-          >
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={rooms}
-              renderItem={({ item }) => (
-                <JoinedRoom room={item} key={item._id} />
-              )}
-              keyExtractor={(item) => item._id.toString()}
-            />
-          </View>
-        )}
-
-        {/* Public rooms section */}
-        {activeTab === "public" && (
-          <View
-            style={{
-              paddingHorizontal: screenPadding.horizontal,
-              marginTop: 24,
-              paddingBottom: bottom + 68,
-            }}
-          >
-            {/* Search room section */}
-            <View
-              className="min-w-full"
-              style={{
-                marginBottom: 16,
-              }}
-              // onTouchEnd={() => router.push("/search")}
-            >
-              <Input
-                variant="rounded"
-                size="xl"
+              <Text
                 style={{
-                  backgroundColor: colors.component,
-                  borderRadius: borderRadius.lg,
-                  paddingBlock: 4,
-                  outline: "none",
-                  borderWidth: 0,
-                  shadowColor: colors.text,
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 3,
+                  color: isActive ? colors.primary : colors.textMuted,
+                  fontSize: fontSize.sm,
                 }}
               >
-                <InputSlot className="pl-3">
-                  <InputIcon as={SearchIcon} />
-                </InputSlot>
-                <InputField placeholder="Search rooms..." />
-              </Input>
-            </View>
+                {route.title}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <View style={{ paddingHorizontal: screenPadding.horizontal }}>
+        <Divider />
+      </View>
+    </>
+  );
 
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={publicRooms}
-              renderItem={({ item }) => (
-                <PublicRoom room={item} key={item._id} />
-              )}
-              keyExtractor={(item) => item._id.toString()}
-            />
-          </View>
-        )}
+  if (!currentUser) return null;
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ paddingTop: top + 40, flex: 1 }}>
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={LazySceneRender}
+          onIndexChange={setIndex}
+          initialLayout={{ width: layout.width }}
+          renderTabBar={renderTabBar}
+          swipeEnabled
+          lazy
+          lazyPreloadDistance={0}
+        />
       </View>
     </SafeAreaView>
   );

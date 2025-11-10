@@ -47,10 +47,12 @@ interface UserStore {
   isLoading: boolean;
   playlistLoading: boolean;
   fetchingPlaylist: boolean;
+  isFetchingRooms: boolean;
 }
 
 const useUserStore = create<UserStore>((set, get) => ({
   isLoading: false,
+  isFetchingRooms: false,
   playlistLoading: false,
   fetchingPlaylist: false,
   rooms: [],
@@ -60,6 +62,7 @@ const useUserStore = create<UserStore>((set, get) => ({
   currentPlaylist: null,
   currentUser: null,
   fetchJoinedRooms: async () => {
+    set({ isFetchingRooms: true });
     try {
       const response = await axiosInstance.get("/user/getJoinedRooms");
       set({ rooms: response.data.rooms });
@@ -67,15 +70,18 @@ const useUserStore = create<UserStore>((set, get) => ({
       console.log(error.response.data.messages);
       console.log(error);
     } finally {
+      set({ isFetchingRooms: false });
     }
   },
   fetchPublicRooms: async () => {
+    set({ isFetchingRooms: true });
     try {
       const response = await axiosInstance.get("/user/getRooms");
       set({ publicRooms: response.data.rooms });
     } catch (error: any) {
       console.log(error.response.data.message);
     } finally {
+      set({ isFetchingRooms: false });
     }
   },
   fetchPlaylists: async () => {
