@@ -1,4 +1,5 @@
-import { colors } from "@/constants/tokens";
+import { Colors } from "@/constants/Colors";
+import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
@@ -6,13 +7,22 @@ import { Artist, Song } from "@/types";
 import { useRouter } from "expo-router";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React from "react";
-import { Image, Pressable, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
 
 const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
   const router = useRouter();
+
+  const colorSchema = useColorScheme();
+  const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
   const { status } = usePlayer();
   const { currentSong, setCurrentSong } = usePlayerStore();
@@ -21,7 +31,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
   return (
     <TouchableOpacity
       onPress={() => setCurrentSong(song)}
-      className="flex flex-row gap-5 justify-between items-center p-2 rounded-xl  mb-4 "
+      className="flex flex-row gap-5 justify-between items-center  rounded-xl  mb-4 "
     >
       <View>
         {isLoading ? (
@@ -33,22 +43,22 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
             }}
             alt=""
             style={{
-              width: 56,
-              height: 40,
+              width: 60,
+              aspectRatio: 1,
               objectFit: "cover",
-              borderRadius: 8,
+              borderRadius: borderRadius.md,
             }}
           />
         )}
         {isActive && (
           <View
-            className="absolute top-0 left-0 h-12 w-16 rounded-lg flex flex-row items-center justify-center 
+            className="absolute top-0 left-0 aspect-square w-[60] rounded-lg flex flex-row items-center justify-center 
              bg-gray-600/80"
           >
             {status.playing ? (
-              <MusicVisualizer />
+              <MusicVisualizer size={30} />
             ) : (
-              <PlayIcon color={colors.icon} size={25} />
+              <PlayIcon color={"white"} size={30} />
             )}
           </View>
         )}
@@ -66,14 +76,23 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
             <SkeletonText className="w-24 h-4" />
           ) : (
             <View className="flex-1 flex-row items-center justify-start gap-2">
-              <ThemedText numberOfLines={1} type="default">
+              <ThemedText
+                numberOfLines={1}
+                type="default"
+                darkColor={colors.textMuted}
+                lightColor={colors.textMuted}
+              >
                 {song.artists.primary
                   .map((artist: Artist) => artist.name)
                   .join(", ")}{" "}
-                {"●"}
+                {"•"}
               </ThemedText>
 
-              <ThemedText className="text-xs">
+              <ThemedText
+                className="text-xs"
+                darkColor={colors.textMuted}
+                lightColor={colors.textMuted}
+              >
                 {formatDuration(song.duration ?? 0)}
               </ThemedText>
             </View>
@@ -132,7 +151,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
             },
           })
         }
-        className="w-fit p-2 rounded-full hover:bg-hover-background"
+        className="w-fit p-2 rounded-full"
       >
         <EllipsisVerticalIcon size={20} color={colors.icon} />
       </Pressable>

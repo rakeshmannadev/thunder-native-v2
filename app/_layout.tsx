@@ -11,7 +11,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 
-import HeaderRight from "@/components/HeaderRight";
 import SearchBar from "@/components/search/SearchBar";
 import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import { Colors } from "@/constants/Colors";
@@ -166,7 +165,6 @@ export default function RootLayout() {
                     headerShown: true,
                     headerTitle: "",
                     headerTransparent: true,
-                    headerRight: () => <HeaderRight />,
                   }}
                 />
                 <Stack.Screen
@@ -175,7 +173,6 @@ export default function RootLayout() {
                     headerShown: true,
                     headerTitle: "",
                     headerTransparent: true,
-                    headerRight: () => <HeaderRight />,
                   }}
                 />
                 <Stack.Screen
@@ -184,7 +181,6 @@ export default function RootLayout() {
                     headerShown: true,
                     headerTitle: "",
                     headerTransparent: true,
-                    headerRight: () => <HeaderRight />,
                   }}
                 />
                 <Stack.Screen
@@ -193,7 +189,6 @@ export default function RootLayout() {
                     headerShown: true,
                     headerTitle: "",
                     headerTransparent: true,
-                    headerRight: () => <HeaderRight />,
                   }}
                 />
                 <Stack.Screen

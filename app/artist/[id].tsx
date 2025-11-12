@@ -1,17 +1,17 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import AlbumCard from "@/components/AlbumCard";
-import GradientBackground from "@/components/GradientBackground";
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { ThemedText } from "@/components/ThemedText";
+import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
-import { colors, fontSize, screenPadding } from "@/constants/tokens";
+import { Colors } from "@/constants/Colors";
+import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
 import usePlayerStore from "@/store/usePlayerStore";
 import { defaultStyles } from "@/styles";
 import { Album, Song } from "@/types";
-import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { EllipsisVertical, PlayCircleIcon, Shuffle } from "lucide-react-native";
+import { useLocalSearchParams } from "expo-router";
+import { PlayIcon, RadioIcon, Shuffle } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
   FlatList,
@@ -19,6 +19,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  useColorScheme,
   View,
 } from "react-native";
 import {
@@ -27,7 +28,9 @@ import {
 } from "react-native-safe-area-context";
 
 const ArtistPage = () => {
-  const router = useRouter();
+  const colorSchema = useColorScheme();
+  const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+
   const { bottom, top } = useSafeAreaInsets();
   const { id }: { id: string } = useLocalSearchParams();
 
@@ -72,123 +75,117 @@ const ArtistPage = () => {
   // if (!currentArtist) return null;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
+      {/* <LinearGradient
         colors={["#0F2027", "#203A43", "#2C5364"]}
         style={StyleSheet.absoluteFillObject}
       />
-      {!isLoading && <GradientBackground imageUrl={currentArtist?.image} />}
-
-      {/* --- Album Header Section --- */}
-      <View style={[styles.headerSection, { marginTop: top + 36 }]}>
-        <View style={styles.artworkContainer}>
-          {isLoading ? (
-            <Skeleton variant="sharp" />
-          ) : (
-            <Image
-              source={{
-                uri: currentArtist?.image,
-              }}
-              style={styles.artwork}
-              resizeMode="cover"
-            />
-          )}
-        </View>
-
-        <View style={styles.infoContainer}>
-          {isLoading ? (
-            <SkeletonText _lines={1} className="w-20 h-4" />
-          ) : (
-            <ThemedText style={styles.title}>
-              {currentArtist?.name ?? "Unknown Artist"}
-            </ThemedText>
-          )}
-
-          {isLoading ? (
-            <SkeletonText className="w-16 h-4" />
-          ) : (
-            currentArtist && (
-              <ThemedText style={styles.artist}>
-                {currentArtist?.type.charAt(0).toUpperCase() +
-                  currentArtist?.type.slice(1)}
-              </ThemedText>
-            )
-          )}
-
-          {isLoading ? (
-            <SkeletonText className="w-10 h-4" />
-          ) : (
-            currentArtist && (
-              <ThemedText style={styles.songCount}>
-                {currentArtist.singles.length + currentArtist.topSongs.length ||
-                  0}{" "}
-                Songs
-              </ThemedText>
-            )
-          )}
-
-          {isLoading ? (
-            <SkeletonText className="w-32 h-8" />
-          ) : (
-            <View style={styles.controls}>
-              {/* TODO: Make backend endpoint for adding artist to favorite */}
-              {/* <Pressable
-                    onPress={handleAddAlbumToFavorite}
-                    style={styles.iconButton}
-                  >
-                    <HeartIcon
-                      size={20}
-                      fill={isAddedToPlaylist ? "green" : "none"}
-                      color={isAddedToPlaylist ? "green" : colors.icon}
-                    />
-                  </Pressable> */}
-
-              <Pressable onPress={handlePlay} style={styles.iconButton}>
-                <PlayCircleIcon size={22} color={colors.icon} />
-              </Pressable>
-
-              <Pressable onPress={handleShufflePlay} style={styles.iconButton}>
-                <Shuffle size={22} color={colors.icon} />
-              </Pressable>
-
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/menu",
-                    params: {
-                      items: JSON.stringify([
-                        {
-                          key: "add_to_queue",
-                          label: "Add to Queue",
-                          icon: "queue",
-                          data: [...currentArtist!.topSongs],
-                        },
-
-                        {
-                          key: "share",
-                          label: "Share",
-                          icon: "share",
-                        },
-                      ]),
-                    },
-                  })
-                }
-                style={styles.iconButton}
-              >
-                <EllipsisVertical size={22} color={colors.icon} />
-              </Pressable>
-            </View>
-          )}
-        </View>
-      </View>
+      {!isLoading && <GradientBackground imageUrl={currentArtist?.image} />} */}
 
       <ScrollView
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: bottom + 40 },
         ]}
       >
+        {/* --- Album Header Section --- */}
+        <View style={[styles.headerSection, { marginTop: top }]}>
+          <View style={styles.artworkContainer}>
+            {isLoading ? (
+              <Skeleton variant="sharp" />
+            ) : (
+              <Image
+                source={{
+                  uri: currentArtist?.image,
+                }}
+                style={styles.artwork}
+                resizeMode="cover"
+              />
+            )}
+          </View>
+
+          <View style={styles.infoContainer}>
+            {isLoading ? (
+              <SkeletonText _lines={1} className="w-20 h-4" />
+            ) : (
+              <ThemedText
+                style={[styles.title, { color: colors.text }]}
+                numberOfLines={1}
+                className="text-2xl"
+              >
+                {currentArtist?.name ?? "Unknown Artist"}
+              </ThemedText>
+            )}
+
+            {isLoading ? (
+              <SkeletonText className="w-16 h-4" />
+            ) : (
+              <ThemedText
+                darkColor={colors.textMuted}
+                lightColor={colors.textMuted}
+                numberOfLines={1}
+              >
+                {(currentArtist &&
+                  currentArtist?.type.charAt(0).toUpperCase() +
+                    currentArtist?.type.slice(1)) ||
+                  "Artist"}
+              </ThemedText>
+            )}
+
+            {isLoading ? (
+              <SkeletonText className="w-10 h-4" />
+            ) : (
+              <ThemedText style={styles.songCount}>
+                {currentArtist?.topSongs.length ?? 0} Songs
+              </ThemedText>
+            )}
+
+            {isLoading ? (
+              <SkeletonText className="w-32 h-8" />
+            ) : (
+              <View style={styles.controls}>
+                <Pressable
+                  onPress={() => null}
+                  style={[
+                    styles.iconButton,
+                    { backgroundColor: colors.component },
+                  ]}
+                >
+                  <RadioIcon size={20} color={colors.text} />
+                </Pressable>
+
+                <Button
+                  variant="solid"
+                  size="xl"
+                  onPress={handlePlay}
+                  style={{
+                    paddingHorizontal: 12,
+                    borderRadius: borderRadius.lg,
+                    backgroundColor: colors.primary,
+                    flex: 1,
+                  }}
+                >
+                  <ButtonText style={{ color: colors.text }}>Play</ButtonText>
+                  <ButtonIcon as={PlayIcon} color={colors.text} size="lg" />
+                </Button>
+
+                <Pressable
+                  onPress={handleShufflePlay}
+                  style={[
+                    styles.iconButton,
+                    { backgroundColor: colors.component },
+                  ]}
+                >
+                  <Shuffle size={22} color={colors.icon} />
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </View>
+
         {/* --- Albums Section --- */}
 
         <ThemedText
@@ -265,7 +262,6 @@ export default ArtistPage;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     flexDirection: "column",
@@ -278,27 +274,26 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   headerSection: {
-    flexDirection: "row",
+    flexDirection: "column",
+    alignItems: "center",
     gap: 15,
     marginBottom: 20,
-    padding: screenPadding.horizontal,
   },
   artworkContainer: {
-    width: 150,
-    height: 150,
-    borderRadius: 12,
+    width: 280,
+    height: 280,
+
     overflow: "hidden",
     elevation: 6,
   },
   artwork: {
     width: "100%",
     height: "100%",
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
   },
   infoContainer: {
-    flex: 1,
-    justifyContent: "space-between",
-    paddingVertical: 4,
+    width: "100%",
+    alignItems: "center",
   },
   title: {
     ...defaultStyles.text,

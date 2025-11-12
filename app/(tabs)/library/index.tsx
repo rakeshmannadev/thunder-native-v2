@@ -21,39 +21,6 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const Categories = [
-  {
-    key: "liked",
-    name: "Liked",
-    icon: "heart-outline",
-    path: "/library_content/index",
-  },
-  {
-    key: "downloaded",
-    name: "Downloads",
-    icon: "download-outline",
-    path: "/library_content/index",
-  },
-  {
-    key: "albums",
-    name: "Albums",
-    icon: "albums-outline",
-    path: "/library_content/index",
-  },
-  {
-    key: "artists",
-    name: "Artists",
-    icon: "person-outline",
-    path: "/library_content/index",
-  },
-  {
-    key: "playlists",
-    name: "Playlists",
-    icon: "list-outline",
-    path: "/library_content/index",
-  },
-];
-
 const index = () => {
   const router = useRouter();
 
@@ -67,7 +34,7 @@ const index = () => {
   }, []);
 
   const colorSchema = useColorScheme();
-  const { top } = useSafeAreaInsets();
+  const { top, bottom } = useSafeAreaInsets();
   const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
 
   if (!currentUser) return <EmptyLibrary />;
@@ -81,23 +48,7 @@ const index = () => {
       ]}
     >
       <ScrollView style={{ flex: 1 }}>
-        <View style={{ marginTop: top + 60, gap: 16 }}>
-          <Button
-            variant="solid"
-            size="lg"
-            action="secondary"
-            className="w-full"
-            style={{
-              borderRadius: borderRadius.sm,
-              backgroundColor: colors.accent,
-              marginBottom: 24,
-            }}
-          >
-            <ButtonIcon color={colors.text} size={"xl"} as={PlusIcon} />
-            <ButtonText style={{ color: colors.text }} size="xl">
-              Create Playlist
-            </ButtonText>
-          </Button>
+        <View style={{ marginTop: top + 60, gap: 16, flex: 1 }}>
           <TouchableOpacity
             activeOpacity={0.8}
             pressRetentionOffset={12}
@@ -251,6 +202,22 @@ const index = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <Button
+        variant="solid"
+        size="xl"
+        action="secondary"
+        className="w-full  "
+        style={{
+          borderRadius: borderRadius.md,
+          backgroundColor: colors.accent,
+          marginBottom: bottom,
+        }}
+      >
+        <ButtonIcon color={colors.text} size={"xl"} as={PlusIcon} />
+        <ButtonText style={{ color: colors.text }} size="xl">
+          Create Playlist
+        </ButtonText>
+      </Button>
     </SafeAreaView>
   );
 };
@@ -268,7 +235,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 24,
     width: "100%",
-    paddingHorizontal: screenPadding.horizontal,
     alignItems: "center",
   },
   card: {

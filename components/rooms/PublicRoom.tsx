@@ -26,7 +26,11 @@ const PublicRoom = ({ room }: { room: Room }) => {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
             <Image
               source={{ uri: room.image }}
-              style={{ width: 40, height: 40, borderRadius: borderRadius.md }}
+              style={{
+                width: 60,
+                aspectRatio: 1,
+                borderRadius: borderRadius.md,
+              }}
             />
             <View>
               <ThemedText type="subtitle" numberOfLines={1}>
@@ -45,7 +49,10 @@ const PublicRoom = ({ room }: { room: Room }) => {
             <Button
               variant="solid"
               action="primary"
-              style={{ borderRadius: borderRadius.lg }}
+              style={{
+                borderRadius: borderRadius.lg,
+                backgroundColor: colors.primary,
+              }}
             >
               <ButtonText>Join</ButtonText>
             </Button>

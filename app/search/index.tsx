@@ -7,6 +7,7 @@ import PlaylistResultCard from "@/components/search/PlaylistResultCard";
 import SongResultCard from "@/components/search/SongResultCard";
 import TopResultCard from "@/components/search/TopResultCard";
 import { Colors } from "@/constants/Colors";
+import { screenPadding } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
 import React from "react";
 import {
@@ -126,6 +127,7 @@ const index = () => {
         flex: 1,
         backgroundColor:
           Colors[colorSchema === "light" ? "light" : "dark"].background,
+        paddingHorizontal: screenPadding.horizontal,
       }}
     >
       <FlatList
@@ -145,8 +147,7 @@ const index = () => {
 export default index;
 const styles = StyleSheet.create({
   sectionContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-    gap: 8,
+    marginBottom: 4,
+    gap: 4,
   },
 });
