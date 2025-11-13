@@ -1,14 +1,13 @@
 import { ThemedText } from "@/components/ThemedText";
-import { colors, fontSize, screenPadding } from "@/constants/tokens";
-import { defaultStyles } from "@/styles";
-import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
 import {
-  EllipsisVertical,
-  HeartIcon,
-  PlayCircleIcon,
-  Shuffle,
-} from "lucide-react-native";
+  borderRadius,
+  colors,
+  fontSize,
+  screenPadding,
+} from "@/constants/tokens";
+import { defaultStyles } from "@/styles";
+import { useLocalSearchParams } from "expo-router";
+import { HeartIcon, PlayIcon, Shuffle } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
   FlatList,
@@ -16,6 +15,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  useColorScheme,
   View,
 } from "react-native";
 import {
@@ -24,13 +24,16 @@ import {
 } from "react-native-safe-area-context";
 
 import AlbumItem from "@/components/album/AlbumItem";
-import GradientBackground from "@/components/GradientBackground";
+import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
+import { Colors } from "@/constants/Colors";
 import useUserStore from "@/store/useUserStore";
 
 const PlaylistScreen = () => {
   const { id }: { id: string } = useLocalSearchParams();
 
+  const colorSchema = useColorScheme();
+  const colors = Colors[colorSchema === "light" ? "light" : "dark"];
   const { bottom, top } = useSafeAreaInsets();
   const {
     playlistLoading: isLoading,
@@ -72,16 +75,14 @@ const PlaylistScreen = () => {
   );
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        style={{ flex: 1 }}
-        colors={["#0F2027", "#203A43", "#2C5364"]}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottom + 40 },
+        ]}
       >
-        {!isLoading && (
-          <GradientBackground imageUrl={currentPlaylist?.imageUrl} />
-        )}
-
         {/* --- Playlist Header Section --- */}
-        <View style={[styles.headerSection, { marginTop: top + 36 }]}>
+        <View style={[styles.headerSection, { marginTop: top }]}>
           <View style={styles.artworkContainer}>
             {isLoading ? (
               <Skeleton variant="sharp" />
@@ -100,7 +101,10 @@ const PlaylistScreen = () => {
             {isLoading ? (
               <SkeletonText _lines={1} className="w-20 h-4" />
             ) : (
-              <ThemedText style={styles.title}>
+              <ThemedText
+                style={[styles.title, { color: colors.text }]}
+                className="text-2xl"
+              >
                 {currentPlaylist?.playlistName ?? "Unknown Album"}
               </ThemedText>
             )}
@@ -108,63 +112,86 @@ const PlaylistScreen = () => {
             {isLoading ? (
               <SkeletonText className="w-16 h-4" />
             ) : (
-              <ThemedText style={styles.artist} numberOfLines={2}>
+              <ThemedText
+                darkColor={colors.textMuted}
+                lightColor={colors.textMuted}
+              >
                 {currentPlaylist?.artist
                   .map((artist) => artist.name)
-                  .join(", ")}
+                  .join(", ") ?? ""}
               </ThemedText>
             )}
 
-            <ThemedText style={styles.songCount}>
-              {currentPlaylist?.songs.length ?? 0} Songs
-            </ThemedText>
-
-            <View style={styles.controls}>
-              <Pressable
-                onPress={handleAddAlbumToPlaylist}
-                style={styles.iconButton}
+            {isLoading ? (
+              <SkeletonText className="w-10 h-4" />
+            ) : (
+              <ThemedText
+                darkColor={colors.textMuted}
+                lightColor={colors.textMuted}
               >
-                <HeartIcon
-                  size={20}
-                  fill={isAddedToPlaylist ? "green" : "none"}
-                  color={isAddedToPlaylist ? "green" : colors.icon}
-                />
-              </Pressable>
+                {currentPlaylist?.songs.length ?? 0} Songs
+              </ThemedText>
+            )}
 
-              <Pressable onPress={handlePlay} style={styles.iconButton}>
-                <PlayCircleIcon size={22} color={colors.icon} />
-              </Pressable>
+            {isLoading ? (
+              <SkeletonText className="w-32 h-8" />
+            ) : (
+              <View style={styles.controls}>
+                <Pressable
+                  onPress={handleAddAlbumToPlaylist}
+                  style={[
+                    styles.iconButton,
+                    { backgroundColor: colors.component },
+                  ]}
+                >
+                  <HeartIcon
+                    size={20}
+                    fill={isAddedToPlaylist ? "green" : "none"}
+                    color={isAddedToPlaylist ? "green" : colors.icon}
+                  />
+                </Pressable>
 
-              <Pressable onPress={handleShufflePlay} style={styles.iconButton}>
-                <Shuffle size={22} color={colors.icon} />
-              </Pressable>
+                <Button
+                  variant="solid"
+                  size="xl"
+                  onPress={handlePlay}
+                  style={{
+                    paddingHorizontal: 12,
+                    borderRadius: borderRadius.lg,
+                    backgroundColor: colors.primary,
+                    flex: 1,
+                  }}
+                >
+                  <ButtonText style={{ color: "white" }}>Play</ButtonText>
+                  <ButtonIcon as={PlayIcon} color={"white"} size="lg" />
+                </Button>
 
-              <Pressable style={styles.iconButton}>
-                <EllipsisVertical size={22} color={colors.icon} />
-              </Pressable>
-            </View>
+                <Pressable
+                  onPress={handleShufflePlay}
+                  style={[
+                    styles.iconButton,
+                    { backgroundColor: colors.component },
+                  ]}
+                >
+                  <Shuffle size={22} color={colors.icon} />
+                </Pressable>
+              </View>
+            )}
           </View>
         </View>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: bottom + 40 },
-          ]}
-        >
-          {/* Song lists */}
-          {
-            <FlatList
-              data={currentPlaylist?.songs ?? []}
-              keyExtractor={(item) => item._id}
-              scrollEnabled={false}
-              renderItem={({ item: song }) => (
-                <AlbumItem isLoading={isLoading} song={song} />
-              )}
-            />
-          }
-        </ScrollView>
-      </LinearGradient>
+
+        {/* Song lists */}
+        {
+          <FlatList
+            data={currentPlaylist?.songs ?? []}
+            keyExtractor={(item) => item._id}
+            scrollEnabled={false}
+            renderItem={({ item: song }) => (
+              <AlbumItem isLoading={isLoading} song={song} />
+            )}
+          />
+        }
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -178,27 +205,29 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   headerSection: {
-    flexDirection: "row",
+    flexDirection: "column",
+    alignItems: "center",
     gap: 15,
     marginBottom: 20,
-    padding: screenPadding.horizontal,
+    paddingHorizontal: screenPadding.horizontal,
   },
   artworkContainer: {
-    width: 150,
-    height: 150,
-    borderRadius: 12,
+    width: 280,
+    height: 280,
+
     overflow: "hidden",
     elevation: 6,
   },
   artwork: {
     width: "100%",
     height: "100%",
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
   },
   infoContainer: {
-    flex: 1,
-    justifyContent: "space-between",
-    paddingVertical: 4,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 2,
   },
   title: {
     ...defaultStyles.text,

@@ -4,6 +4,7 @@ import ArtistResultCard from "@/components/search/ArtistResultCard";
 import DefaultScreen from "@/components/search/DefaultScreen";
 import NotFound from "@/components/search/NotFound";
 import PlaylistResultCard from "@/components/search/PlaylistResultCard";
+import RecentSearches from "@/components/search/RecentSearches";
 import SongResultCard from "@/components/search/SongResultCard";
 import TopResultCard from "@/components/search/TopResultCard";
 import { Colors } from "@/constants/Colors";
@@ -14,6 +15,7 @@ import {
   ActivityIndicator,
   FlatList,
   ListRenderItem,
+  ScrollView,
   StyleSheet,
   useColorScheme,
   View,
@@ -103,7 +105,11 @@ const index = () => {
     const CardComponent = item.component;
     return (
       <View style={[styles.sectionContainer, { marginTop: top + 40 }]}>
-        <ThemedText type="subtitle" numberOfLines={1}>
+        <ThemedText
+          type="subtitle"
+          numberOfLines={1}
+          style={{ marginBottom: 8 }}
+        >
           {item.title}
         </ThemedText>
 
@@ -130,16 +136,20 @@ const index = () => {
         paddingHorizontal: screenPadding.horizontal,
       }}
     >
-      <FlatList
-        data={sections}
-        keyExtractor={(item) => item.key}
-        renderItem={renderSection}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 60 }}
-      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <RecentSearches />
+        <FlatList
+          data={sections}
+          keyExtractor={(item) => item.key}
+          renderItem={renderSection}
+          scrollEnabled={false}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 60 }}
+        />
 
-      {/* Not found screen */}
-      {/* {!searchLoading && !searchedSongs && <NotFound />} */}
+        {/* Not found screen */}
+        {/* {!searchLoading && !searchedSongs && <NotFound />} */}
+      </ScrollView>
     </SafeAreaView>
   );
 };
