@@ -1,4 +1,7 @@
 import usePlayerStore from "@/store/usePlayerStore";
+import useRoomStore from "@/store/useRoomStore";
+import useSocketStore from "@/store/useSocketStore";
+import useUserStore from "@/store/useUserStore";
 import { useRouter } from "expo-router";
 import { Appearance } from "react-native";
 
@@ -6,6 +9,9 @@ const useMenuActions = () => {
   const router = useRouter();
   const { addToQueue, currentIndex, insertToQueue, setAudioPreference } =
     usePlayerStore();
+  const { startBroadcast } = useSocketStore();
+  const { currentUser } = useUserStore();
+  const { currentRoom } = useRoomStore();
 
   const handleMenuActions = (action: string, params?: number | any) => {
     switch (action) {
@@ -43,7 +49,11 @@ const useMenuActions = () => {
         setAudioPreference({ downloadFirst: false });
         router.back();
         break;
-
+      case "start_broadcast":
+        if (currentUser && currentRoom) {
+          startBroadcast(currentUser?._id, currentRoom?.roomId);
+        }
+        break;
       default:
         break;
     }

@@ -51,7 +51,9 @@ const useMusicStore = create<MusicStore>((set) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.get("/songs/featured");
-      set({ featured: response.data.songs });
+      if (response.status) {
+        set({ featured: response.data.songs });
+      }
     } catch (error: any) {
       console.log("Error in fetching albums", error.response.data.message);
     } finally {
@@ -103,7 +105,9 @@ const useMusicStore = create<MusicStore>((set) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.get("/albums");
-      set({ madeForYouAlbums: response.data.albums });
+      if (response.status) {
+        set({ madeForYouAlbums: response.data.albums });
+      }
     } catch (error: any) {
       console.log("Error in fetching songs", error.response.data.message);
     } finally {
@@ -113,7 +117,9 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchTrendingSongs: async () => {
     try {
       const response = await axiosInstance.get("/songs/trending");
-      set({ trending: response.data?.songs });
+      if (response.status) {
+        set({ trending: response.data?.songs });
+      }
     } catch (error: any) {
       console.log(
         "Error in fetching trending songs",

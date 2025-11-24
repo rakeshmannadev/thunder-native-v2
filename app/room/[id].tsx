@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
+import useUserStore from "@/store/useUserStore";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect } from "react";
 import { ActivityIndicator, useColorScheme, View } from "react-native";
@@ -11,16 +12,30 @@ import ChatSection from "./_components/chat-section";
 import CurrentlyBroadcastSong from "./_components/currently-broadcast-song";
 
 const RoomScreen = () => {
-  const id = useLocalSearchParams().id;
+  const id = useLocalSearchParams().id as string;
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const { getRoomById, currentRoom, fetchingRoom } = useRoomStore();
-  const { isBroadcasting } = useSocketStore();
+  const { currentUser } = useUserStore();
+  const { isJoined, joinRoom, socket, connectSocket, disconnectSocket } =
+    useSocketStore();
 
   useEffect(() => {
     getRoomById(id as string);
   }, [id]);
+
+  useEffect(() => {
+    if (!socket && currentUser) {
+      connectSocket(currentUser?._id);
+    }
+  }, [currentUser, connectSocket]);
+
+  useEffect(() => {
+    if (currentUser && id && !isJoined) {
+      joinRoom(currentUser._id, id);
+    }
+  }, [currentUser, id, joinRoom, isJoined]);
 
   if (fetchingRoom)
     return (

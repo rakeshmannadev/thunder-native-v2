@@ -2,8 +2,10 @@ import JoinedRoom from "@/components/rooms/JoinedRoom";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import useUserStore from "@/store/useUserStore";
+import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { FlatList, RefreshControl, useColorScheme, View } from "react-native";
+import FloatingButton from "../FloatingButton";
 import RenderSkeleton from "./skeleton";
 
 const JoinedRoomsTab = () => {
@@ -11,6 +13,8 @@ const JoinedRoomsTab = () => {
 
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
+  const router = useRouter();
 
   useEffect(() => {
     fetchJoinedRooms();
@@ -41,6 +45,7 @@ const JoinedRoomsTab = () => {
           }
         />
       )}
+      <FloatingButton onPress={() => router.push("/create_room")} />
     </View>
   );
 };

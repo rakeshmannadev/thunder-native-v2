@@ -200,7 +200,7 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
               <FlatList
                 ref={listRef}
                 data={queue}
-                keyExtractor={(i) => i._id}
+                keyExtractor={(_, idx) => String(idx)}
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
                 onScroll={onScroll}

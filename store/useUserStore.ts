@@ -111,9 +111,12 @@ const useUserStore = create<UserStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.get("/user/getCurrentUser");
-      set({ currentUser: response.data.user });
+      if (response.status) {
+        set({ currentUser: response.data.user });
+      }
     } catch (error: any) {
       console.log(error.response.data.message);
+      set({ currentUser: null });
     } finally {
       set({ isLoading: false });
     }

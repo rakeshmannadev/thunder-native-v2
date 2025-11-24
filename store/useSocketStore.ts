@@ -2,6 +2,8 @@
 import { axiosInstance } from "@/lib/axios";
 import { Song, SongRequest, User } from "@/types";
 // import toast from "react-hot-toast";
+import useToastMessage from "@/hooks/useToastMessage";
+import { usePlayer } from "@/providers/PlayerProvider";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
 import usePlayerStore from "./usePlayerStore";
@@ -77,7 +79,7 @@ interface SocketState {
   disconnectSocket: () => void;
 }
 
-const baseURL = "/";
+const socketUrl = process.env.EXPO_PUBLIC_SOCKET_URL;
 
 const useSocketStore = create<SocketState>((set, get) => ({
   socket: null,
@@ -93,15 +95,17 @@ const useSocketStore = create<SocketState>((set, get) => ({
   userId: "",
   roomId: "",
   connectSocket: (userId) => {
-    const socket = io(baseURL, {
+    const socket = io(socketUrl, {
       query: {
         userId,
       },
+      transports: ["websocket"],
+      forceNew: true,
+      reconnectionAttempts: 5,
     });
     set({ socket });
 
     // Listen to socket events inside the store
-    socket.on("connect", () => {});
     socket.on("joinRequest", (data) => {
       // const { showToast } = useShowCustomToast();
       useRoomStore.setState({
@@ -183,11 +187,14 @@ const useSocketStore = create<SocketState>((set, get) => ({
       }
     });
     socket.on("adminJoins", (data) => {
-      // toast.success(data.message);
+      const { showToast } = useToastMessage();
+      showToast(data.message);
       set({ roomId: data.roomId, isJoined: true });
     });
     socket.on("userJoins", (data) => {
-      // toast.success(data.message);
+      const { showToast } = useToastMessage();
+
+      showToast(data.message);
       set({ roomId: data.roomId, isJoined: true });
       socket.emit("sync-request", { roomId: data.roomId });
     });
@@ -198,7 +205,8 @@ const useSocketStore = create<SocketState>((set, get) => ({
     socket.on(
       "broadcastStarted",
       ({ user, roomId }: { user: User; roomId: string }) => {
-        // toast.success(`${user.name} has started the broadcast.`);
+        const { showToast } = useToastMessage();
+        showToast(`${user.name} has started the broadcast.`);
         set({
           isBroadcasting: true,
           currentJockey: user,
@@ -211,7 +219,6 @@ const useSocketStore = create<SocketState>((set, get) => ({
       const { action, songId, currentJockey, requestedUser, time, roomId } =
         data;
       console.log("action:", action);
-      const audio = document.querySelector("audio");
       switch (action) {
         case "play":
           try {
@@ -227,10 +234,6 @@ const useSocketStore = create<SocketState>((set, get) => ({
                 requestedUser,
                 roomId,
               });
-
-              if (audio) {
-                audio.currentTime = time;
-              }
             }
           } catch (error: any) {
             console.log(error.response.data.message);
@@ -248,15 +251,10 @@ const useSocketStore = create<SocketState>((set, get) => ({
             set({ isPlayingSong: false });
             usePlayerStore.getState().setIsPlaying(false);
           }
-          if (audio) {
-            audio.currentTime = time;
-          }
+
           break;
         }
         case "seek": {
-          if (audio) {
-            audio.currentTime = time;
-          }
           break;
         }
         case "play-album": {
@@ -360,12 +358,12 @@ const useSocketStore = create<SocketState>((set, get) => ({
     });
 
     socket.on("broadcastEnded", (data) => {
-      const audio = document.querySelector("audio");
+      const { player } = usePlayer();
       // toast.success(data.message);
       set({ isBroadcasting: false, isPlayingSong: false });
       usePlayerStore.setState({ currentSong: null, isPlaying: false });
-      if (audio) {
-        audio.load();
+      if (player) {
+        player.pause();
       }
     });
     socket.on("roomDeleted", (data) => {
@@ -403,6 +401,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       // toast.success(data.message);
     });
     socket.on("newMessage", (data) => {
+      console.log("newMessage: ", data);
       useRoomStore.setState((state) => ({
         currentRoom: {
           ...state.currentRoom!,
@@ -449,7 +448,6 @@ const useSocketStore = create<SocketState>((set, get) => ({
   },
   disconnectSocket: () => {
     const socket = get().socket;
-    const audio = document.querySelector("audio");
     if (socket) {
       socket.disconnect();
       set({
@@ -459,9 +457,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
         isPlayingSong: false,
       });
       usePlayerStore.setState({ currentSong: null, isPlaying: false });
-      if (audio) {
-        audio.load();
-      }
+
       console.log("Socket disconnected.");
     }
   },

@@ -2,6 +2,7 @@ import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import useRoomStore from "@/store/useRoomStore";
+import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import {
   ChevronDown,
@@ -24,10 +25,17 @@ const NoBroadCastScreen = ({
 
   const { currentRoom } = useRoomStore();
   const { currentUser } = useUserStore();
+  const { startBroadcast } = useSocketStore();
+
+  const handleStartBroadCast = () => {
+    if (currentRoom && currentUser) {
+      startBroadcast(currentUser._id, currentRoom.roomId);
+    }
+  };
 
   return (
     <View
-      className="  gap-4 items-center justify-center"
+      className="gap-4 items-center justify-center"
       style={{
         flexDirection: expanded ? "column" : "row",
         justifyContent: expanded ? "center" : "space-between",
@@ -69,6 +77,7 @@ const NoBroadCastScreen = ({
                       backgroundColor: colors.primary,
                       borderRadius: borderRadius.lg,
                     }}
+                    onPress={handleStartBroadCast}
                   >
                     <ButtonIcon as={RadioIcon} size="lg" />
                     <ButtonText>Start Broadcast</ButtonText>

@@ -1,3 +1,4 @@
+import useToastMessage from "@/hooks/useToastMessage";
 import { axiosInstance } from "@/lib/axios";
 import { Requests, Room, User } from "@/types";
 import { create } from "zustand";
@@ -11,11 +12,7 @@ interface RoomStore {
   currentRoom: Room | null;
   isLoading: boolean;
   fetchingRoom: boolean;
-  createRoom: (
-    roomName: string,
-    visability: string,
-    imageFile: string
-  ) => Promise<void>;
+  createRoom: (formData: FormData) => Promise<void>;
   fetchActiveMembers: (users: string[]) => Promise<void>;
   fetchRoomMembers: (roomId: string) => Promise<void>;
   getRoomById: (roomId: string) => Promise<void>;
@@ -31,15 +28,15 @@ const useRoomStore = create<RoomStore>((set) => ({
   currentRoom: null,
   isLoading: false,
   fetchingRoom: false,
-  createRoom: async (roomName, visability, imageFile) => {
+  createRoom: async (formData) => {
+    const { showToast } = useToastMessage();
     set({ isLoading: true });
+
     try {
       const response = await axiosInstance.post(
         "/rooms/create-room",
         {
-          roomName,
-          visability,
-          imageFile,
+          formData,
         },
         {
           headers: {
@@ -47,15 +44,18 @@ const useRoomStore = create<RoomStore>((set) => ({
           },
         }
       );
-      if (response.data.status) {
-        useUserStore.setState({
-          rooms: [...useUserStore.getState().rooms, response.data.room],
-        });
-        // toast.success(response.data.message);
-      }
+      console.log("res: ", response);
+      // if (response.data.status) {
+      //   useUserStore.setState({
+      //     rooms: [...useUserStore.getState().rooms, response.data.room],
+      //   });
+      //   showToast(response.data.message);
+      //   // toast.success(response.data.message);
+      // }
     } catch (error: any) {
-      console.log(error.message);
+      console.log(error);
       // toast.error(error.response.data.message);
+      // showToast(error.response.data.message);
     } finally {
       set({ isLoading: false });
     }

@@ -17,6 +17,7 @@ import { Colors } from "@/constants/Colors";
 import { getAudioPreference } from "@/helpers";
 import PlayerProvider from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
+import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -33,12 +34,14 @@ const hideFloatingPlayerScreens = [
   "Login",
   "menu",
   "settings",
+  "create_room",
 ];
 const withoutTabBarScreens = [
   "library_content",
   "search",
   "notification",
   "[id]",
+  "create-room",
 ];
 SplashScreen.preventAutoHideAsync();
 
@@ -52,7 +55,8 @@ export default function RootLayout() {
 
   const currentSegment = segments[segments.length - 1]; //
 
-  const { getCurrentUser } = useUserStore();
+  const { getCurrentUser, currentUser } = useUserStore();
+  const { disconnectSocket, socket } = useSocketStore();
 
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -75,6 +79,14 @@ export default function RootLayout() {
   useEffect(() => {
     getCurrentUser();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (socket) {
+        disconnectSocket();
+      }
+    };
+  }, [socket, disconnectSocket]);
 
   if (!loaded) {
     return null;
@@ -139,6 +151,14 @@ export default function RootLayout() {
 
                 <Stack.Screen
                   name="library_content/index"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="create_room/index"
                   options={{
                     headerShown: true,
                     headerTitle: "",

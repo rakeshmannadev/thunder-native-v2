@@ -5,6 +5,9 @@ import { Fab, FabIcon } from "../ui/fab";
 import { Colors } from "@/constants/Colors";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
+import useRoomStore from "@/store/useRoomStore";
+import useSocketStore from "@/store/useSocketStore";
+import useUserStore from "@/store/useUserStore";
 import { Loader2Icon, PauseIcon, PlayIcon } from "lucide-react-native";
 import { useColorScheme } from "react-native";
 import Animated, {
@@ -22,12 +25,28 @@ const PlayButton = ({ song }: { song: Song }) => {
 
   const { player, status } = usePlayer();
 
+  const { isBroadcasting, playSong } = useSocketStore();
+  const { currentUser } = useUserStore();
+  const { currentRoom } = useRoomStore();
+
   const { currentSong, setCurrentSong } = usePlayerStore();
 
   const currentTrack = currentSong?.title === song.title;
 
   const handlePlaySong = async (song: Song) => {
     if (!song) return;
+
+    if (isBroadcasting && currentUser && currentRoom) {
+      playSong(
+        currentUser._id,
+        currentRoom?.roomId,
+        song.songId,
+        null,
+        0,
+        currentUser
+      );
+      return;
+    }
 
     if (currentTrack) {
       return player.play();

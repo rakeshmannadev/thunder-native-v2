@@ -2,6 +2,7 @@ import { MovingText } from "@/components/songs/useMovingText";
 import { Button, ButtonIcon } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
 import { borderRadius, screenPadding } from "@/constants/tokens";
+import usePlayerStore from "@/store/usePlayerStore";
 import useSocketStore from "@/store/useSocketStore";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import React, { useState } from "react";
@@ -14,6 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import NoBroadCastScreen from "./no-broadcast-screen";
+import StandByScreen from "./stand-by-screen";
 
 const CurrentlyBroadcastSong = () => {
   const colorScheme = useColorScheme();
@@ -21,7 +23,9 @@ const CurrentlyBroadcastSong = () => {
   const { top } = useSafeAreaInsets();
   const [expanded, setExpanded] = useState(false);
 
-  const { isBroadcasting } = useSocketStore();
+  const { isBroadcasting, startBroadcast, currentJockey, isPlayingSong } =
+    useSocketStore();
+  const { currentSong } = usePlayerStore();
 
   return (
     <View
@@ -40,7 +44,7 @@ const CurrentlyBroadcastSong = () => {
         activeOpacity={0.8}
         onPress={() => setExpanded(!expanded)}
       >
-        {isBroadcasting ? (
+        {isBroadcasting && isPlayingSong && currentSong ? (
           <View className="flex flex-row items-center justify-between gap-4">
             <View
               className="flex flex-col gap-1 overflow-hidden"
@@ -51,10 +55,10 @@ const CurrentlyBroadcastSong = () => {
                 className="text-lg font-normal leading-normal"
                 numberOfLines={1}
               >
-                Broadcasting by: @dj_vibes
+                Broadcasting by: {currentJockey?.name}
               </Text>
               <MovingText
-                text="Jo beji thi dua sdfhd fdfgdgf afsdgdf"
+                text={currentSong?.title}
                 animationThreshold={25}
                 style={{ fontSize: 16, color: colors.text, lineHeight: 24 }}
               />
@@ -62,7 +66,9 @@ const CurrentlyBroadcastSong = () => {
               {expanded && (
                 <MovingText
                   animationThreshold={25}
-                  text="Artist: Kumar Sanu, Alka Yagnik Album: Agneepath (2012) Music: Ajay-Atul Lyrics: Amitabh Bhattacharya"
+                  text={`Artist:${currentSong.artists.primary.join(
+                    ", "
+                  )} Year: ${currentSong.releaseYear}`}
                   style={{
                     fontSize: 14,
                     color: colors.textMuted,
@@ -86,7 +92,7 @@ const CurrentlyBroadcastSong = () => {
                   borderRadius: borderRadius.md,
                 }}
                 source={{
-                  uri: "https://c.saavncdn.com/317/Agneepath-Hindi-2011-20190603132941-500x500.jpg",
+                  uri: currentSong.imageUrl,
                 }}
               />
               <Button
@@ -98,6 +104,8 @@ const CurrentlyBroadcastSong = () => {
               </Button>
             </View>
           </View>
+        ) : isBroadcasting && !isPlayingSong ? (
+          <StandByScreen />
         ) : (
           <NoBroadCastScreen expanded={expanded} setExpanded={setExpanded} />
         )}
