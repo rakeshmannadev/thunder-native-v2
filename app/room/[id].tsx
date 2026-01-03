@@ -4,7 +4,13 @@ import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect } from "react";
-import { ActivityIndicator, useColorScheme, View } from "react-native";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  useColorScheme,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ChatHeader from "./_components/chat-header";
 import ChatInput from "./_components/chat-input";
@@ -55,12 +61,17 @@ const RoomScreen = () => {
   if (!currentRoom) return null;
 
   return (
-    <SafeAreaView style={{ backgroundColor: colors.background, flex: 1 }}>
-      <ChatHeader room={currentRoom!} />
-      <CurrentlyBroadcastSong />
-      <ChatSection messages={currentRoom!.messages} />
-      <ChatInput />
-    </SafeAreaView>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ backgroundColor: colors.background, flex: 1 }}
+    >
+      <SafeAreaView className="flex-1">
+        <ChatHeader room={currentRoom!} />
+        <CurrentlyBroadcastSong />
+        <ChatSection messages={currentRoom!.messages} />
+        <ChatInput />
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 

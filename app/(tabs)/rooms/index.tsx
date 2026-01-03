@@ -22,7 +22,7 @@ const index = () => {
   const layout = useWindowDimensions();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  const { top, bottom } = useSafeAreaInsets();
+  const { top } = useSafeAreaInsets();
 
   const { currentUser } = useUserStore();
 
@@ -57,12 +57,12 @@ const index = () => {
                 alignItems: "center",
                 paddingVertical: 12,
                 borderBottomWidth: isActive ? 2 : 0,
-                borderBottomColor: colors.primary,
+                borderBottomColor: colors.accent,
               }}
             >
               <Text
                 style={{
-                  color: isActive ? colors.primary : colors.textMuted,
+                  color: isActive ? colors.accent : colors.textMuted,
                   fontSize: fontSize.sm,
                 }}
               >

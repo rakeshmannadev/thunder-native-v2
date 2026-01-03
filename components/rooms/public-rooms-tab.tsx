@@ -1,11 +1,17 @@
 import PublicRoom from "@/components/rooms/PublicRoom";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Colors } from "@/constants/Colors";
-import { borderRadius, screenPadding } from "@/constants/tokens";
+import { borderRadius, colors, screenPadding } from "@/constants/tokens";
 import useUserStore from "@/store/useUserStore";
-import { SearchIcon } from "lucide-react-native";
+import { CoffeeIcon, SearchIcon } from "lucide-react-native";
 import React, { useEffect } from "react";
-import { FlatList, RefreshControl, useColorScheme, View } from "react-native";
+import {
+  FlatList,
+  RefreshControl,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 import RenderSkeleton from "./skeleton";
 const PublicRoomsTab = () => {
   const { publicRooms, isFetchingRooms, fetchPublicRooms } = useUserStore();
@@ -16,6 +22,8 @@ const PublicRoomsTab = () => {
   useEffect(() => {
     fetchPublicRooms();
   }, []);
+
+  if (!isFetchingRooms && publicRooms.length === 0) return <NoRoomsView />;
 
   return (
     <View style={{ flex: 1, paddingHorizontal: screenPadding.horizontal }}>
@@ -59,3 +67,16 @@ const PublicRoomsTab = () => {
 };
 
 export default PublicRoomsTab;
+
+const NoRoomsView = () => {
+  return (
+    <View className="flex-1 flex-col gap-4 items-center justify-center">
+      <CoffeeIcon color={colors.icon} />
+
+      <Text style={{ color: colors.text }}>No Rooms yet.</Text>
+      <Text style={{ color: colors.textMuted }}>
+        Be first to create a room!
+      </Text>
+    </View>
+  );
+};

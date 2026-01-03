@@ -15,15 +15,16 @@ import { ImagePlusIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ToastAndroid,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   useColorScheme,
   View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {};
 
@@ -77,138 +78,145 @@ const index = (props: Props) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View
-        style={{
-          flex: 1,
-          paddingHorizontal: screenPadding.horizontal,
-          marginTop: top + 20,
-        }}
-      >
-        <View style={{ gap: 10, alignItems: "center" }}>
-          {/* Uplode room image */}
-          <TouchableOpacity
-            style={{
-              borderRadius: borderRadius.md,
-              backgroundColor: !imageFile
-                ? colors.secondaryBackground
-                : "transparent",
-              width: 200,
-              height: 200,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            onPressIn={pickImage}
-          >
-            {!imageFile ? (
-              <ImagePlusIcon size={48} color={colors.icon} />
-            ) : (
-              <Image
-                style={{
-                  width: 200,
-                  aspectRatio: 1,
-                  borderRadius: borderRadius.md,
-                }}
-                source={{ uri: imageFile.uri }}
-              />
-            )}
-          </TouchableOpacity>
-          <View
-            style={{
-              marginTop: 40,
-              width: "100%",
-              paddingHorizontal: screenPadding.horizontal,
-            }}
-          >
-            {/* Room name */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText>Room Name</FormControlLabelText>
-              </FormControlLabel>
-              <Input
-                size="xl"
-                style={{
-                  borderRadius: borderRadius.md,
-                  backgroundColor: colors.secondaryBackground,
-                  borderWidth: 0,
-                  marginTop: 5,
-                }}
-              >
-                <InputField
-                  onChangeText={setRoomName}
-                  placeholder="Enter room name"
-                />
-              </Input>
-
-              {/* Room visability*/}
-              <View style={{ marginTop: 40 }}>
-                <FormControlLabel>
-                  <FormControlLabelText>Visablity</FormControlLabelText>
-                </FormControlLabel>
-                <View
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View
+          style={{
+            flex: 1,
+            paddingHorizontal: screenPadding.horizontal,
+            marginTop: top + 20,
+          }}
+        >
+          <View style={{ gap: 10, alignItems: "center", flex: 1 }}>
+            {/* Uplode room image */}
+            <TouchableOpacity
+              style={{
+                borderRadius: borderRadius.md,
+                backgroundColor: !imageFile
+                  ? colors.secondaryBackground
+                  : "transparent",
+                width: 200,
+                height: 200,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPressIn={pickImage}
+            >
+              {!imageFile ? (
+                <ImagePlusIcon size={48} color={colors.icon} />
+              ) : (
+                <Image
                   style={{
-                    width: "100%",
-                    backgroundColor: colors.secondaryBackground,
+                    width: 200,
+                    aspectRatio: 1,
                     borderRadius: borderRadius.md,
-                    height: 50,
-                    flexDirection: "row",
+                  }}
+                  source={{ uri: imageFile.uri }}
+                />
+              )}
+            </TouchableOpacity>
+            <View
+              style={{
+                marginTop: 40,
+                width: "100%",
+                paddingHorizontal: screenPadding.horizontal,
+                justifyContent: "space-between",
+              }}
+              className="flex-1"
+            >
+              {/* Room name */}
+              <FormControl>
+                <FormControlLabel>
+                  <FormControlLabelText>Room Name</FormControlLabelText>
+                </FormControlLabel>
+                <Input
+                  size="xl"
+                  style={{
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.secondaryBackground,
+                    borderWidth: 0,
                     marginTop: 5,
                   }}
                 >
-                  <TouchableOpacity
+                  <InputField
+                    onChangeText={setRoomName}
+                    placeholder="Enter room name"
+                  />
+                </Input>
+
+                {/* Room visability*/}
+                <View style={{ marginTop: 40 }}>
+                  <FormControlLabel>
+                    <FormControlLabelText>Visablity</FormControlLabelText>
+                  </FormControlLabel>
+                  <View
                     style={{
-                      flex: 1,
-                      backgroundColor:
-                        visability === "public"
-                          ? colors.primary
-                          : "transparent",
+                      width: "100%",
+                      backgroundColor: colors.secondaryBackground,
                       borderRadius: borderRadius.md,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      margin: 4,
+                      height: 50,
+                      flexDirection: "row",
+                      marginTop: 5,
                     }}
-                    onPressIn={() => setVisability("public")}
                   >
-                    <ThemedText type="default"> Public</ThemedText>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={{
-                      flex: 1,
-                      backgroundColor:
-                        visability === "private"
-                          ? colors.primary
-                          : "transparent",
-                      borderRadius: borderRadius.md,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      margin: 2,
-                    }}
-                    onPressIn={() => setVisability("private")}
-                  >
-                    <ThemedText type="default">Private</ThemedText>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        flex: 1,
+                        backgroundColor:
+                          visability === "public"
+                            ? colors.primary
+                            : "transparent",
+                        borderRadius: borderRadius.md,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        margin: 4,
+                      }}
+                      onPressIn={() => setVisability("public")}
+                    >
+                      <ThemedText type="default"> Public</ThemedText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        flex: 1,
+                        backgroundColor:
+                          visability === "private"
+                            ? colors.primary
+                            : "transparent",
+                        borderRadius: borderRadius.md,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        margin: 2,
+                      }}
+                      onPressIn={() => setVisability("private")}
+                    >
+                      <ThemedText type="default">Private</ThemedText>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            </FormControl>
-            <Button
-              style={{
-                marginTop: 60,
-                borderRadius: borderRadius.lg,
-                backgroundColor: colors.primary,
-              }}
-              variant="solid"
-              action="primary"
-              size="xl"
-              onPress={handleSubmit}
-            >
-              <ButtonText style={{ color: colors.text }}>
-                Create Room
-              </ButtonText>
-            </Button>
+              </FormControl>
+              <Button
+                style={{
+                  marginBottom: bottom + 20,
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: colors.primary,
+                }}
+                variant="solid"
+                action="primary"
+                size="xl"
+                onPress={handleSubmit}
+              >
+                <ButtonText style={{ color: colors.text }}>
+                  Create Room
+                </ButtonText>
+              </Button>
+            </View>
           </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
