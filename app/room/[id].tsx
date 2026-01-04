@@ -1,13 +1,16 @@
+import { Button, ButtonText } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { CoffeeIcon } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Text,
   useColorScheme,
   View,
 } from "react-native";
@@ -57,14 +60,14 @@ const RoomScreen = () => {
       </View>
     );
 
-  // TODO: Make a "No Room Found" component
-  if (!currentRoom) return null;
+  if (!currentRoom && !fetchingRoom) return <NoRoomFound />;
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ backgroundColor: colors.background, flex: 1 }}
     >
+      <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1">
         <ChatHeader room={currentRoom!} />
         <CurrentlyBroadcastSong />
@@ -76,3 +79,24 @@ const RoomScreen = () => {
 };
 
 export default RoomScreen;
+
+const NoRoomFound = () => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+  const router = useRouter();
+  return (
+    <View className="flex-1 flex-col gap-4 items-center justify-center">
+      <CoffeeIcon color={colors.icon} />
+
+      <Text style={{ color: colors.text }}>Not Found.</Text>
+      <Text style={{ color: colors.textMuted }}>Join a room now!</Text>
+      <Button
+        onPress={() => router.push("/rooms")}
+        variant="solid"
+        style={{ backgroundColor: colors.primary }}
+      >
+        <ButtonText>Join Room</ButtonText>
+      </Button>
+    </View>
+  );
+};

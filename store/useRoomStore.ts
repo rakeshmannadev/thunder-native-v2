@@ -12,11 +12,15 @@ interface RoomStore {
   currentRoom: Room | null;
   isLoading: boolean;
   fetchingRoom: boolean;
-  createRoom: (formData: FormData) => Promise<void>;
+  createRoom: (
+    roomName: string,
+    visability: string,
+    imageFile: any
+  ) => Promise<boolean>;
   fetchActiveMembers: (users: string[]) => Promise<void>;
   fetchRoomMembers: (roomId: string) => Promise<void>;
   getRoomById: (roomId: string) => Promise<void>;
-  joinPublicRoom: (roomId: string) => Promise<void>;
+  joinPublicRoom: (roomId: string) => Promise<boolean>;
   leaveJoinedRoom: (roomId: string) => Promise<void>;
   fetchJoinRequests: (roomIds: string[]) => Promise<void>;
 }
@@ -28,34 +32,41 @@ const useRoomStore = create<RoomStore>((set) => ({
   currentRoom: null,
   isLoading: false,
   fetchingRoom: false,
-  createRoom: async (formData) => {
+  createRoom: async (roomName, visability, imageFile) => {
     const { showToast } = useToastMessage();
     set({ isLoading: true });
 
     try {
+      const formData = new FormData();
+      formData.append("roomName", roomName);
+      formData.append("visability", visability);
+      formData.append("imageFile", {
+        uri: imageFile.uri,
+        name: imageFile.fileName || "room_image.jpg",
+        type: imageFile.mimeType || "image/jpeg",
+      } as any);
+
       const response = await axiosInstance.post(
         "/rooms/create-room",
-        {
-          formData,
-        },
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         }
       );
-      console.log("res: ", response);
-      // if (response.data.status) {
-      //   useUserStore.setState({
-      //     rooms: [...useUserStore.getState().rooms, response.data.room],
-      //   });
-      //   showToast(response.data.message);
-      //   // toast.success(response.data.message);
-      // }
+      if (response.data.status) {
+        useUserStore.setState({
+          rooms: [...useUserStore.getState().rooms, response.data.room],
+        });
+        showToast(response.data.message);
+        return true;
+      }
+      return false;
     } catch (error: any) {
       console.log(error);
-      // toast.error(error.response.data.message);
-      // showToast(error.response.data.message);
+      showToast(error.response.data.message);
+      return false;
     } finally {
       set({ isLoading: false });
     }
@@ -102,6 +113,7 @@ const useRoomStore = create<RoomStore>((set) => ({
     }
   },
   joinPublicRoom: async (roomId) => {
+    const { showToast } = useToastMessage();
     try {
       const response = await axiosInstance.put(
         `/user/join-public-room/${roomId}`
@@ -110,11 +122,14 @@ const useRoomStore = create<RoomStore>((set) => ({
         useUserStore.setState({
           rooms: [...useUserStore.getState().rooms, response.data.room],
         });
-        // toast.success(response.data.message);
+        showToast(response.data.message);
+        return true;
       }
+      return false;
     } catch (error: any) {
       console.log(error.response.data.message);
-      // toast.error(error.response.data.message);
+      showToast(error.response.data.message);
+      return false;
     }
   },
   leaveJoinedRoom: async (roomId) => {

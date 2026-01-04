@@ -3,7 +3,6 @@ import { axiosInstance } from "@/lib/axios";
 import { Song, SongRequest, User } from "@/types";
 // import toast from "react-hot-toast";
 import useToastMessage from "@/hooks/useToastMessage";
-import { usePlayer } from "@/providers/PlayerProvider";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
 import usePlayerStore from "./usePlayerStore";
@@ -358,27 +357,21 @@ const useSocketStore = create<SocketState>((set, get) => ({
     });
 
     socket.on("broadcastEnded", (data) => {
-      const { player } = usePlayer();
-      // toast.success(data.message);
+      const { showToast } = useToastMessage();
+
       set({ isBroadcasting: false, isPlayingSong: false });
       usePlayerStore.setState({ currentSong: null, isPlaying: false });
-      if (player) {
-        player.pause();
-      }
+      showToast(data.message);
     });
     socket.on("roomDeleted", (data) => {
-      // const { showToast } = useShowCustomToast();
+      const { showToast } = useToastMessage();
 
       useUserStore.setState((state) => ({
         rooms: state.rooms.filter((room) => room._id !== data.roomId),
       }));
       useRoomStore.getState().currentRoom?._id === data.roomId &&
         useRoomStore.setState({ currentRoom: null });
-      // showToast(
-      //   `${data.room.roomName} is deleted by admin`,
-      //   data.room.image,
-      //   data.room.roomName
-      // );
+      showToast(`${data.room.roomName} is deleted by admin`);
     });
     socket.on("kickedFromRoom", (data) => {
       // const { showToast } = useShowCustomToast();
@@ -559,7 +552,6 @@ const useSocketStore = create<SocketState>((set, get) => ({
     }
   },
   leaveRoom: (roomId: string, userId: string) => {
-    const audio = document.querySelector("audio");
     const { socket } = get();
     if (socket) {
       socket.emit("leaveRoom", { userId, roomId });
@@ -567,9 +559,6 @@ const useSocketStore = create<SocketState>((set, get) => ({
     set({ isPlayingSong: false, isBroadcasting: false, isJoined: false });
     if (get().isPlayingSong) {
       usePlayerStore.setState({ currentSong: null, isPlaying: false });
-      if (audio) {
-        audio.load();
-      }
     }
   },
   sendSongRequest: (userId, roomId, song) => {

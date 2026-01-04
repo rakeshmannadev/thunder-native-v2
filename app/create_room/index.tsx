@@ -61,20 +61,14 @@ const index = (props: Props) => {
       );
     }
 
-    const formData = new FormData();
-
-    formData.append("roomName", roomName);
-    formData.append("visability", visability);
-
-    if (imageFile) {
-      formData.append("imageFile", {
-        uri: imageFile.uri,
-        name: imageFile.fileName,
-        type: imageFile.mimeType,
-      });
+    const success = await createRoom(roomName, visability, imageFile as any);
+    console.log("success: ", success);
+    if (success) {
+      router.back();
+      setRoomName("");
+      setImage(undefined);
+      setVisability("public");
     }
-
-    await createRoom(formData);
   };
 
   return (

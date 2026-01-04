@@ -3,15 +3,22 @@ import { Button, ButtonText } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
+import useRoomStore from "@/store/useRoomStore";
+import useUserStore from "@/store/useUserStore";
 import { Room } from "@/types";
-import { Link } from "expo-router";
 import React from "react";
 import { Image, Text, useColorScheme, View } from "react-native";
 
 const PublicRoom = ({ room }: { room: Room }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+  const { joinPublicRoom } = useRoomStore();
+  const { rooms } = useUserStore();
 
+  const handleJoinRoom = async () => {
+    await joinPublicRoom(room._id);
+  };
+  const isJoined = rooms.some((r) => r._id === room._id);
   return (
     <Card
       variant="outline"
@@ -21,44 +28,44 @@ const PublicRoom = ({ room }: { room: Room }) => {
         borderRadius: borderRadius.lg,
       }}
     >
-      <Link href={"/"}>
-        <View className="flex-row w-full px-2 items-center justify-between">
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-            <Image
-              source={{ uri: room.image }}
-              style={{
-                width: 60,
-                aspectRatio: 1,
-                borderRadius: borderRadius.md,
-              }}
-            />
-            <View>
-              <ThemedText type="subtitle" numberOfLines={1}>
-                {room.roomName}
-              </ThemedText>
-              <Text style={{ color: colors.textMuted }} numberOfLines={1}>
-                {room.visability.charAt(0).toUpperCase() +
-                  room.visability.slice(1)}
-              </Text>
-              <Text style={{ color: colors.textMuted }} numberOfLines={1}>
-                {room.participants.length} Listeners
-              </Text>
-            </View>
-          </View>
+      <View className="flex-row w-full px-2 items-center justify-between">
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+          <Image
+            source={{ uri: room.image }}
+            style={{
+              width: 60,
+              aspectRatio: 1,
+              borderRadius: borderRadius.md,
+            }}
+          />
           <View>
-            <Button
-              variant="solid"
-              action="primary"
-              style={{
-                borderRadius: borderRadius.lg,
-                backgroundColor: colors.primary,
-              }}
-            >
-              <ButtonText>Join</ButtonText>
-            </Button>
+            <ThemedText type="subtitle" numberOfLines={1}>
+              {room.roomName}
+            </ThemedText>
+            <Text style={{ color: colors.textMuted }} numberOfLines={1}>
+              {room.visability.charAt(0).toUpperCase() +
+                room.visability.slice(1)}
+            </Text>
+            <Text style={{ color: colors.textMuted }} numberOfLines={1}>
+              {room.participants.length} Listeners
+            </Text>
           </View>
         </View>
-      </Link>
+        <View>
+          <Button
+            variant="solid"
+            action="primary"
+            style={{
+              borderRadius: borderRadius.lg,
+              backgroundColor: !isJoined ? colors.primary : colors.textMuted,
+            }}
+            onPress={handleJoinRoom}
+            disabled={isJoined}
+          >
+            <ButtonText>{isJoined ? "Joined" : "Join"}</ButtonText>
+          </Button>
+        </View>
+      </View>
     </Card>
   );
 };

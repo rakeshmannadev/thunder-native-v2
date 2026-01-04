@@ -4,6 +4,7 @@ import { Colors } from "@/constants/Colors";
 import { ICON_MAPS } from "@/constants/Icons";
 import useMenuActions from "@/hooks/useMenuActions";
 import { useLocalSearchParams } from "expo-router";
+import { ChevronRightIcon } from "lucide-react-native";
 import React from "react";
 import {
   StyleSheet,
@@ -18,6 +19,7 @@ export interface menuItems {
   label: string;
   destructive?: boolean;
   icon?: string | null;
+  submenu?: boolean;
 }
 
 export default function MenuSheet() {
@@ -85,9 +87,14 @@ export default function MenuSheet() {
                   }
                 />
               )}
-              <ThemedText style={[item?.destructive && { color: "#ff6b6b" }]}>
-                {item.label}
-              </ThemedText>
+              <View className="flex-row w-full pr-10 justify-between">
+                <ThemedText style={[item?.destructive && { color: "#ff6b6b" }]}>
+                  {item.label}
+                </ThemedText>
+                {item.submenu && (
+                  <ChevronRightIcon size={20} color={colors.text} />
+                )}
+              </View>
             </View>
           </TouchableOpacity>
         );

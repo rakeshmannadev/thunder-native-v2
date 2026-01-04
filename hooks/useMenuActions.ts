@@ -9,9 +9,9 @@ const useMenuActions = () => {
   const router = useRouter();
   const { addToQueue, currentIndex, insertToQueue, setAudioPreference } =
     usePlayerStore();
-  const { startBroadcast } = useSocketStore();
+  const { startBroadcast, endBroadcast, deleteRoom } = useSocketStore();
   const { currentUser } = useUserStore();
-  const { currentRoom } = useRoomStore();
+  const { currentRoom, leaveJoinedRoom } = useRoomStore();
 
   const handleMenuActions = (action: string, params?: number | any) => {
     switch (action) {
@@ -52,8 +52,27 @@ const useMenuActions = () => {
       case "start_broadcast":
         if (currentUser && currentRoom) {
           startBroadcast(currentUser?._id, currentRoom?.roomId);
+          router.back();
         }
         break;
+      case "stop_broadcast":
+        if (currentUser && currentRoom) {
+          endBroadcast(currentUser?._id, currentRoom?.roomId);
+          router.back();
+        }
+        break;
+      case "delete_room":
+        deleteRoom(currentUser?._id!, currentRoom?._id!, currentRoom?.roomId!);
+        router.back();
+        break;
+      case "leave_room":
+        leaveJoinedRoom(currentRoom?._id!);
+        router.push("/rooms");
+        break;
+      case "request_song":
+        // Implement request song logic here
+        break;
+
       default:
         break;
     }

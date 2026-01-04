@@ -5,6 +5,7 @@ import {
   ListMusicIcon,
   ListPlusIcon,
   ListVideoIcon,
+  LogOutIcon,
   LucideCoffee,
   Mic2Icon,
   MoonIcon,
@@ -64,4 +65,7 @@ export const ICON_MAPS: Record<string, any> = {
   moon: MoonIcon,
   mug: LucideCoffee,
   headphones: Headphones,
+  requests: ListMusicIcon,
+  broadcast: Mic2Icon,
+  logout: LogOutIcon,
 };
