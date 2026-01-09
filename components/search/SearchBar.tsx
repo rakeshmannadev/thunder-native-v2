@@ -43,6 +43,7 @@ const SearchBar = () => {
         </InputSlot>
 
         <InputField
+          autoFocus={true}
           placeholder="Search..."
           onChangeText={setValue}
           value={value}

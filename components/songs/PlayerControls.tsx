@@ -37,26 +37,34 @@ type PlayerButtonProps = {
   iconSize?: number;
   handlePress?: () => void;
   isShuffle?: boolean;
-  isRepeat?: boolean;
+  loopMode?: "off" | "all" | "one";
 };
 
 export const PlayerControls = ({ style }: PlayerControlsProps) => {
-  const { playNext, playPrevious, setShuffle, isShuffle } = usePlayerStore();
+  const { playNext, playPrevious, setShuffle, isShuffle, loop, setLoop } =
+    usePlayerStore();
   const { player, status } = usePlayer();
   const handleShuffle = () => {
     setShuffle(!isShuffle);
   };
 
   const handlePlayNext = () => {
-    player.pause();
-    player.seekTo(0);
+    if (player.playing) player.pause();
+    // player.seekTo(0); // Optional: reset position? playNext handles new song.
     playNext();
   };
   const handlePlayPrevious = () => {
-    player.pause();
-    player.seekTo(0);
+    if (player.playing) player.pause();
+    // player.seekTo(0);
     playPrevious();
   };
+
+  const handleLoop = () => {
+    if (loop === "off") setLoop("all");
+    else if (loop === "all") setLoop("one");
+    else setLoop("off");
+  };
+
   return (
     <View style={[styles.container, style]}>
       <View style={styles.row}>
@@ -68,12 +76,7 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
 
         <SkipToNextButton iconSize={30} handlePress={handlePlayNext} />
 
-        <RepeatButton
-          handlePress={() =>
-            status.loop ? (player.loop = false) : (player.loop = true)
-          }
-          isRepeat={status.loop}
-        />
+        <RepeatButton handlePress={handleLoop} loopMode={loop} />
       </View>
     </View>
   );
@@ -85,6 +88,10 @@ export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const { player, status } = usePlayer();
+  // const { togglePlay } = usePlayerStore(); // Use store's togglePlay to keep sync?
+  // Actually, UI usually just calls player.play/pause directly since Provider syncs state?
+  // Provider syncs status.playing -> store.isPlaying.
+  // If we assume Provider sync works, we can stick to player.play()/pause().
 
   const rotation = useSharedValue(0);
 
@@ -141,13 +148,18 @@ export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
 export const SkipToNextButton = ({
   iconSize = 30,
   handlePress,
+  style,
 }: PlayerButtonProps) => {
   const location = usePathname();
 
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={handlePress}
+      style={style} // Pass style
+    >
       <SkipForwardIcon
         size={iconSize}
         color={location === "/player" ? "#fff" : colors.text}
@@ -158,6 +170,7 @@ export const SkipToNextButton = ({
 export const SkipToPreviousButton = ({
   iconSize = 30,
   handlePress,
+  style,
 }: PlayerButtonProps) => {
   const location = usePathname();
 
@@ -165,7 +178,11 @@ export const SkipToPreviousButton = ({
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={handlePress}
+      style={style} // Pass style
+    >
       <SkipBackIcon
         size={iconSize}
         color={location === "/player" ? "#fff" : colors.text}
@@ -176,24 +193,47 @@ export const SkipToPreviousButton = ({
 export const RepeatButton = ({
   iconSize = 30,
   handlePress,
-  isRepeat,
+  loopMode = "off",
+  style,
 }: PlayerButtonProps) => {
   const location = usePathname();
 
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+  const iconColor = location === "/player" ? "#fff" : colors.text;
+
+  // Decide icon and color based on mode
+  // loopMode: "off" | "all" | "one"
+  // "off": arrow color (dimmed?), but usually just standard color but "inactive" state.
+  // Actually usually: off = grey/dim, on = primary/accent.
+  // But here we rely on standard text color.
+
+  // Let's use opacity for 'off'? or just same color?
+  // Existing code didn't use opacity.
+
+  const isOne = loopMode === "one";
+  const isAll = loopMode === "all";
+  const isOff = loopMode === "off";
+
+  // activeColor = Colors.light.tint; // Example accent color? Or just keep white/text.
+  // Thunder setup seems to use text color.
+  // Let's stick to simple first:
+  // "one" -> Repeat1
+  // "all" -> Repeat (maybe bolder?)
+  // "off" -> Repeat (dimmed opacity 0.5?)
+
+  const displayColor = isOff
+    ? location === "/player"
+      ? "rgba(255,255,255,0.5)"
+      : "grey"
+    : iconColor;
+
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
-      {isRepeat ? (
-        <Repeat1
-          size={iconSize}
-          color={location === "/player" ? "#fff" : colors.text}
-        />
+    <TouchableOpacity activeOpacity={0.7} onPress={handlePress} style={style}>
+      {isOne ? (
+        <Repeat1 size={iconSize} color={iconColor} />
       ) : (
-        <Repeat
-          size={iconSize}
-          color={location === "/player" ? "#fff" : colors.text}
-        />
+        <Repeat size={iconSize} color={displayColor} />
       )}
     </TouchableOpacity>
   );
@@ -202,11 +242,20 @@ export const ShuffleButton = ({
   iconSize = 30,
   handlePress,
   isShuffle,
+  style,
 }: PlayerButtonProps) => {
   const location = usePathname();
 
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+  const iconColor = location === "/player" ? "#fff" : colors.text;
+
+  const displayColor = !isShuffle
+    ? location === "/player"
+      ? "rgba(255,255,255,0.5)"
+      : "grey"
+    : iconColor;
+
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       {!isShuffle ? (

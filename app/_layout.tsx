@@ -35,6 +35,8 @@ const hideFloatingPlayerScreens = [
   "menu",
   "settings",
   "create_room",
+  "[id]",
+  "library",
 ];
 const withoutTabBarScreens = [
   "library_content",
@@ -139,6 +141,17 @@ export default function RootLayout() {
                 />
                 <Stack.Screen
                   name="notification/index"
+                  options={{
+                    headerShown: true,
+                    headerTitle: "",
+                    headerTransparent: true,
+                    headerStyle: {
+                      backgroundColor: colors.background,
+                    },
+                  }}
+                />
+                <Stack.Screen
+                  name="request_song/index"
                   options={{
                     headerShown: true,
                     headerTitle: "",

@@ -1,18 +1,20 @@
 import { setAudioPreference } from "@/helpers";
 import { AudioPreferenceType, qualites, Song } from "@/types";
 import { create } from "zustand";
-// import useSocketStore from "./useSocketStore";
+
+type LoopMode = "off" | "all" | "one";
 
 interface PlayerStore {
   currentSong: Song | null;
   isPlaying: boolean;
   isShuffle: boolean;
-  isRepeat: boolean;
+  loop: LoopMode;
   queue: Song[];
+  originalQueue: Song[]; // Backup for shuffle
   currentIndex: number;
   audioPreference: AudioPreferenceType;
 
-  initializeQueue: (songs: Song[]) => void;
+  initializeQueue: (songs: Song[], startIndex?: number) => void;
   playAlbum: (songs: Song[], startIndex: number) => void;
   setCurrentSong: (song: Song | null) => void;
   togglePlay: () => void;
@@ -21,7 +23,7 @@ interface PlayerStore {
   setIsPlaying: (state: boolean) => void;
   hasNext: () => boolean;
   setShuffle: (state: boolean) => void;
-  setRepeat: (state: boolean) => void;
+  setLoop: (mode: LoopMode) => void;
   addToQueue: (songs: Song[]) => void;
   insertToQueue: (song: Song, position: number) => void;
   setAudioPreference: (pref: Partial<AudioPreferenceType>) => void;
@@ -31,32 +33,57 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   currentSong: null,
   isPlaying: false,
   isShuffle: false,
-  isRepeat: false,
+  loop: "off",
   queue: [],
+  originalQueue: [],
   currentIndex: -1,
   audioPreference: {
     downloadFirst: true,
     quality: qualites.medium,
   },
 
-  initializeQueue: (songs: Song[]) => {
+  initializeQueue: (songs: Song[], startIndex: number = 0) => {
     set({
       queue: songs,
-      currentIndex: get().currentIndex === -1 ? 0 : get().currentIndex,
+      originalQueue: [], // Reset backup
+      currentIndex: startIndex,
+      isShuffle: false, // Reset shuffle on new queue init
+      loop: "off",
     });
   },
   addToQueue(songs: Song[]) {
-    set({
-      queue: [...get().queue, ...songs],
-    });
+    const { isShuffle, queue, originalQueue } = get();
+    if (isShuffle) {
+      set({
+        queue: [...queue, ...songs],
+        originalQueue: [...originalQueue, ...songs],
+      });
+    } else {
+      set({
+        queue: [...queue, ...songs],
+      });
+    }
   },
   insertToQueue(song: Song, position: number) {
-    const queue = [...get().queue];
-    if (position < 0 || position > queue.length) {
-      position = queue.length; // Append to the end if position is out of bounds
+    const { isShuffle, queue, originalQueue } = get();
+    const newQueue = [...queue];
+
+    let targetPos = position;
+    if (targetPos < 0 || targetPos > newQueue.length) {
+      targetPos = newQueue.length;
     }
-    queue.splice(position, 0, song);
-    set({ queue });
+    newQueue.splice(targetPos, 0, song);
+
+    // If shuffled, append to originalQueue to maintain it
+    let newOriginalQueue = originalQueue;
+    if (isShuffle) {
+      newOriginalQueue = [...originalQueue, song];
+    }
+
+    set({
+      queue: newQueue,
+      originalQueue: isShuffle ? newOriginalQueue : originalQueue,
+    });
   },
   playAlbum: (songs: Song[], startIndex = 0) => {
     if (songs.length === 0) return;
@@ -65,23 +92,12 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
 
     set({
       queue: songs,
+      originalQueue: [],
+      isShuffle: false,
       currentSong: song,
       currentIndex: startIndex,
       isPlaying: true,
     });
-    // if (
-    //   useSocketStore.getState().socket &&
-    //   useSocketStore.getState().isBroadcasting
-    // ) {
-    //   useSocketStore
-    //     .getState()
-    //     .playSong(
-    //       useSocketStore.getState().userId,
-    //       useSocketStore.getState().roomId,
-    //       song._id,
-    //       null
-    //     );
-    // }
   },
   setCurrentSong: (song: Song | null) => {
     if (!song) return;
@@ -96,114 +112,102 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
   togglePlay: () => {
     const willStartPlaying = !get().isPlaying;
-
     set({
       isPlaying: willStartPlaying,
     });
   },
   playNext: () => {
-    const { currentIndex, queue, isShuffle, isRepeat } = get();
-    let nextIndex;
-    console.log("isShuffle", isShuffle);
-    if (isRepeat) {
-      // If repeat is active, stay on the current song
-      nextIndex = currentIndex % queue.length;
-    } else if (isShuffle) {
-      // Shuffle mode: Pick a random song that isn't the current one
-      do {
-        nextIndex = Math.floor(Math.random() * queue.length);
-      } while (nextIndex === currentIndex && queue.length > 1);
-    } else {
-      // Sequential mode
-      nextIndex = currentIndex + 1;
+    const { currentIndex, queue, loop } = get();
+
+    let nextIndex = currentIndex + 1;
+
+    // Handle wrap-around for 'loop all'
+    if (loop === "all" && nextIndex >= queue.length) {
+      nextIndex = 0;
     }
 
     if (nextIndex < queue.length) {
       const nextSong = queue[nextIndex];
-
       set({
         currentSong: nextSong,
         currentIndex: nextIndex,
         isPlaying: true,
       });
-
-      // if (
-      //   useSocketStore.getState().socket &&
-      //   useSocketStore.getState().isBroadcasting
-      // ) {
-      //   useSocketStore
-      //     .getState()
-      //     .playSong(
-      //       useSocketStore.getState().userId,
-      //       useSocketStore.getState().roomId,
-      //       nextSong._id,
-      //       null
-      //     );
-      // }
     } else {
-      // if no next song
-
+      // End of queue and no loop
       set({ isPlaying: false });
     }
   },
   playPrevious: () => {
-    const { currentIndex, queue, isRepeat, isShuffle } = get();
+    const { currentIndex, queue, loop } = get();
     if (!queue || queue.length === 0) {
       set({ isPlaying: false });
       return;
     }
 
-    let previousIndex;
+    let previousIndex = currentIndex - 1;
 
-    if (isRepeat) {
-      previousIndex = currentIndex; // Stay on the current song
-    } else if (isShuffle) {
-      do {
-        previousIndex = Math.floor(Math.random() * queue.length);
-      } while (previousIndex === currentIndex && queue.length > 1);
-    } else {
-      previousIndex = currentIndex - 1;
+    // Loop all behavior on previous
+    if (loop === "all" && previousIndex < 0) {
+      previousIndex = queue.length - 1;
     }
 
     if (previousIndex >= 0) {
       const prevSong = queue[previousIndex];
-
       set({
         currentSong: prevSong,
         currentIndex: previousIndex,
         isPlaying: true,
       });
-      // if (
-      //   useSocketStore.getState().socket &&
-      //   useSocketStore.getState().isBroadcasting
-      // ) {
-      //   useSocketStore
-      //     .getState()
-      //     .playSong(
-      //       useSocketStore.getState().userId,
-      //       useSocketStore.getState().roomId,
-      //       prevSong._id,
-      //       null
-      //     );
-      // }
     } else {
-      // if no prev song
-
       set({ isPlaying: false });
     }
   },
   hasNext: () => {
-    const { currentIndex, queue } = get();
-    return currentIndex < queue.length - 1;
+    const { currentIndex, queue, loop } = get();
+    return currentIndex < queue.length - 1 || loop === "all";
   },
   setIsPlaying: (state) => {
     set({ isPlaying: state });
   },
   setShuffle: (state) => {
-    set({ isShuffle: state });
+    const { isShuffle, queue, originalQueue, currentSong } = get();
+    if (state === isShuffle) return;
+
+    if (state) {
+      // Enable Shuffle
+      const currentQueue = [...queue];
+      const backup = [...currentQueue];
+
+      const shuffled = currentQueue.sort(() => Math.random() - 0.5);
+      const newIndex = currentSong
+        ? shuffled.findIndex((s) => s._id === currentSong._id)
+        : -1;
+
+      set({
+        isShuffle: true,
+        queue: shuffled,
+        originalQueue: backup,
+        currentIndex: newIndex !== -1 ? newIndex : 0,
+      });
+    } else {
+      // Disable Shuffle
+      const restored = originalQueue.length > 0 ? originalQueue : queue;
+
+      const newIndex = currentSong
+        ? restored.findIndex((s) => s._id === currentSong._id)
+        : 0;
+
+      set({
+        isShuffle: false,
+        queue: restored,
+        originalQueue: [],
+        currentIndex: newIndex !== -1 ? newIndex : 0,
+      });
+    }
   },
-  setRepeat: (state) => {
-    set({ isRepeat: state });
+  setLoop: (mode) => {
+    set({ loop: mode });
   },
   setAudioPreference: async (pref) => {
     const currentPref = get().audioPreference;

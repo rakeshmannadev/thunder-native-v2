@@ -15,7 +15,14 @@ type audiocontext = {
 const PlayerContext = createContext<audiocontext | undefined>(undefined);
 
 export default function PlayerProvider({ children }: PropsWithChildren) {
-  const { currentSong, playNext, hasNext, audioPreference } = usePlayerStore();
+  const {
+    currentSong,
+    playNext,
+    hasNext,
+    audioPreference,
+    loop,
+    setIsPlaying,
+  } = usePlayerStore();
 
   const player = useAudioPlayer(
     { uri: currentSong?.audioUrl },
@@ -41,10 +48,22 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
     })();
   }, [player]);
 
+  // * Sync isPlaying state with store
+  useEffect(() => {
+    if (status) {
+      setIsPlaying(status.playing);
+    }
+  }, [status.playing]);
+
   // * Auto play next song when current song finishes
   useEffect(() => {
     if (!status) return;
     if (status.didJustFinish) {
+      if (loop === "one") {
+        player.seekTo(0);
+        player.play();
+        return;
+      }
       if (hasNext()) {
         playNext();
       } else {
@@ -56,15 +75,13 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
   // * Auto play when a new song is loaded
   useEffect(() => {
     if (player && currentSong && status.isLoaded) {
-      (async () => {
-        try {
-          player.play();
-        } catch (err) {
-          console.error("Failed to autoplay:", err);
-        }
-      })();
+      try {
+        player.play();
+      } catch (err) {
+        console.error("Failed to autoplay:", err);
+      }
     }
-  }, [status.isLoaded]);
+  }, [status.isLoaded, currentSong]);
 
   return (
     <PlayerContext.Provider value={{ player, status }}>
