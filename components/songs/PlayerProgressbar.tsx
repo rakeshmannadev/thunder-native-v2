@@ -54,14 +54,14 @@ export const PlayerProgressBar = ({ style }: ViewProps) => {
         onSlidingStart={() => (isSliding.value = true)}
         onValueChange={async (value) => {
           // await TrackPlayer.seekTo(value * duration);
-          player.seekTo(value * status.duration);
+          await player.seekTo(value * status.duration);
         }}
         onSlidingComplete={async (value) => {
           // if the user is not sliding, we should not update the position
           if (!isSliding.value) return;
 
           isSliding.value = false;
-          player.seekTo(value * status.duration);
+          await player.seekTo(value * status.duration);
           // await TrackPlayer.seekTo(value * duration);
         }}
       />

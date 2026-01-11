@@ -1,4 +1,5 @@
 import usePlayerStore from "@/store/usePlayerStore";
+import useSocketStore from "@/store/useSocketStore";
 import {
   AudioPlayer,
   AudioStatus,
@@ -15,14 +16,9 @@ type audiocontext = {
 const PlayerContext = createContext<audiocontext | undefined>(undefined);
 
 export default function PlayerProvider({ children }: PropsWithChildren) {
-  const {
-    currentSong,
-    playNext,
-    hasNext,
-    audioPreference,
-    loop,
-    setIsPlaying,
-  } = usePlayerStore();
+  const { currentSong, playNext, hasNext, audioPreference, loop } =
+    usePlayerStore();
+  const { isBroadcasting, isPlayingSong, currentTime } = useSocketStore();
 
   const player = useAudioPlayer(
     { uri: currentSong?.audioUrl },
@@ -30,6 +26,22 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
   );
 
   const status = useAudioPlayerStatus(player);
+
+  // * while broadcasting control the seek event
+  useEffect(() => {
+    if (isBroadcasting) {
+      player.seekTo(currentTime);
+    }
+  }, [currentTime, isBroadcasting]);
+
+  // * while broadcasting control the play/pause event
+  useEffect(() => {
+    if (isBroadcasting && isPlayingSong) {
+      player.play();
+    } else if (isBroadcasting && !isPlayingSong) {
+      player.pause();
+    }
+  }, [isPlayingSong, isBroadcasting]);
 
   // * Set audio mode to play in background and silent mode
   useEffect(() => {
@@ -48,24 +60,17 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
     })();
   }, [player]);
 
-  // * Sync isPlaying state with store
-  useEffect(() => {
-    if (status) {
-      setIsPlaying(status.playing);
-    }
-  }, [status.playing]);
-
   // * Auto play next song when current song finishes
   useEffect(() => {
     if (!status) return;
     if (status.didJustFinish) {
       if (loop === "one") {
-        player.seekTo(0);
-        player.play();
+        player.seekTo(0).then(() => player.play());
         return;
       }
       if (hasNext()) {
-        playNext();
+        player.pause();
+        player.seekTo(0).then(() => playNext());
       } else {
         player.pause();
       }

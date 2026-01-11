@@ -1,8 +1,11 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
-import { SongResult } from "@/types";
+import useRoomStore from "@/store/useRoomStore";
+import useSocketStore from "@/store/useSocketStore";
+import useUserStore from "@/store/useUserStore";
+import { SongRequest, SongResult } from "@/types";
 import { router } from "expo-router";
-import { MoreVerticalIcon } from "lucide-react-native";
+import { MonitorUpIcon, MoreVerticalIcon } from "lucide-react-native";
 import React from "react";
 import { Image, TouchableOpacity, useColorScheme, View } from "react-native";
 import { ThemedText } from "../ThemedText";
@@ -16,7 +19,28 @@ const SongResultCard = ({
   isLoading: boolean;
 }) => {
   const colorSchema = useColorScheme();
+  const { isJoined, isBroadcasting, sendSongRequest } = useSocketStore();
+  const { currentUser } = useUserStore();
+  const { currentRoom } = useRoomStore();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+
+  const handleSendSongRequest = (e: any) => {
+    e.stopPropagation();
+    if (!currentUser || !currentRoom) return;
+
+    const song: SongRequest = {
+      _id: result.id,
+      userName: currentUser?.name,
+      userId: currentUser?._id,
+      title: result.title,
+      albumId: "",
+      imageUrl: result.image[result.image.length - 1].url,
+    };
+    if (isJoined && isBroadcasting && currentRoom && currentUser) {
+      sendSongRequest(currentUser._id, currentRoom._id, song);
+    }
+  };
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -58,7 +82,16 @@ const SongResultCard = ({
           )}
         </View>
       </View>
-      <MoreVerticalIcon onPress={() => null} size={20} color={colors.icon} />
+      <View className="flex-row items-center gap-4">
+        {isBroadcasting && (
+          <MonitorUpIcon
+            onPressIn={handleSendSongRequest}
+            color={colors.icon}
+            title="Sent music requst"
+          />
+        )}
+        <MoreVerticalIcon onPress={() => null} size={20} color={colors.icon} />
+      </View>
     </TouchableOpacity>
   );
 };

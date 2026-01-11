@@ -21,6 +21,8 @@ interface SocketState {
   requestedUser: User | null;
   currentJockey: User | null;
   roomId: string;
+  currentTime: number;
+
   connectSocket: (userId: string) => void;
   startBroadcast: (userId: string, roomId: string) => void;
   playSong: (
@@ -93,6 +95,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
   requestedUser: null,
   userId: "",
   roomId: "",
+  currentTime: 0,
   connectSocket: (userId) => {
     const socket = io(socketUrl, {
       query: {
@@ -106,16 +109,12 @@ const useSocketStore = create<SocketState>((set, get) => ({
 
     // Listen to socket events inside the store
     socket.on("joinRequest", (data) => {
-      // const { showToast } = useShowCustomToast();
+      const { showToast } = useToastMessage();
       useRoomStore.setState({
         joinRequests: [...useRoomStore.getState().joinRequests, data.request],
       });
 
-      // showToast(
-      //   "New join request for " + data.request.room.roomName,
-      //   data.request.user.userImage,
-      //   data.request.user.currentJockey
-      // );
+      showToast("New join request received for " + data.request.room.roomName);
     });
 
     socket.on("joinRequestStatus", (data) => {
@@ -248,12 +247,12 @@ const useSocketStore = create<SocketState>((set, get) => ({
             isPlayingSong
           ) {
             set({ isPlayingSong: false });
-            usePlayerStore.getState().setIsPlaying(false);
           }
 
           break;
         }
         case "seek": {
+          set({ currentTime: time });
           break;
         }
         case "play-album": {
@@ -297,38 +296,22 @@ const useSocketStore = create<SocketState>((set, get) => ({
             usePlayerStore.getState().playAlbum(songs, 0);
           }
         }
-        set({ isBroadcasting, currentJockey, requestedUser, roomId });
-
-        const audio = document.querySelector("audio");
-        if (!audio) return;
-        const syncAudioState = () => {
-          // Remove the listener immediately so it only runs once per sync
-          audio.removeEventListener("canplay", syncAudioState);
-          audio.removeEventListener("loadedmetadata", syncAudioState);
-
-          // This is where we safely set the currentTime
-          console.log(`Setting currentTime to ${time}`);
-          audio.currentTime = time;
-
-          // Set the playing state *after* setting the time
-          usePlayerStore.getState().setIsPlaying(isPlaying);
-        };
-
-        if (audio.readyState >= 3) {
-          syncAudioState();
-        } else {
-          audio.addEventListener("canplay", syncAudioState);
-          audio.addEventListener("loadedmetadata", syncAudioState);
-        }
+        set({
+          isBroadcasting,
+          currentJockey,
+          requestedUser,
+          roomId,
+          currentTime: time,
+          isPlayingSong: isPlaying,
+        });
       }
     );
 
     // if a new listener joins, request sync from host
     socket.on("sync-request", ({ from }) => {
-      const audio = document.querySelector("audio");
       const { socket } = get();
 
-      if (!socket || !audio) return;
+      if (!socket) return;
 
       socket.emit("sync-state", {
         to: from,
@@ -336,15 +319,15 @@ const useSocketStore = create<SocketState>((set, get) => ({
         currentJockey: get().currentJockey,
         requestedUser: get().requestedUser,
         roomId: get().roomId,
-        isPlaying: !audio.paused,
-        time: audio.currentTime,
+        isPlaying: !usePlayerStore.getState().isPlaying,
+        time: 0,
         song: usePlayerStore.getState().currentSong,
         songs: get().currentStreamingQueue,
       });
     });
 
     socket.on("newSongRequest", (data) => {
-      // const { showToast } = useShowCustomToast();
+      const { showToast } = useToastMessage();
 
       set((state) => ({
         songRequests: [...state.songRequests, data.song],
@@ -354,6 +337,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       //   data.user.image,
       //   data.song.currentJockey
       // );
+      showToast(`New song requst received from  ${data.song.currentJockey}`);
     });
 
     socket.on("broadcastEnded", (data) => {
@@ -374,7 +358,8 @@ const useSocketStore = create<SocketState>((set, get) => ({
       showToast(`${data.room.roomName} is deleted by admin`);
     });
     socket.on("kickedFromRoom", (data) => {
-      // const { showToast } = useShowCustomToast();
+      const { showToast } = useToastMessage();
+
       useUserStore.setState({
         rooms: useUserStore
           .getState()
@@ -384,14 +369,19 @@ const useSocketStore = create<SocketState>((set, get) => ({
         useRoomStore.setState({ currentRoom: null });
 
       // showToast(data.message, data.image, data.roomName);
+      showToast(data.message);
+      socket.disconnect();
+      set({ socket: null });
     });
     socket.on("userKicked", (data) => {
+      const { showToast } = useToastMessage();
+
       useRoomStore.setState({
         members: useRoomStore
           .getState()
           .members.filter((member) => member._id !== data.memberId),
       });
-      // toast.success(data.message);
+      showToast(data.message);
     });
     socket.on("newMessage", (data) => {
       console.log("newMessage: ", data);
@@ -553,20 +543,22 @@ const useSocketStore = create<SocketState>((set, get) => ({
   },
   leaveRoom: (roomId: string, userId: string) => {
     const { socket } = get();
+    const { showToast } = useToastMessage();
+
     if (socket) {
       socket.emit("leaveRoom", { userId, roomId });
     }
     set({ isPlayingSong: false, isBroadcasting: false, isJoined: false });
-    if (get().isPlayingSong) {
-      usePlayerStore.setState({ currentSong: null, isPlaying: false });
-    }
+    showToast("You have left the room");
   },
   sendSongRequest: (userId, roomId, song) => {
     const { socket } = get();
+    const { showToast } = useToastMessage();
+
     if (socket) {
       socket.emit("sendSongRequest", { userId, roomId, song });
     }
-    // toast.success("Song request send to admin");
+    showToast("Song request send to admin");
   },
   endBroadcast: (userId, roomId) => {
     const { socket } = get();

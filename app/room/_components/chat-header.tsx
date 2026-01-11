@@ -106,6 +106,11 @@ const ChatHeader = ({ room }: { room: Room }) => {
                         submenu: true,
                       },
                       {
+                        key: "end_session",
+                        label: "End session",
+                        icon: "disconnect",
+                      },
+                      {
                         key: "leave_room",
                         label: "Leave room",
                         icon: "logout",

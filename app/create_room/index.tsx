@@ -39,7 +39,7 @@ const index = (props: Props) => {
   const [imageFile, setImage] = useState<ImagePicker.ImagePickerAsset>();
   const [roomName, setRoomName] = useState<string>("");
 
-  const { createRoom } = useRoomStore();
+  const { createRoom, isLoading } = useRoomStore();
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -197,13 +197,15 @@ const index = (props: Props) => {
                   borderRadius: borderRadius.lg,
                   backgroundColor: colors.primary,
                 }}
+                className="disabled:opacity-50"
                 variant="solid"
                 action="primary"
                 size="xl"
                 onPress={handleSubmit}
+                disabled={!roomName || !visability || isLoading}
               >
                 <ButtonText style={{ color: colors.text }}>
-                  Create Room
+                  {isLoading ? "Creating..." : "Create Room"}
                 </ButtonText>
               </Button>
             </View>

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import useRoomStore from "@/store/useRoomStore";
+import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { Room } from "@/types";
 import React from "react";
@@ -13,10 +14,15 @@ const PublicRoom = ({ room }: { room: Room }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const { joinPublicRoom } = useRoomStore();
-  const { rooms } = useUserStore();
+  const { rooms, currentUser } = useUserStore();
+  const { sendJoinRequest } = useSocketStore();
 
   const handleJoinRoom = async () => {
-    await joinPublicRoom(room._id);
+    if (room.visability === "public") {
+      await joinPublicRoom(room._id);
+    } else if (currentUser && room.visability === "private") {
+      sendJoinRequest(currentUser?._id, room._id);
+    }
   };
   const isJoined = rooms.some((r) => r._id === room._id);
   return (

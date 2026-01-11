@@ -117,24 +117,47 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
     });
   },
   playNext: () => {
-    const { currentIndex, queue, loop } = get();
+    const { currentIndex, queue, isShuffle, loop } = get();
+    let nextIndex;
 
-    let nextIndex = currentIndex + 1;
-
-    // Handle wrap-around for 'loop all'
-    if (loop === "all" && nextIndex >= queue.length) {
-      nextIndex = 0;
+    if (loop === "one") {
+      // If repeat is active, stay on the current song
+      nextIndex = currentIndex % queue.length;
+    } else if (isShuffle) {
+      // Shuffle mode: Pick a random song that isn't the current one
+      do {
+        nextIndex = Math.floor(Math.random() * queue.length);
+      } while (nextIndex === currentIndex && queue.length > 1);
+    } else {
+      // Sequential mode
+      nextIndex = currentIndex + 1;
     }
 
     if (nextIndex < queue.length) {
       const nextSong = queue[nextIndex];
+
       set({
         currentSong: nextSong,
         currentIndex: nextIndex,
         isPlaying: true,
       });
+
+      // if (
+      //   useSocketStore.getState().socket &&
+      //   useSocketStore.getState().isBroadcasting
+      // ) {
+      //   useSocketStore
+      //     .getState()
+      //     .playSong(
+      //       useSocketStore.getState().userId,
+      //       useSocketStore.getState().roomId,
+      //       nextSong._id,
+      //       null
+      //     );
+      // }
     } else {
-      // End of queue and no loop
+      // if no next song
+
       set({ isPlaying: false });
     }
   },

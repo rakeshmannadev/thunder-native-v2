@@ -1,4 +1,5 @@
 import { MovingText } from "@/components/songs/useMovingText";
+import { ThemedText } from "@/components/ThemedText";
 import { Button, ButtonIcon } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
 import { borderRadius, screenPadding } from "@/constants/tokens";
@@ -44,7 +45,7 @@ const CurrentlyBroadcastSong = () => {
         activeOpacity={0.8}
         onPress={() => setExpanded(!expanded)}
       >
-        {isBroadcasting && isPlayingSong && currentSong ? (
+        {isBroadcasting && currentSong ? (
           <View className="flex flex-row items-center justify-between gap-4">
             <View
               className="flex flex-col gap-1 overflow-hidden"
@@ -66,15 +67,20 @@ const CurrentlyBroadcastSong = () => {
               {expanded && (
                 <MovingText
                   animationThreshold={25}
-                  text={`Artist:${currentSong.artists.primary.join(
-                    ", "
-                  )} Year: ${currentSong.releaseYear}`}
+                  text={`Artist:${currentSong.artists.primary
+                    .map((artist) => artist.name)
+                    .join(", ")}`}
                   style={{
                     fontSize: 14,
                     color: colors.textMuted,
                     lineHeight: 20,
                   }}
                 />
+              )}
+              {expanded && (
+                <ThemedText type="default" style={{ fontSize: 14 }}>
+                  Year:{currentSong.releaseYear}
+                </ThemedText>
               )}
             </View>
             <View

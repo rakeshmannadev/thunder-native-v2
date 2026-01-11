@@ -9,7 +9,8 @@ const useMenuActions = () => {
   const router = useRouter();
   const { addToQueue, currentIndex, insertToQueue, setAudioPreference } =
     usePlayerStore();
-  const { startBroadcast, endBroadcast, deleteRoom } = useSocketStore();
+  const { startBroadcast, endBroadcast, deleteRoom, leaveRoom } =
+    useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom, leaveJoinedRoom } = useRoomStore();
 
@@ -69,8 +70,12 @@ const useMenuActions = () => {
         leaveJoinedRoom(currentRoom?._id!);
         router.push("/rooms");
         break;
+      case "end_session":
+        leaveRoom(currentRoom?._id!, currentUser?._id!);
+        router.push("/rooms");
+        break;
       case "request_song":
-        // Implement request song logic here
+        router.push("/search");
         break;
 
       default:

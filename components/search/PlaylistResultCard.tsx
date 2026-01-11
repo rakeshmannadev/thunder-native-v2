@@ -17,6 +17,7 @@ const PlaylistResultCard = ({
 }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
