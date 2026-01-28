@@ -1,3 +1,4 @@
+import EmptyRooms from "@/components/EmptyRooms";
 import { Divider } from "@/components/ui/divider";
 import { Colors } from "@/constants/Colors";
 import { fontSize, screenPadding } from "@/constants/tokens";
@@ -37,6 +38,8 @@ const index = () => {
     if (route.key === "public") return <PublicRoomsTab />;
     return null;
   };
+
+  if (!currentUser) return <EmptyRooms />;
 
   const renderTabBar = () => (
     <>

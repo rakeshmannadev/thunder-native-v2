@@ -1,4 +1,4 @@
-import { BookHeartIcon } from "lucide-react-native";
+import { CoffeeIcon } from "lucide-react-native";
 import React from "react";
 import { useColorScheme, View } from "react-native";
 
@@ -8,7 +8,7 @@ import { useRouter } from "expo-router";
 import { ThemedText } from "./ThemedText";
 import { Button, ButtonText } from "./ui/button";
 
-const EmptyLibrary = () => {
+const EmptyRooms = () => {
   const router = useRouter();
   const colorSchema = useColorScheme();
 
@@ -22,8 +22,10 @@ const EmptyLibrary = () => {
       ]}
       className="flex flex-1 justify-center items-center gap-4 p-5 "
     >
-      <BookHeartIcon size={96} color={colors.icon} />
-      <ThemedText type="defaultSemiBold">Your Library is Empty</ThemedText>
+      <CoffeeIcon size={96} color={colors.icon} />
+      <ThemedText type="defaultSemiBold">
+        Oops, looks like you are not logged in
+      </ThemedText>
 
       <View className="flex gap-10 items-center justify-center">
         <ThemedText
@@ -31,7 +33,7 @@ const EmptyLibrary = () => {
           style={{ fontSize: 19, width: 300, textAlign: "center" }}
           // textBreakStrategy="simple"
         >
-          Library songs will appeare here, login now!
+          Rooms will appear here, login now to explore and join rooms!
         </ThemedText>
 
         <Button
@@ -50,4 +52,4 @@ const EmptyLibrary = () => {
   );
 };
 
-export default EmptyLibrary;
+export default EmptyRooms;

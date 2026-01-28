@@ -115,7 +115,7 @@ const useUserStore = create<UserStore>((set, get) => ({
         set({ currentUser: response.data.user });
       }
     } catch (error: any) {
-      console.log(error.response.data.message);
+      console.log(error);
       set({ currentUser: null });
     } finally {
       set({ isLoading: false });

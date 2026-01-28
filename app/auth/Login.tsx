@@ -8,6 +8,7 @@ import { FormControl } from "@/components/ui/form-control";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Colors } from "@/constants/Colors";
 import { LogoIcon } from "@/constants/Icons";
+import { borderRadius } from "@/constants/tokens";
 import useAuthStore from "@/store/useAuthStore";
 import { useRouter } from "expo-router";
 import {
@@ -32,7 +33,9 @@ const Login = () => {
   const [email, setEmail] = React.useState<string>("");
   const [password, setPassword] = React.useState<string>("");
 
-  const colorScheme = useColorScheme();
+  const colorSchema = useColorScheme();
+
+  const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
   const { login } = useAuthStore();
 
   const handleLogin = async (email: string, password: string) => {
@@ -58,8 +61,7 @@ const Login = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{
         flex: 1,
-        backgroundColor:
-          Colors[colorScheme === "light" ? "light" : "dark"].background,
+        backgroundColor: colors.background,
       }}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -99,10 +101,15 @@ const Login = () => {
                 </Input>
               </View>
               <Button
+                variant="solid"
+                style={{
+                  backgroundColor: colors.primary,
+                  borderRadius: borderRadius.lg,
+                }}
                 onPress={() => handleLogin(email, password)}
                 className="ml-auto w-full rounded-3xl bg-green-500 hover:!bg-green-800"
               >
-                <ButtonText className="text-typography-0 ">Login</ButtonText>
+                <ButtonText style={{ color: colors.text }}>Login</ButtonText>
               </Button>
 
               <View className="flex flex-row items-center justify-center gap-3">
@@ -116,7 +123,7 @@ const Login = () => {
                 className="ml-auto w-full rounded-3xl hover:!bg-green-800"
                 onPress={() => router.navigate("/auth/Signup")}
               >
-                <ButtonText className=" text-zinc-300 ">Sign Up</ButtonText>
+                <ButtonText style={{ color: colors.text }}>Sign Up</ButtonText>
               </Button>
             </View>
           </FormControl>

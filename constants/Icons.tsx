@@ -7,6 +7,7 @@ import {
   ListVideoIcon,
   LogOutIcon,
   LucideCoffee,
+  LucideIcon,
   Mic2Icon,
   MoonIcon,
   Share2Icon,
@@ -52,7 +53,7 @@ export const LogoIcon = ({ styles }: { styles?: ImageStyle }) => {
   );
 };
 
-export const ICON_MAPS: Record<string, any> = {
+export const ICON_MAPS: Record<string, LucideIcon> = {
   album: DiscAlbumIcon,
   artist: Mic2Icon,
   playlist: ListPlusIcon,

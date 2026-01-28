@@ -121,10 +121,7 @@ const useMusicStore = create<MusicStore>((set) => ({
         set({ trending: response.data?.songs });
       }
     } catch (error: any) {
-      console.log(
-        "Error in fetching trending songs",
-        error.response.data?.message
-      );
+      console.log("Error in fetching trending songs", error);
     } finally {
       set({ isLoading: false });
     }

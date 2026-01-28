@@ -15,6 +15,7 @@ import {
 import { VStack } from "@/components/ui/vstack";
 import { Colors } from "@/constants/Colors";
 import { LogoIcon } from "@/constants/Icons";
+import { borderRadius } from "@/constants/tokens";
 import useAuthStore from "@/store/useAuthStore";
 import { useRouter } from "expo-router";
 import {
@@ -44,7 +45,9 @@ const Signup = () => {
   const [password, setPassword] = React.useState<string>("");
   const [name, setName] = React.useState<string>("");
 
-  const colorScheme = useColorScheme();
+  const colorSchema = useColorScheme();
+
+  const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
   const { signup } = useAuthStore();
 
   const handleState = () => {
@@ -80,8 +83,7 @@ const Signup = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{
         flex: 1,
-        backgroundColor:
-          Colors[colorScheme === "light" ? "light" : "dark"].background,
+        backgroundColor: colors.background,
       }}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -159,10 +161,15 @@ const Signup = () => {
                 </RadioGroup>
               </VStack>
               <Button
+                variant="solid"
+                style={{
+                  backgroundColor: colors.primary,
+                  borderRadius: borderRadius.lg,
+                }}
                 onPressIn={handleSignUp}
-                className="ml-auto w-full rounded-3xl bg-green-500 hover:!bg-green-800"
+                className="ml-auto w-full  "
               >
-                <ButtonText className="text-typography-0 ">Sign Up</ButtonText>
+                <ButtonText style={{ color: colors.text }}>Sign Up</ButtonText>
               </Button>
               {/* Divider section */}
               <View className="flex flex-row items-center justify-center gap-3">
