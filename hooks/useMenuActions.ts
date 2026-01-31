@@ -68,11 +68,11 @@ const useMenuActions = () => {
         break;
       case "leave_room":
         leaveJoinedRoom(currentRoom?._id!);
-        router.push("/rooms");
+        router.back();
         break;
       case "end_session":
-        leaveRoom(currentRoom?._id!, currentUser?._id!);
         router.push("/rooms");
+        leaveRoom(currentRoom?._id!, currentUser?._id!);
         break;
       case "request_song":
         router.push("/search");

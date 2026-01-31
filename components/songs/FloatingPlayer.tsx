@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import { Colors } from "@/constants/Colors";
-import { borderRadius } from "@/constants/tokens";
+import { borderRadius, fontSize } from "@/constants/tokens";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { useAudioPlayerStatus } from "expo-audio";
@@ -86,9 +86,9 @@ const FloatingPlayer = ({ style }: ViewProps) => {
             />
           </View>
           <View className="flex flex-row items-center gap-5 mr-4 pl-4">
-            <PlayPauseButton iconSize={24} />
+            <PlayPauseButton iconSize={fontSize.base} />
 
-            <SkipToNextButton iconSize={24} handlePress={playNext} />
+            <SkipToNextButton iconSize={fontSize.base} handlePress={playNext} />
           </View>
         </View>
         {/* Progress bar */}

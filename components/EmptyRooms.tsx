@@ -40,10 +40,10 @@ const EmptyRooms = () => {
           variant="solid"
           style={{
             backgroundColor: colors.primary,
-            borderRadius: borderRadius.lg,
+            borderRadius: borderRadius.md,
           }}
           onPress={() => router.push("/auth/Login")}
-          className=" min-w-full rounded-3xl "
+          className=" min-w-full  "
         >
           <ButtonText style={{ color: colors.text }}>Login</ButtonText>
         </Button>

@@ -97,7 +97,7 @@ const PlayButton = ({ song }: { song: Song }) => {
             shadowRadius: 10,
           }}
         >
-          <FabIcon as={PauseIcon} color="white" />
+          <FabIcon as={PauseIcon} fill={"#fff"} size="sm" color="white" />
         </Fab>
       ) : (
         <Fab
@@ -116,7 +116,7 @@ const PlayButton = ({ song }: { song: Song }) => {
               <FabIcon as={Loader2Icon} color="white" />
             </Animated.View>
           ) : (
-            <FabIcon as={PlayIcon} color="white" />
+            <FabIcon as={PlayIcon} fill={"#fff"} size="sm" color="white" />
           )}
         </Fab>
       )}

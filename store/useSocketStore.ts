@@ -106,7 +106,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       reconnectionAttempts: 5,
     });
     set({ socket });
-
+    console.log("socket connected: ");
     // Listen to socket events inside the store
     socket.on("joinRequest", (data) => {
       const { showToast } = useToastMessage();
@@ -516,6 +516,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
     }
   },
   joinRoom: (userId: string, roomId: string) => {
+    console.log("called");
     const { socket } = get();
     if (socket) {
       socket.emit("joinRoom", { userId, roomId });
@@ -542,13 +543,15 @@ const useSocketStore = create<SocketState>((set, get) => ({
     }
   },
   leaveRoom: (roomId: string, userId: string) => {
-    const { socket } = get();
+    const { socket, disconnectSocket } = get();
     const { showToast } = useToastMessage();
 
     if (socket) {
       socket.emit("leaveRoom", { userId, roomId });
     }
-    set({ isPlayingSong: false, isBroadcasting: false, isJoined: false });
+    disconnectSocket();
+    useRoomStore.setState({ currentRoom: null });
+
     showToast("You have left the room");
   },
   sendSongRequest: (userId, roomId, song) => {

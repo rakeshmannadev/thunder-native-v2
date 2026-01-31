@@ -104,10 +104,10 @@ const Login = () => {
                 variant="solid"
                 style={{
                   backgroundColor: colors.primary,
-                  borderRadius: borderRadius.lg,
+                  borderRadius: borderRadius.md,
                 }}
                 onPress={() => handleLogin(email, password)}
-                className="ml-auto w-full rounded-3xl bg-green-500 hover:!bg-green-800"
+                className="ml-auto w-full rounded-xl"
               >
                 <ButtonText style={{ color: colors.text }}>Login</ButtonText>
               </Button>
@@ -120,7 +120,7 @@ const Login = () => {
 
               <Button
                 variant="outline"
-                className="ml-auto w-full rounded-3xl hover:!bg-green-800"
+                className="ml-auto w-full rounded-xl"
                 onPress={() => router.navigate("/auth/Signup")}
               >
                 <ButtonText style={{ color: colors.text }}>Sign Up</ButtonText>

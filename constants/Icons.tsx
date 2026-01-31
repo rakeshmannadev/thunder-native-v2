@@ -13,6 +13,7 @@ import {
   Share2Icon,
   SunIcon,
   TrashIcon,
+  WifiOffIcon,
 } from "lucide-react-native";
 import { Image, ImageStyle } from "react-native";
 
@@ -69,4 +70,5 @@ export const ICON_MAPS: Record<string, LucideIcon> = {
   requests: ListMusicIcon,
   broadcast: Mic2Icon,
   logout: LogOutIcon,
+  disconnect: WifiOffIcon,
 };

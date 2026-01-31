@@ -27,8 +27,7 @@ const RoomScreen = () => {
 
   const { getRoomById, currentRoom, fetchingRoom } = useRoomStore();
   const { currentUser } = useUserStore();
-  const { isJoined, joinRoom, socket, connectSocket, disconnectSocket } =
-    useSocketStore();
+  const { isJoined, joinRoom, socket, connectSocket } = useSocketStore();
 
   useEffect(() => {
     getRoomById(id as string);
@@ -44,7 +43,7 @@ const RoomScreen = () => {
     if (currentUser && id && !isJoined) {
       joinRoom(currentUser._id, id);
     }
-  }, [currentUser, id, joinRoom, isJoined]);
+  }, [currentUser, id]);
 
   if (fetchingRoom)
     return (

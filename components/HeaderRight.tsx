@@ -30,8 +30,6 @@ const HeaderRight = () => {
     }
   }, [fetchJoinRequests, userCreatedRooms.length]);
 
-  console.log("joinRequests", joinRequests);
-
   return (
     <HStack space="md" className="mr-5">
       <Pressable

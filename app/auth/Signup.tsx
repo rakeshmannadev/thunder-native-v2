@@ -164,7 +164,7 @@ const Signup = () => {
                 variant="solid"
                 style={{
                   backgroundColor: colors.primary,
-                  borderRadius: borderRadius.lg,
+                  borderRadius: borderRadius.md,
                 }}
                 onPressIn={handleSignUp}
                 className="ml-auto w-full  "
@@ -180,7 +180,7 @@ const Signup = () => {
 
               <Button
                 variant="outline"
-                className="ml-auto w-full rounded-3xl hover:!bg-green-800"
+                className="ml-auto w-full rounded-xl"
                 onPress={() => router.navigate("/auth/Login")}
               >
                 <ButtonText className=" text-zinc-300 ">Login</ButtonText>
