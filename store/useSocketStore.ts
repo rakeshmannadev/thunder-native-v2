@@ -1,13 +1,12 @@
-// import useShowCustomToast from "@/hooks/useShowCustomToast";
 import { axiosInstance } from "@/lib/axios";
 import { Song, SongRequest, User } from "@/types";
-// import toast from "react-hot-toast";
-import useToastMessage from "@/hooks/useToastMessage";
+import { showToast } from "@/hooks/useToastMessage";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
 import usePlayerStore from "./usePlayerStore";
 import useRoomStore from "./useRoomStore";
 import useUserStore from "./useUserStore";
+import { fetchSongById } from "@/services/songService";
 
 interface SocketState {
   socket: Socket | null;
@@ -97,7 +96,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
   roomId: "",
   currentTime: 0,
   connectSocket: (userId) => {
-    const socket = io(socketUrl, {
+    const socket = io(socketUrl!, {
       query: {
         userId,
       },
@@ -106,20 +105,17 @@ const useSocketStore = create<SocketState>((set, get) => ({
       reconnectionAttempts: 5,
     });
     set({ socket });
-    console.log("socket connected: ");
-    // Listen to socket events inside the store
+    console.log("socket connected");
+
     socket.on("joinRequest", (data) => {
-      const { showToast } = useToastMessage();
       useRoomStore.setState({
         joinRequests: [...useRoomStore.getState().joinRequests, data.request],
       });
-
       showToast("New join request received for " + data.request.room.roomName);
     });
 
     socket.on("joinRequestStatus", (data) => {
       if (data.status) {
-        // toast.success(data.message);
         useUserStore.setState((state) => ({
           publicRooms: state.publicRooms.map((room) =>
             room._id === data.room._id
@@ -127,13 +123,10 @@ const useSocketStore = create<SocketState>((set, get) => ({
               : room
           ),
         }));
-      } else {
-        // toast.error(data.message);
       }
     });
 
     socket.on("joinRequestRejected", (data) => {
-      // const { showToast } = useShowCustomToast();
       if (data.userId !== useUserStore.getState().currentUser?._id) {
         useUserStore.setState((state) => ({
           publicRooms: state.publicRooms.map((room) =>
@@ -155,11 +148,9 @@ const useSocketStore = create<SocketState>((set, get) => ({
             request.user.userId !== data.room.requests.user.userId
         ),
       }));
-      // toast.success("Requst rejected");
     });
 
     socket.on("joinRequestAccepted", (data) => {
-      // const { showToast } = useShowCustomToast();
       if (data.userId !== useUserStore.getState().currentUser?._id) {
         useUserStore.setState({
           rooms: [...useUserStore.getState().rooms, data.room],
@@ -169,41 +160,36 @@ const useSocketStore = create<SocketState>((set, get) => ({
             (room) => room._id !== data.room._id
           ),
         }));
-        // showToast(
-        //   `Join request accepted by ${data.room.roomName} admin `,
-        //   data.room.image,
-        //   data.room.roomName
-        // );
       } else {
         useRoomStore.setState((state) => ({
           joinRequests: state.joinRequests.filter((request) => {
-            request.room._id !== data.room._id &&
-              request.user.userId !== data.room.requests.user.userId;
+            return (
+              request.room._id !== data.room._id &&
+              request.user.userId !== data.room.requests.user.userId
+            );
           }),
         }));
-        // toast.success("Requst accepted");
       }
     });
+
     socket.on("adminJoins", (data) => {
-      const { showToast } = useToastMessage();
       showToast(data.message);
       set({ roomId: data.roomId, isJoined: true });
     });
-    socket.on("userJoins", (data) => {
-      const { showToast } = useToastMessage();
 
+    socket.on("userJoins", (data) => {
       showToast(data.message);
       set({ roomId: data.roomId, isJoined: true });
       socket.emit("sync-request", { roomId: data.roomId });
     });
+
     socket.on("updateUsers", (data) => {
-      set({ activeUsers: data.users }); // Update Zustand state
+      set({ activeUsers: data.users });
     });
 
     socket.on(
       "broadcastStarted",
       ({ user, roomId }: { user: User; roomId: string }) => {
-        const { showToast } = useToastMessage();
         showToast(`${user.name} has started the broadcast.`);
         set({
           isBroadcasting: true,
@@ -221,9 +207,9 @@ const useSocketStore = create<SocketState>((set, get) => ({
         case "play":
           try {
             set({ isLoading: true });
-            const response = await axiosInstance.get(`/songs/${songId}`);
-            if (response.data.status) {
-              const song = response.data.song;
+            const songData = await fetchSongById(songId);
+            if (songData.status) {
+              const song = songData.song;
               usePlayerStore.getState().setCurrentSong(song);
               set({
                 isPlayingSong: true,
@@ -233,8 +219,8 @@ const useSocketStore = create<SocketState>((set, get) => ({
                 roomId,
               });
             }
-          } catch (error: any) {
-            console.log(error.response.data.message);
+          } catch (error) {
+            console.error("Failed to fetch song from sound control:", error);
           } finally {
             set({ isLoading: false });
           }
@@ -242,13 +228,11 @@ const useSocketStore = create<SocketState>((set, get) => ({
         case "pause": {
           const { isPlayingSong } = get();
           if (
-            usePlayerStore.getState().currentSong &&
-            usePlayerStore.getState().currentSong!._id === songId &&
+            usePlayerStore.getState().currentSong?._id === songId &&
             isPlayingSong
           ) {
             set({ isPlayingSong: false });
           }
-
           break;
         }
         case "seek": {
@@ -257,9 +241,6 @@ const useSocketStore = create<SocketState>((set, get) => ({
         }
         case "play-album": {
           const { songs, roomId, currentJockey } = data;
-
-          set({ isLoading: true });
-
           set({
             isPlayingSong: true,
             isBroadcasting: true,
@@ -269,13 +250,11 @@ const useSocketStore = create<SocketState>((set, get) => ({
           });
           usePlayerStore.setState({ queue: songs });
           usePlayerStore.getState().playAlbum(songs, 0);
-          set({ isLoading: false });
           break;
         }
-        default:
-          break;
       }
     });
+
     socket.on(
       "sync-state",
       ({
@@ -290,11 +269,9 @@ const useSocketStore = create<SocketState>((set, get) => ({
       }) => {
         if (song) {
           usePlayerStore.getState().setCurrentSong(song);
-        } else {
-          if (songs && Array.isArray(songs) && songs.length > 0) {
-            set({ currentStreamingQueue: songs });
-            usePlayerStore.getState().playAlbum(songs, 0);
-          }
+        } else if (songs && Array.isArray(songs) && songs.length > 0) {
+          set({ currentStreamingQueue: songs });
+          usePlayerStore.getState().playAlbum(songs, 0);
         }
         set({
           isBroadcasting,
@@ -307,75 +284,61 @@ const useSocketStore = create<SocketState>((set, get) => ({
       }
     );
 
-    // if a new listener joins, request sync from host
     socket.on("sync-request", ({ from }) => {
-      const { socket } = get();
-
+      const { socket, isBroadcasting, currentJockey, requestedUser, roomId, currentStreamingQueue } = get();
       if (!socket) return;
 
       socket.emit("sync-state", {
         to: from,
-        isBroadcasting: get().isBroadcasting,
-        currentJockey: get().currentJockey,
-        requestedUser: get().requestedUser,
-        roomId: get().roomId,
+        isBroadcasting,
+        currentJockey,
+        requestedUser,
+        roomId,
         isPlaying: !usePlayerStore.getState().isPlaying,
         time: 0,
         song: usePlayerStore.getState().currentSong,
-        songs: get().currentStreamingQueue,
+        songs: currentStreamingQueue,
       });
     });
 
     socket.on("newSongRequest", (data) => {
-      const { showToast } = useToastMessage();
-
       set((state) => ({
         songRequests: [...state.songRequests, data.song],
       }));
-      // showToast(
-      //   "New song requst received ",
-      //   data.user.image,
-      //   data.song.currentJockey
-      // );
-      showToast(`New song requst received from  ${data.song.currentJockey}`);
+      showToast(`New song request received from ${data.song.currentJockey}`);
     });
 
     socket.on("broadcastEnded", (data) => {
-      const { showToast } = useToastMessage();
-
       set({ isBroadcasting: false, isPlayingSong: false });
       usePlayerStore.setState({ currentSong: null, isPlaying: false });
       showToast(data.message);
     });
-    socket.on("roomDeleted", (data) => {
-      const { showToast } = useToastMessage();
 
+    socket.on("roomDeleted", (data) => {
       useUserStore.setState((state) => ({
         rooms: state.rooms.filter((room) => room._id !== data.roomId),
       }));
-      useRoomStore.getState().currentRoom?._id === data.roomId &&
+      if (useRoomStore.getState().currentRoom?._id === data.roomId) {
         useRoomStore.setState({ currentRoom: null });
+      }
       showToast(`${data.room.roomName} is deleted by admin`);
     });
-    socket.on("kickedFromRoom", (data) => {
-      const { showToast } = useToastMessage();
 
+    socket.on("kickedFromRoom", (data) => {
       useUserStore.setState({
         rooms: useUserStore
           .getState()
           .rooms.filter((room) => room._id !== data.roomId),
       });
-      useRoomStore.getState().currentRoom?._id === data.roomId &&
+      if (useRoomStore.getState().currentRoom?._id === data.roomId) {
         useRoomStore.setState({ currentRoom: null });
-
-      // showToast(data.message, data.image, data.roomName);
+      }
       showToast(data.message);
       socket.disconnect();
       set({ socket: null });
     });
-    socket.on("userKicked", (data) => {
-      const { showToast } = useToastMessage();
 
+    socket.on("userKicked", (data) => {
       useRoomStore.setState({
         members: useRoomStore
           .getState()
@@ -383,54 +346,69 @@ const useSocketStore = create<SocketState>((set, get) => ({
       });
       showToast(data.message);
     });
+
     socket.on("newMessage", (data) => {
-      console.log("newMessage: ", data);
-      useRoomStore.setState((state) => ({
-        currentRoom: {
-          ...state.currentRoom!,
-          messages: [...state.currentRoom!.messages, data.message],
-        },
-      }));
-    });
-    socket.on("adminDeletedMessage", (data) => {
-      useRoomStore.setState((state) => ({
-        currentRoom: {
-          ...state.currentRoom!,
-          messages: state.currentRoom!.messages.map((message) =>
-            message._id === data.messageId
-              ? { ...message, message: "" }
-              : message
-          ),
-        },
-      }));
-    }),
-      socket.on("deletedForEveryone", (data) => {
-        useRoomStore.setState((state) => ({
+      const { currentRoom } = useRoomStore.getState();
+      if (currentRoom) {
+        useRoomStore.setState({
           currentRoom: {
-            ...state.currentRoom!,
-            messages: state.currentRoom!.messages.map((message) =>
+            ...currentRoom,
+            messages: [...currentRoom.messages, data.message],
+          },
+        });
+      }
+    });
+
+    socket.on("adminDeletedMessage", (data) => {
+      const { currentRoom } = useRoomStore.getState();
+      if (currentRoom) {
+        useRoomStore.setState({
+          currentRoom: {
+            ...currentRoom,
+            messages: currentRoom.messages.map((message) =>
               message._id === data.messageId
                 ? { ...message, message: "" }
                 : message
             ),
           },
-        }));
-      }),
-      socket.on("messageEdited", (data) => {
-        useRoomStore.setState((state) => ({
+        });
+      }
+    });
+
+    socket.on("deletedForEveryone", (data) => {
+      const { currentRoom } = useRoomStore.getState();
+      if (currentRoom) {
+        useRoomStore.setState({
           currentRoom: {
-            ...state.currentRoom!,
-            messages: state.currentRoom!.messages.map((message) =>
+            ...currentRoom,
+            messages: currentRoom.messages.map((message) =>
+              message._id === data.messageId
+                ? { ...message, message: "" }
+                : message
+            ),
+          },
+        });
+      }
+    });
+
+    socket.on("messageEdited", (data) => {
+      const { currentRoom } = useRoomStore.getState();
+      if (currentRoom) {
+        useRoomStore.setState({
+          currentRoom: {
+            ...currentRoom,
+            messages: currentRoom.messages.map((message) =>
               message._id === data.messageId
                 ? { ...message, message: data.content }
                 : message
             ),
           },
-        }));
-      });
+        });
+      }
+    });
   },
   disconnectSocket: () => {
-    const socket = get().socket;
+    const { socket } = get();
     if (socket) {
       socket.disconnect();
       set({
@@ -440,24 +418,21 @@ const useSocketStore = create<SocketState>((set, get) => ({
         isPlayingSong: false,
       });
       usePlayerStore.setState({ currentSong: null, isPlaying: false });
-
       console.log("Socket disconnected.");
     }
   },
-  startBroadcast: (userId: string, roomId: string) => {
+  startBroadcast: (userId, roomId) => {
     const { socket } = get();
     if (socket) {
       socket.emit("initializeBroadcast", { userId, roomId });
     }
   },
-  sendJoinRequest: async (userId, roomId) => {
+  sendJoinRequest: (userId, roomId) => {
     const { socket } = get();
-
     if (socket) {
       socket.emit("sendJoinRequest", { userId, roomId });
     }
   },
-
   playSong: (
     userId,
     roomId,
@@ -467,16 +442,15 @@ const useSocketStore = create<SocketState>((set, get) => ({
     currentJockey
   ) => {
     const { socket } = get();
-
     if (socket) {
       socket.emit("music-control", {
         action: "play",
         userId,
-        currentJockey: currentJockey,
+        currentJockey,
         roomId,
         songId,
         requestedUserId,
-        time: time,
+        time,
       });
     }
   },
@@ -492,7 +466,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       });
     }
   },
-  playAlbum: (roomId: string, songs: Song[], currentJockey: User | null) => {
+  playAlbum: (roomId, songs, currentJockey) => {
     const { socket } = get();
     if (socket) {
       socket.emit("music-control", {
@@ -503,7 +477,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       });
     }
   },
-  seekSong: (userId: string, songId: string, roomId: string, time: number) => {
+  seekSong: (userId, songId, roomId, time) => {
     const { socket } = get();
     if (socket) {
       socket.emit("music-control", {
@@ -515,8 +489,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       });
     }
   },
-  joinRoom: (userId: string, roomId: string) => {
-    console.log("called");
+  joinRoom: (userId, roomId) => {
     const { socket } = get();
     if (socket) {
       socket.emit("joinRoom", { userId, roomId });
@@ -524,7 +497,6 @@ const useSocketStore = create<SocketState>((set, get) => ({
   },
   acceptJoinRequest: (userId, roomId) => {
     const { socket } = get();
-
     if (socket) {
       socket.emit("acceptJoinRequest", { userId, roomId });
     }
@@ -538,30 +510,24 @@ const useSocketStore = create<SocketState>((set, get) => ({
   kickMember: (userId, roomId, memberId) => {
     const { socket } = get();
     if (socket) {
-      console.log("Called");
       socket.emit("kickMember", { userId, roomId, memberId });
     }
   },
-  leaveRoom: (roomId: string, userId: string) => {
+  leaveRoom: (roomId, userId) => {
     const { socket, disconnectSocket } = get();
-    const { showToast } = useToastMessage();
-
     if (socket) {
       socket.emit("leaveRoom", { userId, roomId });
     }
     disconnectSocket();
     useRoomStore.setState({ currentRoom: null });
-
     showToast("You have left the room");
   },
   sendSongRequest: (userId, roomId, song) => {
     const { socket } = get();
-    const { showToast } = useToastMessage();
-
     if (socket) {
       socket.emit("sendSongRequest", { userId, roomId, song });
     }
-    showToast("Song request send to admin");
+    showToast("Song request sent to admin");
   },
   endBroadcast: (userId, roomId) => {
     const { socket } = get();

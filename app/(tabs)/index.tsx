@@ -12,7 +12,7 @@ import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { Album, Song } from "@/types";
 import { ArrowRightIcon } from "lucide-react-native";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
@@ -42,14 +42,16 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    initializeQueue([...trending, ...featured]);
+    if (trending.length > 0 || featured.length > 0) {
+      initializeQueue([...trending, ...featured]);
+    }
   }, [trending, featured]);
 
   useEffect(() => {
     if (currentUser && favoriteSongs.length === 0) {
       getFavoriteSongs();
     }
-  }, []);
+  }, [currentUser]); // Added currentUser to dependencies
 
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
@@ -60,102 +62,90 @@ export default function HomeScreen() {
         backgroundColor: colors.background,
       }}
     >
-      <ScrollView>
-        {/* Recently played section */}
-        <VStack space="md" className=" p-2 mt-16">
-          <SearchBox />
-          <View className="w-full flex flex-row justify-between items-center pr-2">
-            <ThemedText
-              type="subtitle"
-              className="px-3"
-              style={{ color: colors.text }}
-            >
-              Recently Played
-            </ThemedText>
-
-            <ArrowRightIcon size={20} color={colors.text} />
-          </View>
-
-          {/* Song card component */}
+      <FlatList
+        data={[
           {
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item: Song) =>
-                isLoading ? `skeleton-${Math.random()}` : item._id.toString()
-              }
-              data={isLoading ? Array.from({ length: 5 }) : featured}
-              renderItem={({ item: Song }) =>
-                isLoading ? (
-                  <SongCardSkeleton />
-                ) : (
-                  <SongCard song={Song} isLoading={isLoading} />
-                )
-              }
-            />
-          }
-        </VStack>
-        {/* Trending section */}
-        <VStack space="md" className="mt-2 p-2">
-          <View className="w-full flex flex-row justify-between items-center pr-2">
-            <ThemedText
-              type="subtitle"
-              className="px-3"
-              style={{ color: colors.text }}
-            >
-              Trending
-            </ThemedText>
-            <ArrowRightIcon size={20} color={colors.text} />
-          </View>
+            title: "Recently Played",
+            data: featured,
+            renderItem: (item: Song, index: number) => (
+              <SongCard key={item?._id ?? index} song={item} isLoading={isLoading} />
+            ),
+          },
           {
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item: Song) =>
-                isLoading ? `skeleton-${Math.random()}` : item._id.toString()
-              }
-              data={isLoading ? Array.from({ length: 5 }) : trending}
-              renderItem={({ item: Song }) =>
-                isLoading ? (
-                  <SongCardSkeleton />
-                ) : (
-                  <SongCard song={Song} isLoading={isLoading} />
-                )
-              }
-            />
-          }
-        </VStack>
-        {/* Albums section */}
-        <VStack space="md" className="mt-2 mb-12 p-2">
-          <View className="w-full flex flex-row justify-between items-center pr-2">
-            <ThemedText
-              type="subtitle"
-              className="px-3"
-              style={{ color: colors.text }}
-            >
-              Albums
-            </ThemedText>
-            <ArrowRightIcon size={20} color={colors.text} />
-          </View>
+            title: "Trending",
+            data: trending,
+            renderItem: (item: Song, index: number) => (
+              <SongCard key={item?._id ?? index} song={item} isLoading={isLoading} />
+            ),
+          },
           {
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item: Album) =>
-                isLoading ? `skeleton-${Math.random()}` : item._id.toString()
-              }
-              data={isLoading ? Array.from({ length: 5 }) : madeForYouAlbums}
-              renderItem={({ item: Album }) =>
-                isLoading ? (
-                  <SongCardSkeleton />
-                ) : (
-                  <AlbumCard album={Album} isLoading={isLoading} />
-                )
-              }
-            />
-          }
-        </VStack>
-      </ScrollView>
+            title: "Albums",
+            data: madeForYouAlbums,
+            renderItem: (item: Album, index: number) => (
+              <AlbumCard
+                key={item?._id ?? index}
+                album={item}
+                isLoading={isLoading}
+              />
+            ),
+          },
+        ]}
+        renderItem={({ item: section }) => (
+          <HomeScreenSection
+            section={section}
+            colors={colors}
+            isLoading={isLoading}
+          />
+        )}
+        keyExtractor={(item) => item.title}
+        ListHeaderComponent={
+          <VStack space="md" className="p-2 mt-16">
+            <SearchBox />
+          </VStack>
+        }
+        ListFooterComponent={<View style={{ height: 100 }} />}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        removeClippedSubviews={true}
+      />
     </SafeAreaView>
   );
 }
+
+const HomeScreenSection = React.memo(
+  ({
+    section,
+    colors,
+    isLoading,
+  }: {
+    section: any;
+    colors: any;
+    isLoading: boolean;
+  }) => (
+    <VStack space="md" className="mt-2 p-2">
+      <View className="w-full flex flex-row justify-between items-center pr-2">
+        <ThemedText
+          type="subtitle"
+          className="px-3"
+          style={{ color: colors.text }}
+        >
+          {section.title}
+        </ThemedText>
+        <ArrowRightIcon size={20} color={colors.text} />
+      </View>
+      <FlatList
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        initialNumToRender={5}
+        windowSize={5}
+        removeClippedSubviews={true}
+        keyExtractor={(item: any, index) =>
+          isLoading
+            ? `skeleton-${index}`
+            : item?._id?.toString() ?? `item-${index}`
+        }
+        data={isLoading ? Array.from({ length: 5 }) : section.data}
+        renderItem={({ item, index }) => section.renderItem(item as any, index)}
+      />
+    </VStack>
+  )
+);

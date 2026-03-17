@@ -27,66 +27,70 @@ export default function PlayerProvider({ children }: PropsWithChildren) {
 
   const status = useAudioPlayerStatus(player);
 
-  // * while broadcasting control the seek event
+  // * Synchronize player play/pause state with store and broadcasting
   useEffect(() => {
-    if (isBroadcasting) {
-      player.seekTo(currentTime);
-    }
-  }, [currentTime, isBroadcasting]);
+    if (!player) return;
 
-  // * while broadcasting control the play/pause event
-  useEffect(() => {
-    if (isBroadcasting && isPlayingSong) {
-      player.play();
-    } else if (isBroadcasting && !isPlayingSong) {
-      player.pause();
-    }
-  }, [isPlayingSong, isBroadcasting]);
+    const syncPlayerState = async () => {
+      // Priority 1: Broadcasting sync
+      if (isBroadcasting) {
+        // Sync time if difference is significant (> 500ms)
+        const diff = Math.abs(player.currentTime - currentTime);
+        if (diff > 500) {
+          player.seekTo(currentTime);
+        }
 
-  // * Set audio mode to play in background and silent mode
-  useEffect(() => {
-    (async () => {
-      try {
-        await setAudioModeAsync({
-          playsInSilentMode: true,
-          shouldPlayInBackground: true,
-          interruptionModeAndroid: "doNotMix",
-          interruptionMode: "doNotMix",
-          shouldRouteThroughEarpiece: true,
-        });
-      } catch (error) {
-        console.log("Error while setting audio mode:", error);
-      }
-    })();
-  }, [player]);
-
-  // * Auto play next song when current song finishes
-  useEffect(() => {
-    if (!status) return;
-    if (status.didJustFinish) {
-      if (loop === "one") {
-        player.seekTo(0).then(() => player.play());
+        if (isPlayingSong) {
+          player.play();
+        } else {
+          player.pause();
+        }
         return;
       }
-      if (hasNext()) {
-        player.pause();
-        player.seekTo(0).then(() => playNext());
+
+      // Priority 2: Store isPlaying sync
+      // We only apply this if we are not broadcasting
+      // If store says playing but player is paused, play (and vice versa)
+      if (usePlayerStore.getState().isPlaying) {
+        player.play();
       } else {
         player.pause();
       }
-    }
-  }, [status.didJustFinish]);
+    };
 
-  // * Auto play when a new song is loaded
+    syncPlayerState();
+  }, [isPlayingSong, isBroadcasting, currentTime, player, usePlayerStore.getState().isPlaying]);
+
+  // * Handle song end / loop / next
+  useEffect(() => {
+    if (!status || !status.didJustFinish) return;
+
+    const handleFinish = async () => {
+      if (loop === "one") {
+        await player.seekTo(0);
+        player.play();
+        return;
+      }
+
+      if (hasNext()) {
+        playNext();
+      } else {
+        usePlayerStore.getState().setIsPlaying(false);
+      }
+    };
+
+    handleFinish();
+  }, [status?.didJustFinish, player, loop, playNext, hasNext]);
+
+  // * Handle song change and autoplay
   useEffect(() => {
     if (player && currentSong && status.isLoaded) {
-      try {
+      // When a new song is loaded and isLoaded becomes true, ensure it plays if store says so
+      if (usePlayerStore.getState().isPlaying) {
         player.play();
-      } catch (err) {
-        console.error("Failed to autoplay:", err);
       }
     }
-  }, [status.isLoaded, currentSong]);
+  }, [status.isLoaded, currentSong?.audioUrl, player]);
 
   return (
     <PlayerContext.Provider value={{ player, status }}>

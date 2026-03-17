@@ -9,6 +9,7 @@ import { useFonts } from "expo-font";
 import { Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { setAudioModeAsync } from "expo-audio";
 import "react-native-reanimated";
 
 import SearchBar from "@/components/search/SearchBar";
@@ -63,6 +64,23 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  // * Set audio mode to play in background and silent mode globally
+  useEffect(() => {
+    (async () => {
+      try {
+        await setAudioModeAsync({
+          playsInSilentMode: true,
+          shouldPlayInBackground: true,
+          interruptionModeAndroid: "doNotMix",
+          interruptionMode: "doNotMix",
+          shouldRouteThroughEarpiece: false,
+        });
+      } catch (error) {
+        console.log("Error while setting global audio mode:", error);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (loaded) {

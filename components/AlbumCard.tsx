@@ -11,7 +11,7 @@ type SectionGridProps = {
   album: Album;
   isLoading: boolean;
 };
-const AlbumCard = ({ album, isLoading }: SectionGridProps) => {
+const AlbumCard = React.memo(({ album, isLoading }: SectionGridProps) => {
   const router = useRouter();
   return (
     <Pressable
@@ -55,6 +55,6 @@ const AlbumCard = ({ album, isLoading }: SectionGridProps) => {
       </Card>
     </Pressable>
   );
-};
+});
 
 export default AlbumCard;

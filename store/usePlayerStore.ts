@@ -141,23 +141,13 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
         currentIndex: nextIndex,
         isPlaying: true,
       });
-
-      // if (
-      //   useSocketStore.getState().socket &&
-      //   useSocketStore.getState().isBroadcasting
-      // ) {
-      //   useSocketStore
-      //     .getState()
-      //     .playSong(
-      //       useSocketStore.getState().userId,
-      //       useSocketStore.getState().roomId,
-      //       nextSong._id,
-      //       null
-      //     );
-      // }
+    } else if (loop === "all" && queue.length > 0) {
+      set({
+        currentSong: queue[0],
+        currentIndex: 0,
+        isPlaying: true,
+      });
     } else {
-      // if no next song
-
       set({ isPlaying: false });
     }
   },

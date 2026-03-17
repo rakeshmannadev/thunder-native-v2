@@ -8,7 +8,7 @@ import { VStack } from "./ui/vstack";
 import PlayButton from "./songs/PlayButton";
 import { Skeleton, SkeletonText } from "./ui/skeleton";
 
-const SongCard = ({ song, isLoading }: { song: Song; isLoading: boolean }) => {
+const SongCard = React.memo(({ song, isLoading }: { song: Song; isLoading: boolean }) => {
   return (
     <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
       <View>
@@ -46,6 +46,6 @@ const SongCard = ({ song, isLoading }: { song: Song; isLoading: boolean }) => {
       </VStack>
     </Card>
   );
-};
+});
 
 export default SongCard;

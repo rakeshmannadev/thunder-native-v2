@@ -31,7 +31,7 @@ const PlayButton = ({ song }: { song: Song }) => {
 
   const { currentSong, setCurrentSong } = usePlayerStore();
 
-  const currentTrack = currentSong?.title === song.title;
+  const currentTrack = currentSong?.songId === song?.songId;
 
   const handlePlaySong = async (song: Song) => {
     if (!song) return;
