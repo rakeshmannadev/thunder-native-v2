@@ -42,7 +42,7 @@ const FloatingPlayer = ({
 
   return (
     <TouchableOpacity
-      onPress={() => (onExpand ? onExpand() : router.navigate("/player"))}
+      onPress={() => onExpand?.()}
       activeOpacity={0.9}
       style={[
         {

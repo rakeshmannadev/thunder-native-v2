@@ -196,20 +196,7 @@ export default function RootLayout() {
                     headerTransparent: true,
                   }}
                 />
-                {/* <Stack.Screen
-                  name="player"
-                  options={{
-                    headerShown: false,
-                    presentation: "formSheet",
-                    animation: "slide_from_bottom",
-                    gestureDirection: "vertical",
-                    sheetGrabberVisible: true,
-                    sheetInitialDetentIndex: 0,
-                    sheetAllowedDetents: [1],
-                    sheetExpandsWhenScrolledToEdge: true,
-                    sheetElevation: 24,
-                  }}
-                /> */}
+
                 <Stack.Screen
                   name="album/[id]"
                   options={{

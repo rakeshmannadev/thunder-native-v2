@@ -41,31 +41,29 @@ const useMenuActions = () => {
         break;
       case "download_first":
         setAudioPreference({ downloadFirst: true });
-        router.back();
+
         break;
       case "streaming":
         setAudioPreference({ downloadFirst: false });
-        router.back();
+
         break;
       case "start_broadcast":
         if (currentUser && currentRoom) {
           startBroadcast(currentUser?._id, currentRoom?.roomId);
-          router.back();
         }
         break;
       case "stop_broadcast":
         if (currentUser && currentRoom) {
           endBroadcast(currentUser?._id, currentRoom?.roomId);
-          router.back();
         }
         break;
       case "delete_room":
         deleteRoom(currentUser?._id!, currentRoom?._id!, currentRoom?.roomId!);
-        router.back();
+
         break;
       case "leave_room":
         leaveJoinedRoom(currentRoom?._id!);
-        router.back();
+
         break;
       case "end_session":
         router.push("/rooms");
