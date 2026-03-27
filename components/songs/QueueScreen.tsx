@@ -1,8 +1,8 @@
 // components/player/QueueScreen.tsx
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
 import {
+  Dimensions,
   FlatList,
   Image,
   ListRenderItemInfo,
@@ -20,19 +20,24 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
+import { borderRadius, colors, fontSize } from "@/constants/tokens";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Song } from "@/types";
 import { ListMusic, MoreVertical } from "lucide-react-native";
 import GradientBackground from "../GradientBackground";
+import MenuModal, { MenuItem } from "../MenuModal";
 import { Button, ButtonIcon } from "../ui/button";
 import MusicVisualizer from "./MusicVisualizer";
 
-const QUEUE_HEIGHT = 520; // total sheet height
-const PEEK_HEIGHT = 80; // visible when peeked
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const QUEUE_HEIGHT = SCREEN_HEIGHT * 0.7; // 70% of screen height
+const PEEK_HEIGHT = 100;
 
 export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
-  const { queue, currentSong, setCurrentSong } = usePlayerStore();
-  const router = useRouter();
+  const { queue, currentSong, currentIndex, playQueueIndex } = usePlayerStore();
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   // sheet translate (start peeked)
   const translateY = useSharedValue(QUEUE_HEIGHT - PEEK_HEIGHT);
@@ -60,12 +65,12 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
         translateY.value = next;
       })
       .onEnd(() => {
-        const THRESHOLD = (QUEUE_HEIGHT - PEEK_HEIGHT) / 3;
+        const THRESHOLD = (QUEUE_HEIGHT - PEEK_HEIGHT) / 2;
         if (translateY.value < THRESHOLD) {
-          translateY.value = withSpring(0, { stiffness: 160, damping: 20 });
+          translateY.value = withSpring(0, { stiffness: 150, damping: 20 });
         } else {
           translateY.value = withSpring(QUEUE_HEIGHT - PEEK_HEIGHT, {
-            stiffness: 160,
+            stiffness: 150,
             damping: 20,
           });
         }
@@ -78,26 +83,26 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
   }));
 
   // FlatList item renderer
-  const renderItem = ({ item }: ListRenderItemInfo<Song>) => {
-    const isCurrent = currentSong?._id === item._id;
+  const renderItem = ({ item, index }: ListRenderItemInfo<Song>) => {
+    const isCurrent = currentIndex === index;
 
     return (
       <View style={[styles.row, isCurrent && styles.activeRow]}>
         <TouchableOpacity
           onPress={() => {
-            setCurrentSong(item);
-            translateY.value = withSpring(0);
+            playQueueIndex(index);
+            translateY.value = withSpring(QUEUE_HEIGHT - PEEK_HEIGHT);
           }}
-          style={{ flex: 1, paddingHorizontal: 8, borderRadius: 8 }}
-          activeOpacity={0.85}
+          style={{ flex: 1, paddingHorizontal: 8, paddingVertical: 4 }}
+          activeOpacity={0.7}
         >
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
             <Image
               source={{ uri: item.imageUrl }}
-              className="w-10 aspect-square rounded-md"
+              style={styles.songImage}
             />
-            <View style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <Text numberOfLines={1} style={styles.title}>
+            <View style={{ flex: 1 }}>
+              <Text numberOfLines={1} style={[styles.title, isCurrent && { color: colors.primary }]}>
                 {item.title}
               </Text>
               <Text numberOfLines={1} style={styles.subtitle}>
@@ -108,52 +113,24 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
         </TouchableOpacity>
 
         {/* Visualizer for currently playing */}
-        <View style={{ marginLeft: 12, marginRight: 8 }}>
+        <View style={{ paddingHorizontal: 8 }}>
           {isCurrent ? <MusicVisualizer playing={true} /> : null}
         </View>
 
-        {/* Gluestack Menu Trigger wrapped inside Gesture.Native to avoid gesture conflicts */}
-        <GestureDetector gesture={Gesture.Native()}>
-          <Button
-            variant="link"
-            size="lg"
-            onPress={() =>
-              router.push({
-                pathname: "/menu",
-                params: {
-                  items: JSON.stringify([
-                    {
-                      key: "go_to_album",
-                      label: "Go to album",
-                      icon: "album",
-                      data: item.albumId,
-                    },
-                    {
-                      key: "go_to_artist",
-                      label: "Go to artist",
-                      icon: "artist",
-                      data: item.artists.primary[0]._id,
-                    },
-                    {
-                      key: "save_to_playlist",
-                      label: "Save to playlist",
-                      icon: "playlist",
-                      data: item._id,
-                    },
-                    {
-                      key: "download",
-                      label: "Download",
-                      icon: "download",
-                      data: item.audioUrl,
-                    },
-                  ]),
-                },
-              })
-            }
-          >
-            <ButtonIcon as={MoreVertical} />
-          </Button>
-        </GestureDetector>
+        {/* Menu trigger */}
+        <TouchableOpacity
+          style={{ padding: 8 }}
+          onPress={() => {
+            setMenuItems([
+              { key: "go_to_album", label: "Go to album", icon: "album", data: item.albumId },
+              { key: "go_to_artist", label: "Go to artist", icon: "artist", data: item.artists.primary[0].artistId },
+              { key: "save_to_playlist", label: "Save to playlist", icon: "playlist", data: item._id },
+            ]);
+            setMenuVisible(true);
+          }}
+        >
+          <MoreVertical size={20} color={colors.textMuted} />
+        </TouchableOpacity>
       </View>
     );
   };
@@ -164,54 +141,58 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
   };
 
   return (
-    // GestureHandlerRootView can be at app root; wrapping here is safe
-
-    <GestureDetector gesture={panGesture}>
-      <Animated.View
-        pointerEvents="box-none"
-        style={[
-          styles.sheet,
-          animatedStyle,
-          // allow menu to overflow the rounded corners
-          { overflow: "visible", zIndex: 50 },
-        ]}
-      >
-        {/* gradient background */}
-        <LinearGradient
-          // colors={getGradientColors(imageColors)}
-          colors={["#2C5364", "#203A43", "#0F2027"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.gradient}
+    <>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View
+          pointerEvents="auto"
+          style={[
+            styles.sheet,
+            animatedStyle,
+            { zIndex: 100 },
+          ]}
         >
-          <GradientBackground imageUrl={imageUrl} />
-          {/* handle + title */}
-          <View style={styles.handleContainer}>
-            <View style={styles.handle} />
-            <View className="w-full flex flex-row gap-2 items-center justify-center">
-              <ListMusic size={16} color={"#fff"} />
-              <Text style={styles.sheetTitle}>Queue</Text>
+          {/* gradient background */}
+          <LinearGradient
+            colors={["rgba(44, 83, 100, 0.95)", "rgba(32, 58, 67, 0.95)", "rgba(15, 32, 39, 0.95)"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.gradient}
+          >
+            {/* handle + title */}
+            <View style={styles.handleContainer}>
+              <View style={styles.handle} />
+              <View style={styles.header}>
+                <ListMusic size={20} color={colors.primary} />
+                <Text style={styles.sheetTitle}>Next Up</Text>
+              </View>
             </View>
-          </View>
 
-          {/* list */}
-          <View style={styles.listContainer}>
-            <GestureDetector gesture={nativeScrollGesture}>
-              <FlatList
-                ref={listRef}
-                data={queue}
-                keyExtractor={(_, idx) => String(idx)}
-                renderItem={renderItem}
-                showsVerticalScrollIndicator={false}
-                onScroll={onScroll}
-                scrollEventThrottle={16}
-                contentContainerStyle={{ paddingBottom: 80 }}
-              />
-            </GestureDetector>
-          </View>
-        </LinearGradient>
-      </Animated.View>
-    </GestureDetector>
+            {/* list */}
+            <View style={styles.listContainer}>
+              <GestureDetector gesture={nativeScrollGesture}>
+                <FlatList
+                  ref={listRef}
+                  data={queue}
+                  keyExtractor={(item, index) => `${item._id}-${index}`}
+                  renderItem={renderItem}
+                  showsVerticalScrollIndicator={false}
+                  onScroll={onScroll}
+                  scrollEventThrottle={16}
+                  contentContainerStyle={{ paddingBottom: 40 }}
+                />
+              </GestureDetector>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </GestureDetector>
+
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+        title="Song Options"
+      />
+    </>
   );
 }
 
@@ -222,52 +203,64 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     height: QUEUE_HEIGHT,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: 'transparent',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    overflow: "hidden",
   },
   gradient: {
     flex: 1,
-    padding: 16,
+    paddingTop: 12,
+    paddingHorizontal: 16,
   },
   handleContainer: {
     alignItems: "center",
-    marginBottom: 8,
+    paddingBottom: 16,
   },
   handle: {
-    width: 56,
-    height: 6,
-    borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    marginBottom: 8,
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    marginBottom: 12,
+  },
+  header: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
   },
   sheetTitle: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: fontSize.sm,
     fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   listContainer: {
     flex: 1,
-    marginTop: 8,
   },
   row: {
-    paddingVertical: 12,
-    // borderBottomWidth: StyleSheet.hairlineWidth,
-    // borderColor: "rgba(255,255,255,0.08)",
     flexDirection: "row",
     alignItems: "center",
+    marginVertical: 4,
+    borderRadius: 12,
   },
   activeRow: {
-    backgroundColor: "rgba(255,255,255,0.03)",
+    backgroundColor: "rgba(34, 197, 94, 0.1)",
+  },
+  songImage: {
+    width: 48,
+    height: 48,
     borderRadius: 8,
   },
   title: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: fontSize.sm,
     fontWeight: "600",
   },
   subtitle: {
-    color: "#ddd",
-    fontSize: 13,
-    marginTop: 4,
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+    marginTop: 2,
   },
 });

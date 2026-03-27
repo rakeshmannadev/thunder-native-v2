@@ -7,8 +7,13 @@ import { SongRequest, TopResult } from "@/types";
 import { router } from "expo-router";
 import { ChevronRight, MonitorUpIcon } from "lucide-react-native";
 import React from "react";
-import { Image, TouchableOpacity, useColorScheme, View } from "react-native";
-import { ThemedText } from "../ThemedText";
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
 
 const TopResultCard = ({
@@ -69,16 +74,33 @@ const TopResultCard = ({
           {isLoading ? (
             <SkeletonText className="w-20 h-4" />
           ) : (
-            <ThemedText numberOfLines={1} type="subtitle">
+            <Text
+              numberOfLines={1}
+              style={{
+                fontSize: 14,
+                color: colors.text,
+                letterSpacing: 0.5,
+                fontWeight: 700,
+                maxWidth: "85%",
+              }}
+            >
               {result.title}
-            </ThemedText>
+            </Text>
           )}
           {isLoading ? (
             <SkeletonText className="w-16 h-4" />
           ) : (
-            <ThemedText numberOfLines={1} type="default" className=" max-w-48">
+            <Text
+              numberOfLines={1}
+              style={{
+                fontSize: 12,
+                color: colors.textMuted,
+                letterSpacing: 0.5,
+                fontWeight: 500,
+              }}
+            >
               {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
-            </ThemedText>
+            </Text>
           )}
         </View>
       </View>

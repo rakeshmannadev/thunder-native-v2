@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/ThemedText";
+import MenuModal, { MenuItem } from "@/components/MenuModal";
 import { Colors } from "@/constants/Colors";
 import {
   borderRadius,
@@ -9,9 +10,8 @@ import {
 import usePlayerStore from "@/store/usePlayerStore";
 import { defaultStyles } from "@/styles";
 import { FontAwesome } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -25,12 +25,21 @@ import {
 } from "react-native-safe-area-context";
 
 const index = () => {
-  const router = useRouter();
   const colorScheme = useColorScheme();
   const { top } = useSafeAreaInsets();
 
   const { audioPreference } = usePlayerStore();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuTitle, setMenuTitle] = useState("Options");
+
+  const openMenu = (items: MenuItem[], title: string) => {
+    setMenuItems(items);
+    setMenuTitle(title);
+    setMenuVisible(true);
+  };
 
   return (
     <SafeAreaView
@@ -43,30 +52,18 @@ const index = () => {
     >
       <ScrollView style={[styles.scrollContent, { paddingTop: top + 60 }]}>
         <View style={styles.scrollContent}>
-          {/* Appreance section */}
+          {/* Appearance section */}
           <View style={styles.sectionContainer}>
             <ThemedText type="subtitle">Appreance</ThemedText>
             <TouchableOpacity
               onPress={() =>
-                router.push({
-                  pathname: "/menu",
-                  params: {
-                    items: JSON.stringify([
-                      {
-                        key: "light",
-                        label: "Light",
-
-                        icon: "sun",
-                      },
-                      {
-                        key: "dark",
-                        label: "Dark",
-
-                        icon: "moon",
-                      },
-                    ]),
-                  },
-                })
+                openMenu(
+                  [
+                    { key: "light", label: "Light", icon: "sun" },
+                    { key: "dark", label: "Dark", icon: "moon" },
+                  ],
+                  "Appearance"
+                )
               }
               className="w-full flex flex-row justify-between items-center p-4"
               style={{
@@ -105,23 +102,13 @@ const index = () => {
                 borderRadius: borderRadius.md,
               }}
               onPress={() =>
-                router.push({
-                  pathname: "/menu",
-                  params: {
-                    items: JSON.stringify([
-                      {
-                        key: "download_first",
-                        label: "Download first",
-                        icon: "download",
-                      },
-                      {
-                        key: "streaming",
-                        label: "Streaming",
-                        icon: "mug",
-                      },
-                    ]),
-                  },
-                })
+                openMenu(
+                  [
+                    { key: "download_first", label: "Download first", icon: "download" },
+                    { key: "streaming", label: "Streaming", icon: "mug" },
+                  ],
+                  "Audio Preference"
+                )
               }
               className="w-full flex flex-row justify-between items-center rounded-3xl p-4"
             >
@@ -149,25 +136,14 @@ const index = () => {
                 borderRadius: borderRadius.md,
               }}
               onPress={() =>
-                router.push({
-                  pathname: "/menu",
-                  params: {
-                    items: JSON.stringify([
-                      {
-                        key: "low",
-                        label: "Low",
-                      },
-                      {
-                        key: "medium",
-                        label: "Medium",
-                      },
-                      {
-                        key: "high",
-                        label: "High",
-                      },
-                    ]),
-                  },
-                })
+                openMenu(
+                  [
+                    { key: "low", label: "Low" },
+                    { key: "medium", label: "Medium" },
+                    { key: "high", label: "High" },
+                  ],
+                  "Audio Quality"
+                )
               }
               className="w-full flex flex-row justify-between items-center rounded-3xl p-4"
             >
@@ -190,6 +166,13 @@ const index = () => {
           </View>
         </View>
       </ScrollView>
+
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+        title={menuTitle}
+      />
     </SafeAreaView>
   );
 };

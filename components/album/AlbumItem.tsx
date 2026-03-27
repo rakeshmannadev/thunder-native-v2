@@ -4,9 +4,8 @@ import { formatDuration } from "@/helpers";
 import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Artist, Song } from "@/types";
-import { useRouter } from "expo-router";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
   Image,
   Pressable,
@@ -14,19 +13,65 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import MenuModal, { MenuItem } from "../MenuModal";
 import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
 
 const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
-  const router = useRouter();
-
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
   const { status } = usePlayer();
   const { currentSong, setCurrentSong } = usePlayerStore();
   const isActive = currentSong?.audioUrl == song.audioUrl;
+
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const menuItems: MenuItem[] = [
+    {
+      key: "play_next",
+      label: "Play next",
+      icon: "play_next",
+      data: song,
+    },
+    {
+      key: "add_to_queue",
+      label: "Add to Queue",
+      icon: "queue",
+      data: [song],
+    },
+    {
+      key: "add_to_playlist",
+      label: "Add to Playlist",
+      icon: "playlist",
+      data: song,
+    },
+    {
+      key: "go_to_artist",
+      label: "Go to Artist",
+      icon: "artist",
+      data: song.artists.primary[0],
+    },
+    {
+      key: "go_to_album",
+      label: "Go to Album",
+      icon: "album",
+      data: song.albumId,
+    },
+    {
+      key: "download",
+      label: "Download",
+      icon: "download",
+      data: song,
+    },
+    {
+      key: "share",
+      label: "Share",
+      icon: "share",
+      data: song,
+    },
+  ];
 
   return (
     <TouchableOpacity
@@ -100,61 +145,18 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
         </View>
       </View>
       <Pressable
-        onPressIn={() =>
-          router.push({
-            pathname: "/menu",
-            params: {
-              items: JSON.stringify([
-                {
-                  key: "play_next",
-                  label: "Play next",
-                  icon: "play_next",
-                  data: song,
-                },
-                {
-                  key: "add_to_queue",
-                  label: "Add to Queue",
-                  icon: "queue",
-                  data: song,
-                },
-                {
-                  key: "add_to_playlist",
-                  label: "Add to Playlist",
-                  icon: "playlist",
-                  data: song,
-                },
-                {
-                  key: "go_to_artist",
-                  label: "Go to Artist",
-                  icon: "artist",
-                  data: song.artists.primary[0],
-                },
-                {
-                  key: "go_to_album",
-                  label: "Go to Album",
-                  icon: "album",
-                  data: song.albumId,
-                },
-                {
-                  key: "download",
-                  label: "Download",
-                  icon: "download",
-                  data: song,
-                },
-                {
-                  key: "share",
-                  label: "Share",
-                  icon: "share",
-                  data: song,
-                },
-              ]),
-            },
-          })
-        }
+        onPressIn={() => setMenuVisible(true)}
         className="w-fit p-2 rounded-full"
       >
         <EllipsisVerticalIcon size={20} color={colors.icon} />
       </Pressable>
+
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+        title="Song Options"
+      />
     </TouchableOpacity>
   );
 };

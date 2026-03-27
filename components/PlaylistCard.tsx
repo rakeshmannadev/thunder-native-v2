@@ -1,17 +1,23 @@
-import { Image, View } from "react-native";
+import { Colors } from "@/constants/Colors";
+import { Playlist } from "@/types";
+import { Link } from "expo-router";
 import React from "react";
+import { Image, Text, useColorScheme, View } from "react-native";
+import NoDataPlaceholder from "./NoDataPlaceholder";
 import { Card } from "./ui/card";
 import { Heading } from "./ui/heading";
 import { VStack } from "./ui/vstack";
-import { ThemedText } from "./ThemedText";
-import { Link } from "expo-router";
-import { Playlist } from "@/types";
 
 type SectionGridProps = {
   playlist: Playlist;
   isLoading: boolean;
 };
 const PlaylistCard = ({ playlist, isLoading }: SectionGridProps) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
+  console.log("[playlist: ", playlist);
+  if (!playlist) return <NoDataPlaceholder />;
   return (
     <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
       <Link
@@ -34,12 +40,16 @@ const PlaylistCard = ({ playlist, isLoading }: SectionGridProps) => {
             <Heading>{playlist.playlistName}</Heading>
           </View>
           <View className="w-full h-6">
-            <ThemedText
-              type="subtitle"
-              className="text-sm font-normal mb-2 text-typography-700"
+            <Text
+              style={{
+                fontSize: 14,
+                color: colors.text,
+                letterSpacing: 0.5,
+                fontWeight: 700,
+              }}
             >
               {playlist.artist.map((artist) => artist.name).join(", ")}
-            </ThemedText>
+            </Text>
           </View>
         </VStack>
       </Link>

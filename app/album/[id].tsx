@@ -5,7 +5,7 @@ import {
   PlayIcon,
   Shuffle,
 } from "lucide-react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -21,8 +21,9 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { ThemedText } from "@/components/ThemedText";
 import AlbumItem from "@/components/album/AlbumItem";
+import MenuModal from "@/components/MenuModal";
+import { ThemedText } from "@/components/ThemedText";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
@@ -81,6 +82,8 @@ const AlbumScreen = () => {
     );
   };
 
+  const [menuVisible, setMenuVisible] = useState(false);
+
   if (isLoading) {
     return (
       <View
@@ -114,37 +117,7 @@ const AlbumScreen = () => {
               justifyContent: "center",
             }}
           >
-            <Pressable
-              onPressIn={() =>
-                router.push({
-                  pathname: "/menu",
-                  params: {
-                    items: JSON.stringify([
-                      {
-                        key: "share",
-                        label: "Share",
-
-                        icon: "share",
-                      },
-                      {
-                        key: "go_to_artist",
-                        label: "Go to artist",
-
-                        icon: "artist",
-                        data: currentAlbum.artists.primary[0].id,
-                      },
-                      {
-                        key: "save_to_playlist",
-                        label: "Save to playlist",
-
-                        icon: "playlist",
-                        data: currentAlbum.albumId,
-                      },
-                    ]),
-                  },
-                })
-              }
-            >
+            <Pressable onPressIn={() => setMenuVisible(true)}>
               <MoreVerticalIcon size={22} color={colors.icon} />
             </Pressable>
           </View>
@@ -258,7 +231,7 @@ const AlbumScreen = () => {
           {/* --- Tracklist Section --- */}
           <FlatList
             data={currentAlbum?.songs ?? []}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item) => item?._id}
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
             renderItem={({ item: song }) => (
@@ -267,6 +240,27 @@ const AlbumScreen = () => {
           />
         </View>
       </ScrollView>
+
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={[
+          { key: "share", label: "Share", icon: "share" },
+          {
+            key: "go_to_artist",
+            label: "Go to artist",
+            icon: "artist",
+            data: currentAlbum.artists.primary[0].id,
+          },
+          {
+            key: "save_to_playlist",
+            label: "Save to playlist",
+            icon: "playlist",
+            data: currentAlbum.albumId,
+          },
+        ]}
+        title="Album Options"
+      />
     </SafeAreaView>
   );
 };

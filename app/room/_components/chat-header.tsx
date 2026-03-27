@@ -5,7 +5,7 @@ import useUserStore from "@/store/useUserStore";
 import { Room } from "@/types";
 import { useRouter } from "expo-router";
 import { ChevronLeft, MoreHorizontal } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
   Image,
   Text,
@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import MenuModal, { MenuItem } from "@/components/MenuModal";
 
 const ChatHeader = ({ room }: { room: Room }) => {
   const colorScheme = useColorScheme();
@@ -23,7 +24,54 @@ const ChatHeader = ({ room }: { room: Room }) => {
 
   const { currentUser } = useUserStore();
   const { isBroadcasting } = useSocketStore();
+
+  const [menuVisible, setMenuVisible] = useState(false);
+
   if (!room) return null;
+
+  const adminMenuItems: MenuItem[] = [
+    {
+      key: isBroadcasting ? "stop_broadcast" : "start_broadcast",
+      label: isBroadcasting ? "Stop broadcast" : "Start broadcast",
+      icon: "broadcast",
+    },
+    {
+      key: "song_requests",
+      label: "Song requests",
+      icon: "requests",
+    },
+    {
+      key: "delete_room",
+      label: "Delete room",
+      icon: "delete",
+      destructive: true,
+    },
+  ];
+
+  const memberMenuItems: MenuItem[] = [
+    {
+      key: "request_song",
+      label: "Request a song",
+      icon: "requests",
+      submenu: true,
+    },
+    {
+      key: "end_session",
+      label: "End session",
+      icon: "disconnect",
+    },
+    {
+      key: "leave_room",
+      label: "Leave room",
+      icon: "logout",
+      destructive: true,
+    },
+  ];
+
+  const menuItems = currentUser && currentUser._id === room.admin
+    ? adminMenuItems
+    : memberMenuItems;
+
   return (
     <View
       style={{
@@ -70,60 +118,17 @@ const ChatHeader = ({ room }: { room: Room }) => {
       <TouchableOpacity
         className=" rounded-full p-2"
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        onPress={() =>
-          router.push({
-            pathname: "/menu",
-            params: {
-              items: JSON.stringify(
-                currentUser && currentUser._id === room.admin
-                  ? [
-                      {
-                        key: isBroadcasting
-                          ? "stop_broadcast"
-                          : "start_broadcast",
-                        label: isBroadcasting
-                          ? "Stop broadcast"
-                          : "Start broadcast",
-                        icon: "broadcast",
-                      },
-                      {
-                        key: "song_requests",
-                        label: "Song requests",
-                        icon: "requests",
-                      },
-                      {
-                        key: "delete_room",
-                        label: "Delete room",
-                        icon: "delete",
-                        destructive: true,
-                      },
-                    ]
-                  : [
-                      {
-                        key: "request_song",
-                        label: "Request a song",
-                        icon: "requests",
-                        submenu: true,
-                      },
-                      {
-                        key: "end_session",
-                        label: "End session",
-                        icon: "disconnect",
-                      },
-                      {
-                        key: "leave_room",
-                        label: "Leave room",
-                        icon: "logout",
-                        destructive: true,
-                      },
-                    ]
-              ),
-            },
-          })
-        }
+        onPress={() => setMenuVisible(true)}
       >
         <MoreHorizontal size={20} color={colors.text} />
       </TouchableOpacity>
+
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+        title="Room Options"
+      />
     </View>
   );
 };

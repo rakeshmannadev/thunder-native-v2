@@ -1,4 +1,3 @@
-import { ThemedText } from "@/components/ThemedText";
 import AlbumResultCard from "@/components/search/AlbumResultCard";
 import ArtistResultCard from "@/components/search/ArtistResultCard";
 import DefaultScreen from "@/components/search/DefaultScreen";
@@ -17,6 +16,7 @@ import {
   ListRenderItem,
   ScrollView,
   StyleSheet,
+  Text,
   useColorScheme,
   View,
 } from "react-native";
@@ -105,13 +105,18 @@ const index = () => {
     const CardComponent = item.component;
     return (
       <View style={[styles.sectionContainer, { marginTop: top + 40 }]}>
-        <ThemedText
-          type="subtitle"
+        <Text
           numberOfLines={1}
-          style={{ marginBottom: 8 }}
+          style={{
+            fontSize: 16,
+            color: colors.textMuted,
+            letterSpacing: 0.5,
+            fontWeight: 700,
+            marginBottom: 8,
+          }}
         >
           {item.title}
-        </ThemedText>
+        </Text>
 
         <FlatList
           data={item.data}

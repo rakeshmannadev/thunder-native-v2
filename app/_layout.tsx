@@ -5,15 +5,15 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { setAudioModeAsync } from "expo-audio";
 import { useFonts } from "expo-font";
 import { Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { setAudioModeAsync } from "expo-audio";
 import "react-native-reanimated";
 
 import SearchBar from "@/components/search/SearchBar";
-import FloatingPlayer from "@/components/songs/FloatingPlayer";
+import ExpandablePlayer from "@/components/songs/ExpandablePlayer";
 import { Colors } from "@/constants/Colors";
 import { getAudioPreference } from "@/helpers";
 import PlayerProvider from "@/providers/PlayerProvider";
@@ -51,7 +51,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
-  const { setAudioPreference } = usePlayerStore();
+  const { setAudioPreference, currentSong } = usePlayerStore();
 
   const { bottom } = useSafeAreaInsets();
   const bottomOffSet = bottom + 50;
@@ -196,7 +196,7 @@ export default function RootLayout() {
                     headerTransparent: true,
                   }}
                 />
-                <Stack.Screen
+                {/* <Stack.Screen
                   name="player"
                   options={{
                     headerShown: false,
@@ -209,7 +209,7 @@ export default function RootLayout() {
                     sheetExpandsWhenScrolledToEdge: true,
                     sheetElevation: 24,
                   }}
-                />
+                /> */}
                 <Stack.Screen
                   name="album/[id]"
                   options={{
@@ -250,66 +250,18 @@ export default function RootLayout() {
                     headerTransparent: true,
                   }}
                 />
-                <Stack.Screen
-                  name="menu"
-                  options={{
-                    headerShown: false,
-                    presentation: "formSheet",
-                    animation: "slide_from_bottom",
-                    gestureDirection: "vertical",
-                    sheetGrabberVisible: true,
-                    sheetInitialDetentIndex: 1,
-                    sheetAllowedDetents: [0.25, 0.5, 1],
-                    sheetExpandsWhenScrolledToEdge: true,
-                    sheetCornerRadius: 16,
-                    sheetElevation: 24,
-                  }}
-                />
-                <Stack.Screen
-                  name="modal"
-                  options={{
-                    headerShown: false,
-                    presentation: "formSheet",
-                    animation: "slide_from_bottom",
-                    gestureDirection: "vertical",
-                    sheetGrabberVisible: true,
-                    sheetInitialDetentIndex: 1,
-                    sheetAllowedDetents: [0.5, 1],
-                    sheetExpandsWhenScrolledToEdge: true,
-                  }}
-                />
-
                 <Stack.Screen name="+not-found" />
               </Stack>
-              <FloatingPlayer
-                style={{
-                  position: "absolute",
-                  left: 8,
-                  right: 8,
-                  bottom: withoutTabBarScreens.includes(currentSegment)
-                    ? 16
-                    : bottomOffSet,
-                  borderRadius: 0,
-                  pointerEvents: "box-none",
-                  display: hideFloatingPlayerScreens.includes(currentSegment)
-                    ? "none"
-                    : "flex",
-                  shadowColor: "#000",
-                  shadowOffset: {
-                    width: 0,
-                    height: 2,
-                  },
-                  animationName: "fadeInUp",
-                  animationDuration: "500ms",
-                  animationDirection: "normal",
-                  animationPlayState: "running",
-                  animationFillMode: "forwards",
-                  shadowOpacity: 0.25,
-                  shadowRadius: 3.84,
-                  overflow: "hidden",
-                  zIndex: 10,
-                }}
-              />
+              {currentSong &&
+                !hideFloatingPlayerScreens.includes(currentSegment) && (
+                  <ExpandablePlayer
+                    bottomOffset={
+                      withoutTabBarScreens.includes(currentSegment)
+                        ? 16
+                        : bottomOffSet
+                    }
+                  />
+                )}
             </GestureHandlerRootView>
           </PlayerProvider>
         </ThemeProvider>

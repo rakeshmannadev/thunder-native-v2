@@ -17,6 +17,7 @@ interface PlayerStore {
   initializeQueue: (songs: Song[], startIndex?: number) => void;
   playAlbum: (songs: Song[], startIndex: number) => void;
   setCurrentSong: (song: Song | null) => void;
+  playQueueIndex: (index: number) => void;
   togglePlay: () => void;
   playNext: () => void;
   playPrevious: () => void;
@@ -26,6 +27,7 @@ interface PlayerStore {
   setLoop: (mode: LoopMode) => void;
   addToQueue: (songs: Song[]) => void;
   insertToQueue: (song: Song, position: number) => void;
+  stopPlayer: () => void;
   setAudioPreference: (pref: Partial<AudioPreferenceType>) => void;
 }
 
@@ -109,6 +111,16 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
       isPlaying: true,
       currentIndex: songIndex !== -1 ? songIndex : get().currentIndex,
     });
+  },
+  playQueueIndex: (index: number) => {
+    const { queue } = get();
+    if (index >= 0 && index < queue.length) {
+      set({
+        currentSong: queue[index],
+        currentIndex: index,
+        isPlaying: true,
+      });
+    }
   },
   togglePlay: () => {
     const willStartPlaying = !get().isPlaying;
@@ -221,6 +233,13 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
   setLoop: (mode) => {
     set({ loop: mode });
+  },
+  stopPlayer: () => {
+    set({
+      currentSong: null,
+      isPlaying: false,
+      currentIndex: -1,
+    });
   },
   setAudioPreference: async (pref) => {
     const currentPref = get().audioPreference;

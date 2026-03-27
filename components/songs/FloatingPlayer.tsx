@@ -2,6 +2,7 @@ import React from "react";
 import {
   Image,
   StyleSheet,
+  Text,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -16,9 +17,11 @@ import { useAudioPlayerStatus } from "expo-audio";
 import { useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
 import { PlayPauseButton, SkipToNextButton } from "./PlayerControls";
-import { MovingText } from "./useMovingText";
 
-const FloatingPlayer = ({ style }: ViewProps) => {
+const FloatingPlayer = ({
+  style,
+  onExpand,
+}: ViewProps & { onExpand?: () => void }) => {
   const colorScheme = useColorScheme();
 
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
@@ -39,16 +42,15 @@ const FloatingPlayer = ({ style }: ViewProps) => {
 
   return (
     <TouchableOpacity
-      onPress={() => router.navigate("/player")}
+      onPress={() => (onExpand ? onExpand() : router.navigate("/player"))}
       activeOpacity={0.9}
       style={[
-        style,
         {
           backgroundColor: colors.component,
           borderRadius: borderRadius.md,
-          padding: 8,
-          marginInline: 2,
+          overflow: "hidden",
         },
+        style,
       ]}
     >
       {/* <LinearGradient
@@ -62,39 +64,35 @@ const FloatingPlayer = ({ style }: ViewProps) => {
         }}
         colors={["#2C5364", "#203A43", "#0F2027"]}
       > */}
-      <View
-        style={[styles.parentContainer, { backgroundColor: colors.component }]}
-        className="backdrop-blur-lg shadow-2xl"
-      >
+      <View style={[styles.parentContainer, { width: "100%" }]}>
         <View style={styles.trakDetailsContainer}>
           <Image
             source={{ uri: currentSong?.imageUrl ?? unknownTrackImageUri }}
-            className="w-14 aspect-square rounded-md"
+            style={styles.songImage}
           />
-          <View className="flex-1 overflow-hidden ml-2 ">
-            <MovingText
-              text={currentSong.title ?? ""}
-              animationThreshold={25}
-              style={[styles.trackTitle, { color: colors.text }]}
-            />
-            <MovingText
-              text={
-                currentSong?.artists.primary.map((a) => a.name).join(",") ?? ""
-              }
-              animationThreshold={25}
-              style={[styles.trackArtist, { color: colors.textMuted }]}
-            />
-          </View>
-          <View className="flex flex-row items-center gap-5 mr-4 pl-4">
-            <PlayPauseButton iconSize={fontSize.base} />
 
+          <View style={styles.textContainer}>
+            <Text
+              numberOfLines={1}
+              style={[styles.trackTitle, { color: colors.text }]}
+            >
+              {currentSong.title ?? ""}
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={[styles.trackArtist, { color: colors.textMuted }]}
+            >
+              {currentSong?.artists.primary.map((a) => a.name).join(",") ?? ""}
+            </Text>
+          </View>
+          <View style={styles.controlsContainer}>
+            <PlayPauseButton iconSize={fontSize.base} />
             <SkipToNextButton iconSize={fontSize.base} handlePress={playNext} />
           </View>
         </View>
-        {/* Progress bar */}
         <View style={styles.progressContainer}>
           <Animated.View
-            style={{ backgroundColor: colors.accent, flex: progress }}
+            style={{ backgroundColor: colors.primary, flex: progress }}
           />
           <View style={{ flex: 1 - progress }} />
         </View>
@@ -108,37 +106,41 @@ export default FloatingPlayer;
 
 const styles = StyleSheet.create({
   trackTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    paddingLeft: 10,
-    letterSpacing: 0.5,
+    fontSize: 16,
+    fontWeight: "700",
   },
   trackArtist: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "500",
-    paddingLeft: 8,
-    letterSpacing: 0.25,
   },
   progressContainer: {
-    height: 4,
+    height: 3,
     flexDirection: "row",
-    backgroundColor: "rgba(255,255,255,0.15)",
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    overflow: "hidden",
-  },
-  progressFill: {
-    backgroundColor: "#ff4d4d",
+    backgroundColor: "rgba(255,255,255,0.1)",
   },
   trakDetailsContainer: {
-    display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    gap: 10,
+    height: 67, // MINI_PLAYER_HEIGHT - progress_bar
+  },
+  songImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  controlsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   parentContainer: {
-    display: "flex",
     flexDirection: "column",
-    flex: 1,
-    gap: 4,
   },
 });

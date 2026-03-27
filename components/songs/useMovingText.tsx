@@ -56,10 +56,10 @@ export const MovingText = ({
       numberOfLines={1}
       style={[
         style,
-        animatedStyle,
+        shouldAnimate && animatedStyle,
         shouldAnimate && {
-          width: 9999, // preventing the ellipsis from appearing
-          paddingLeft: 16, // avoid the initial character being barely visible
+          width: 9999,
+          paddingLeft: 16,
         },
       ]}
     >

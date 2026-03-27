@@ -23,24 +23,21 @@ const useMenuActions = () => {
         router.push({ pathname: "/album/[id]", params: { id: params } });
         break;
       case "add_to_queue":
+        console.log("params", params);
         if (params && Array.isArray(params)) {
           addToQueue(params);
         }
-        router.back();
         break;
       case "play_next":
         if (params) {
           insertToQueue(params, currentIndex + 1);
         }
-        router.back();
         break;
       case "light":
         Appearance.setColorScheme("light");
-        router.back();
         break;
       case "dark":
         Appearance.setColorScheme("dark");
-        router.back();
         break;
       case "download_first":
         setAudioPreference({ downloadFirst: true });

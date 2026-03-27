@@ -4,6 +4,7 @@ import { PlayerProgressBar } from "@/components/songs/PlayerProgressbar";
 import QueueScreen from "@/components/songs/QueueScreen";
 import { MovingText } from "@/components/songs/useMovingText";
 
+import MenuModal, { MenuItem } from "@/components/MenuModal";
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
@@ -13,7 +14,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ChevronDownIcon, MoreVerticalIcon, Share2 } from "lucide-react-native";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -36,13 +37,44 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const PlayerScreen = () => {
+const PlayerScreen = ({
+  isExpandableMode = false,
+  onCollapse,
+}: {
+  isExpandableMode?: boolean;
+  onCollapse?: () => void;
+}) => {
   const router = useRouter();
 
   const { addToFavorite, favoriteSongs, currentUser } = useUserStore();
   const { currentSong } = usePlayerStore();
 
   const { top } = useSafeAreaInsets();
+
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const menuItems: MenuItem[] = currentSong
+    ? [
+        {
+          key: "go_to_album",
+          label: "Go to album",
+          icon: "album",
+          data: currentSong.albumId,
+        },
+        {
+          key: "go_to_artist",
+          label: "Go to artist",
+          icon: "artist",
+          data: currentSong.artists.primary[0].artistId,
+        },
+        {
+          key: "save_to_playlist",
+          label: "Save to playlist",
+          icon: "playlist",
+          data: currentSong._id,
+        },
+      ]
+    : [];
 
   const handleAddToFavorite = async () => {
     if (!currentSong) return;
@@ -104,166 +136,152 @@ const PlayerScreen = () => {
     );
   }
 
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <LinearGradient
-        style={[
-          StyleSheet.absoluteFillObject,
-          { flex: 1, overflow: "visible" },
-        ]}
-        colors={["#0F2027", "#203A43", "#2C5364"]}
-      >
-        <GradientBackground imageUrl={currentSong?.imageUrl} />
-        <View style={[styles.overlayContainer]}>
-          {/* Close button */}
-          <View style={styles.topBarIconContainer}>
-            <TouchableOpacity activeOpacity={0.7} onPress={() => router.back()}>
-              <ChevronDownIcon size={30} color={"#fff"} />
-            </TouchableOpacity>
+  const content = (
+    <LinearGradient
+      style={[StyleSheet.absoluteFillObject, { flex: 1, overflow: "visible" }]}
+      colors={["#0F2027", "#203A43", "#2C5364"]}
+    >
+      <GradientBackground imageUrl={currentSong?.imageUrl} />
+      <View style={[styles.overlayContainer]}>
+        {/* Close button */}
+        <View style={styles.topBarIconContainer}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() =>
+              isExpandableMode && onCollapse ? onCollapse() : router.back()
+            }
+          >
+            <ChevronDownIcon size={30} color={"#fff"} />
+          </TouchableOpacity>
 
-            <View
-              style={{
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
+          <View
+            style={{
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                setMenuVisible(true);
               }}
             >
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() =>
-                  router.push({
-                    pathname: "/menu",
-                    params: {
-                      items: JSON.stringify([
-                        {
-                          key: "go_to_album",
-                          label: "Go to album",
-                          onPress: () => console.log("Go to album"),
-                          icon: "album",
-                          data: currentSong.albumId,
-                        },
-                        {
-                          key: "go_to_artist",
-                          label: "Go to artist",
-                          onPress: () => null,
-                          icon: "artist",
-                          data: currentSong.artists.primary[0].artistId,
-                        },
-                        {
-                          key: "save_to_playlist",
-                          label: "Save to playlist",
-                          onPress: () => null,
-                          icon: "playlist",
-                          data: currentSong._id,
-                        },
-                      ]),
-                    },
-                  })
-                }
-              >
-                <MoreVerticalIcon size={22} color={"#fff"} />
-              </TouchableOpacity>
-            </View>
+              <MoreVerticalIcon size={22} color={"#fff"} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={{ flex: 1, marginTop: top + 40 }}>
+          <View style={styles.artworkImageContainer}>
+            <Animated.Image
+              source={{
+                uri: currentSong.imageUrl,
+              }}
+              resizeMode="cover"
+              style={[styles.artworkImage, animatedArtworkStyle]}
+            />
           </View>
 
-          <View style={{ flex: 1, marginTop: top + 70 }}>
-            <View style={styles.artworkImageContainer}>
-              <Animated.Image
-                source={{
-                  uri: currentSong.imageUrl,
-                }}
-                resizeMode="cover"
-                style={[styles.artworkImage, animatedArtworkStyle]}
-              />
-            </View>
-
-            <View style={{ flex: 1 }}>
-              <View style={{ marginTop: 20 }}>
-                <View style={{ height: 60 }}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    {/* Track title */}
-                    <View style={styles.trackTitleContainer}>
-                      <MovingText
-                        text={currentSong.title ?? ""}
-                        animationThreshold={30}
-                        style={styles.trackTitleText}
-                      />
-                    </View>
-
-                    {/* Favorite button icon */}
-                    {currentUser && (
-                      <FontAwesome
-                        name={
-                          favoriteSongs.find(
-                            (song) => song._id === currentSong._id
-                          )
-                            ? "heart"
-                            : "heart-o"
-                        }
-                        size={20}
-                        color={
-                          favoriteSongs.find(
-                            (song) => song._id === currentSong._id
-                          )
-                            ? colors.primary
-                            : colors.icon
-                        }
-                        style={{ marginHorizontal: 14 }}
-                        onPress={handleAddToFavorite}
-                      />
-                    )}
-                    {/* Share button icon*/}
-                    <Pressable
-                      onPress={handleShare}
-                      style={({ pressed }) => [
-                        {
-                          backgroundColor: pressed
-                            ? "rgb(210, 230, 255)"
-                            : "white",
-                        },
-                        styles.iconContainer,
-                      ]}
-                    >
-                      <Share2 size={20} color={colors.icon} />
-                    </Pressable>
+          <View style={{ flex: 1 }}>
+            <View style={{ marginTop: 20 }}>
+              <View style={{ height: 60 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  {/* Track title */}
+                  <View style={styles.trackTitleContainer}>
+                    <MovingText
+                      text={currentSong.title ?? ""}
+                      animationThreshold={30}
+                      style={styles.trackTitleText}
+                    />
                   </View>
 
-                  {/* Track artist */}
-                  {currentSong.artists && (
-                    <Text
-                      numberOfLines={1}
-                      style={[styles.trackArtistText, { marginTop: 6 }]}
-                    >
-                      {currentSong.artists.primary
-                        .map((artist) => artist.name)
-                        .join(",")}
-                    </Text>
+                  {/* Favorite button icon */}
+                  {currentUser && (
+                    <FontAwesome
+                      name={
+                        favoriteSongs.find(
+                          (song) => song._id === currentSong._id
+                        )
+                          ? "heart"
+                          : "heart-o"
+                      }
+                      size={20}
+                      color={
+                        favoriteSongs.find(
+                          (song) => song._id === currentSong._id
+                        )
+                          ? colors.primary
+                          : colors.icon
+                      }
+                      style={{ marginHorizontal: 14 }}
+                      onPress={handleAddToFavorite}
+                    />
                   )}
+                  {/* Share button icon*/}
+                  <Pressable
+                    onPress={handleShare}
+                    style={({ pressed }) => [
+                      {
+                        backgroundColor: pressed
+                          ? "rgb(210, 230, 255)"
+                          : "white",
+                      },
+                      styles.iconContainer,
+                    ]}
+                  >
+                    <Share2 size={20} color={colors.icon} />
+                  </Pressable>
                 </View>
 
-                <PlayerProgressBar style={{ marginTop: 32 }} />
-
-                <PlayerControls style={{ marginTop: 40 }} />
+                {/* Track artist */}
+                {currentSong.artists && (
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.trackArtistText, { marginTop: 6 }]}
+                  >
+                    {currentSong.artists.primary
+                      .map((artist) => artist.name)
+                      .join(",")}
+                  </Text>
+                )}
               </View>
 
-              {/* <PlayerVolumeBar style={{ marginTop: "auto", marginBottom: 30 }} />
+              <PlayerProgressBar style={{ marginTop: 32 }} />
+
+              <PlayerControls style={{ marginTop: 40 }} />
+            </View>
+
+            {/* <PlayerVolumeBar style={{ marginTop: "auto", marginBottom: 30 }} />
 
             <View style={utilsStyles.centeredRow}>
               <PlayerRepeatToggle size={30} style={{ marginBottom: 6 }} />
             </View> */}
-            </View>
           </View>
         </View>
-        <QueueScreen imageUrl={currentSong.imageUrl} />
-      </LinearGradient>
-    </SafeAreaView>
+      </View>
+      <QueueScreen imageUrl={currentSong.imageUrl} />
+
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+        title="Song Options"
+      />
+    </LinearGradient>
   );
+
+  if (isExpandableMode) {
+    return <View style={{ flex: 1 }}>{content}</View>;
+  }
+
+  return <SafeAreaView style={{ flex: 1 }}>{content}</SafeAreaView>;
 };
 
 const DismissPlayerSymbol = () => {
@@ -298,7 +316,6 @@ const styles = StyleSheet.create({
   overlayContainer: {
     ...defaultStyles.container,
     paddingHorizontal: screenPadding.horizontal,
-    // backgroundColor: "rgba(0,0,0,0.5)",
   },
   topBarIconContainer: {
     flexDirection: "row",
@@ -350,3 +367,4 @@ const styles = StyleSheet.create({
 });
 
 export default PlayerScreen;
+

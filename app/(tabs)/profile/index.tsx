@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/ThemedText";
+import MenuModal, { MenuItem } from "@/components/MenuModal";
 import ProfileCard from "@/components/profile/ProfileCard";
 import { VStack } from "@/components/ui/vstack";
 import { Colors } from "@/constants/Colors";
@@ -12,7 +13,7 @@ import {
   PaletteIcon,
   SettingsIcon,
 } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import { TouchableOpacity, useColorScheme, View } from "react-native";
 import {
   SafeAreaView,
@@ -28,6 +29,8 @@ const index = () => {
   const router = useRouter();
   const { currentUser } = useUserStore();
   const { logout } = useAuthStore();
+
+  const [menuVisible, setMenuVisible] = useState(false);
 
   return (
     <SafeAreaView style={{ backgroundColor: colors.background, flex: 1 }}>
@@ -68,25 +71,7 @@ const index = () => {
               padding: 16,
               borderRadius: borderRadius.md,
             }}
-            onPress={() =>
-              router.push({
-                pathname: "/menu",
-                params: {
-                  items: JSON.stringify([
-                    {
-                      key: "light",
-                      label: "Light theme",
-                      icon: "sun",
-                    },
-                    {
-                      key: "dark",
-                      label: "Dark theme",
-                      icon: "moon",
-                    },
-                  ]),
-                },
-              })
-            }
+            onPress={() => setMenuVisible(true)}
             className="w-full flex flex-row justify-between "
           >
             <View className="flex flex-row gap-4">
@@ -136,6 +121,16 @@ const index = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={[
+          { key: "light", label: "Light theme", icon: "sun" },
+          { key: "dark", label: "Dark theme", icon: "moon" },
+        ]}
+        title="Change Theme"
+      />
     </SafeAreaView>
   );
 };
