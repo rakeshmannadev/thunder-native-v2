@@ -1,4 +1,4 @@
-import useToastMessage from "@/hooks/useToastMessage";
+import { showToast } from "@/hooks/useToastMessage";
 import { axiosInstance } from "@/lib/axios";
 import { Requests, Room, User } from "@/types";
 import { create } from "zustand";
@@ -33,7 +33,6 @@ const useRoomStore = create<RoomStore>((set) => ({
   isLoading: false,
   fetchingRoom: false,
   createRoom: async (roomName, visability, imageFile) => {
-    const { showToast } = useToastMessage();
     set({ isLoading: true });
 
     try {
@@ -113,7 +112,6 @@ const useRoomStore = create<RoomStore>((set) => ({
     }
   },
   joinPublicRoom: async (roomId) => {
-    const { showToast } = useToastMessage();
     try {
       const response = await axiosInstance.put(
         `/user/join-public-room/${roomId}`

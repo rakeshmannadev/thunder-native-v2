@@ -1,8 +1,15 @@
 import PlayerScreen from "@/app/player";
-import { usePlayer } from "@/providers/PlayerProvider";
+
 import usePlayerStore from "@/store/usePlayerStore";
-import React from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import React, { useCallback, useEffect, useRef } from "react";
+import {
+  BackHandler,
+  Dimensions,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
@@ -16,42 +23,88 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FloatingPlayer from "./FloatingPlayer";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+// Use "screen" to get full physical screen height (includes status bar on Android)
+const { height: SCREEN_HEIGHT } = Dimensions.get("screen");
 
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "react-native";
 
-const SPRING_CONFIG = { damping: 30, stiffness: 150 };
+// ── Spring configs ──────────────────────────────────────────────────
+// Expand: slightly under-damped for a satisfying snap into place
+const EXPAND_SPRING = { damping: 28, stiffness: 260, mass: 0.8 };
+// Collapse: critically damped — fast and decisive, no bounce
+const COLLAPSE_SPRING = { damping: 36, stiffness: 320, mass: 0.9 };
 
 const ExpandablePlayer = ({ bottomOffset = 0 }: { bottomOffset?: number }) => {
   const { currentSong, stopPlayer } = usePlayerStore();
-  const { player } = usePlayer();
+
   const { bottom, top } = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const MINI_PLAYER_HEIGHT = 70;
-  const COLLAPSED_Y = SCREEN_HEIGHT - MINI_PLAYER_HEIGHT - bottomOffset;
+  // On Android, "screen" height includes status bar, so we need to offset
+  const STATUS_BAR_OFFSET =
+    Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 0;
+  const COLLAPSED_Y =
+    SCREEN_HEIGHT - MINI_PLAYER_HEIGHT - bottomOffset - STATUS_BAR_OFFSET;
   const EXPANDED_Y = 0;
 
   const translateY = useSharedValue(COLLAPSED_Y);
   const context = useSharedValue(0);
 
+  // Track expanded state for BackHandler
+  const isExpandedRef = useRef(false);
+
+  const updateExpandedState = useCallback((expanded: boolean) => {
+    isExpandedRef.current = expanded;
+  }, []);
+
   // --- Actions ---
   const handleDismiss = () => {
-    player.pause();
+    // stopPlayer sets isPlaying=false + currentSong=null
+    // The sync effect in PlayerProvider will handle pausing the audio
     stopPlayer();
   };
 
   const expand = () => {
     "worklet";
-    translateY.value = withSpring(EXPANDED_Y, SPRING_CONFIG);
+    translateY.value = withSpring(EXPANDED_Y, EXPAND_SPRING);
+    runOnJS(updateExpandedState)(true);
   };
 
   const collapse = () => {
     "worklet";
-    translateY.value = withSpring(COLLAPSED_Y, SPRING_CONFIG);
+    translateY.value = withSpring(COLLAPSED_Y, COLLAPSE_SPRING);
+    runOnJS(updateExpandedState)(false);
   };
+
+  // Collapse from JS context (BackHandler, button press)
+  const collapseFromJS = useCallback(() => {
+    translateY.value = withSpring(COLLAPSED_Y, COLLAPSE_SPRING);
+    isExpandedRef.current = false;
+  }, [COLLAPSED_Y]);
+
+  // Expand from JS context (FloatingPlayer tap)
+  const expandFromJS = useCallback(() => {
+    translateY.value = withSpring(EXPANDED_Y, EXPAND_SPRING);
+    isExpandedRef.current = true;
+  }, [EXPANDED_Y]);
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        if (isExpandedRef.current) {
+          collapseFromJS();
+          return true; // Prevent default (closing app)
+        }
+        return false; // Let default behavior happen
+      }
+    );
+    return () => subscription.remove();
+  }, [collapseFromJS]);
 
   // --- Gesture for the MINI player ---
   // Swipe UP = expand to full screen
@@ -89,53 +142,72 @@ const ExpandablePlayer = ({ bottomOffset = 0 }: { bottomOffset?: number }) => {
   // --- Gesture for the FULL player ---
   // Swipe DOWN = collapse back to mini player
   const fullPlayerGesture = Gesture.Pan()
-    .activeOffsetY([-10, 10])
+    .activeOffsetY(10) // Only activate on downward swipe (positive Y)
+    .failOffsetY(-10) // Fail quickly on upward swipe so scrolling works
     .onStart(() => {
       context.value = translateY.value;
     })
     .onUpdate((event) => {
-      translateY.value = event.translationY + context.value;
-      translateY.value = Math.max(translateY.value, EXPANDED_Y);
-      translateY.value = Math.min(translateY.value, COLLAPSED_Y);
+      const newY = event.translationY + context.value;
+      translateY.value = Math.max(EXPANDED_Y, Math.min(newY, COLLAPSED_Y));
     })
     .onEnd((event) => {
       // Swipe DOWN → collapse
       if (event.translationY > 50 || event.velocityY > 500) {
         collapse();
       }
-      // Swipe UP (shouldn't happen much but snap back)
+      // Snap back to expanded
       else {
-        if (translateY.value < (COLLAPSED_Y + EXPANDED_Y) / 2) {
-          expand();
-        } else {
-          collapse();
-        }
+        expand();
       }
     });
 
-  // --- Animated styles ---
-  const animatedContainerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    marginHorizontal: interpolate(
+  // ── Animated styles ───────────────────────────────────────────────
+  // Normalised progress: 0 = fully expanded, 1 = fully collapsed
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    const progress = interpolate(
       translateY.value,
       [EXPANDED_Y, COLLAPSED_Y],
-      [0, 8],
+      [0, 1],
       Extrapolation.CLAMP
-    ),
-    borderRadius: interpolate(
-      translateY.value,
-      [EXPANDED_Y, COLLAPSED_Y],
-      [0, 12],
-      Extrapolation.CLAMP
-    ),
-    height: SCREEN_HEIGHT,
-  }));
+    );
 
+    return {
+      transform: [{ translateY: translateY.value }],
+      // Margins: edge-to-edge when expanded → card inset when collapsed
+      // Only kicks in during the last 30% of collapse for a clean morph
+      marginHorizontal: interpolate(
+        progress,
+        [0.7, 1],
+        [0, 8],
+        Extrapolation.CLAMP
+      ),
+      // Border radius: 0 when full screen → rounded card when collapsed
+      // Animates in the last 25% of collapse (like Spotify's card morph)
+      borderRadius: interpolate(
+        progress,
+        [0.75, 1],
+        [0, 12],
+        Extrapolation.CLAMP
+      ),
+      height: SCREEN_HEIGHT,
+      overflow: "hidden" as const,
+    };
+  });
+
+  // Mini player: visible only when near collapsed position
+  // Fades out over first 15% of expansion — quick and decisive
   const miniPlayerAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
+    const progress = interpolate(
       translateY.value,
-      [COLLAPSED_Y, COLLAPSED_Y - 100],
-      [1, 0],
+      [EXPANDED_Y, COLLAPSED_Y],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+    const opacity = interpolate(
+      progress,
+      [0.85, 1],
+      [0, 1],
       Extrapolation.CLAMP
     );
     return {
@@ -144,11 +216,19 @@ const ExpandablePlayer = ({ bottomOffset = 0 }: { bottomOffset?: number }) => {
     };
   });
 
+  // Full player: fades in smoothly over the top 40% of expansion
+  // Overlaps with mini player fade-out so there's never a blank gap
   const fullPlayerAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
+    const progress = interpolate(
       translateY.value,
-      [EXPANDED_Y + 100, EXPANDED_Y],
+      [EXPANDED_Y, COLLAPSED_Y],
       [0, 1],
+      Extrapolation.CLAMP
+    );
+    const opacity = interpolate(
+      progress,
+      [0, 0.35],
+      [1, 0],
       Extrapolation.CLAMP
     );
     return {
@@ -159,7 +239,9 @@ const ExpandablePlayer = ({ bottomOffset = 0 }: { bottomOffset?: number }) => {
 
   const fullPlayerAnimatedProps = useAnimatedProps(() => ({
     pointerEvents:
-      translateY.value < 100 ? ("auto" as const) : ("none" as const),
+      translateY.value < COLLAPSED_Y * 0.3
+        ? ("auto" as const)
+        : ("none" as const),
   }));
 
   if (!currentSong) return null;
@@ -190,41 +272,28 @@ const ExpandablePlayer = ({ bottomOffset = 0 }: { bottomOffset?: number }) => {
               backgroundColor: "transparent",
               flex: 1,
             }}
-            onExpand={() => runOnJS(expand)()}
+            onExpand={expandFromJS}
           />
         </Animated.View>
       </GestureDetector>
 
-      {/* Full Player with its own gesture */}
-      <Animated.View
-        animatedProps={fullPlayerAnimatedProps}
-        style={[
-          StyleSheet.absoluteFill,
-          fullPlayerAnimatedStyle,
-          { backgroundColor: colors.background },
-        ]}
-      >
-        <PlayerScreen
-          isExpandableMode={true}
-          onCollapse={() => runOnJS(collapse)()}
-        />
-
-        {/* Gesture zone ABOVE PlayerScreen so it can intercept swipe-down.
-            pointerEvents="box-none" lets taps pass through to controls,
-            while react-native-gesture-handler still detects pan gestures natively. */}
-        <GestureDetector gesture={fullPlayerGesture}>
-          <Animated.View
-            style={[StyleSheet.absoluteFill, { zIndex: 10 }]}
-            pointerEvents="box-none"
-          >
-            <Animated.View
-              style={{ height: "70%", width: "100%" }}
-              pointerEvents="box-none"
-            />
-            <View style={{ flex: 1 }} pointerEvents="none" />
-          </Animated.View>
-        </GestureDetector>
-      </Animated.View>
+      {/* Full Player — GestureDetector wraps the view itself so the
+           pan gesture is attached to an actual touchable surface */}
+      <GestureDetector gesture={fullPlayerGesture}>
+        <Animated.View
+          animatedProps={fullPlayerAnimatedProps}
+          style={[
+            StyleSheet.absoluteFill,
+            fullPlayerAnimatedStyle,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <PlayerScreen
+            isExpandableMode={true}
+            onCollapse={collapseFromJS}
+          />
+        </Animated.View>
+      </GestureDetector>
     </Animated.View>
   );
 };
@@ -235,7 +304,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: "transparent",
-    overflow: "visible",
     zIndex: 1000,
   },
 });

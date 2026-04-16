@@ -65,7 +65,7 @@ const PlayerScreen = ({
           key: "go_to_artist",
           label: "Go to artist",
           icon: "artist",
-          data: currentSong.artists.primary[0].artistId,
+          data: currentSong.artists.primary[0]?.artistId,
         },
         {
           key: "save_to_playlist",
@@ -118,10 +118,12 @@ const PlayerScreen = ({
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    // animate on mount
+    // Reset and animate on song change — not on every mount
+    scale.value = 0.9;
+    opacity.value = 0;
     scale.value = withDelay(100, withTiming(1, { duration: 800 }));
     opacity.value = withTiming(1, { duration: 800 });
-  }, []);
+  }, [currentSong?._id]);
 
   const animatedArtworkStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -367,4 +369,3 @@ const styles = StyleSheet.create({
 });
 
 export default PlayerScreen;
-

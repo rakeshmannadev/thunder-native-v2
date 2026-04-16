@@ -1,4 +1,4 @@
-import { axiosInstance } from "@/lib/axios";
+import { axiosInstance, setCachedToken, clearCachedToken } from "@/lib/axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ToastAndroid } from "react-native";
 import { create } from "zustand";
@@ -23,6 +23,7 @@ const useAuthStore = create<AuthStore>((set) => ({
         useUserStore.setState({ currentUser: response.data.user });
         await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
         await AsyncStorage.setItem("accessToken", response.data.accessToken);
+        setCachedToken(response.data.accessToken);
       }
     } catch (error: any) {
       console.log(error.response.data.message);
@@ -39,6 +40,7 @@ const useAuthStore = create<AuthStore>((set) => ({
         useUserStore.setState({ currentUser: response.data.user });
         await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
         await AsyncStorage.setItem("accessToken", response.data.accessToken);
+        setCachedToken(response.data.accessToken);
         // toast.success(response.data.message);
         ToastAndroid.show(response.data.message, ToastAndroid.SHORT);
       }
@@ -57,6 +59,7 @@ const useAuthStore = create<AuthStore>((set) => ({
         useUserStore.setState({ currentUser: null });
         await AsyncStorage.removeItem("user");
         await AsyncStorage.removeItem("accessToken");
+        clearCachedToken();
         // toast.success(response.data.message);
       }
     } catch (error: any) {

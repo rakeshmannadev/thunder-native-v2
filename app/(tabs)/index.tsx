@@ -4,16 +4,24 @@ import { ThemedText } from "@/components/ThemedText";
 import { VStack } from "@/components/ui/vstack";
 import { FlatList, ScrollView, useColorScheme, View } from "react-native";
 
+import Categories from "@/components/categories/Categories";
+import RecentlyPlayedCard from "@/components/RecentlyPlayedCard";
 import SearchBox from "@/components/searchbox/SearchBox";
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { Colors } from "@/constants/Colors";
+import { screenPadding } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { Album, Song } from "@/types";
 import { ArrowRightIcon } from "lucide-react-native";
 import React, { useEffect } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+
+const SKELETON_DATA = Array.from({ length: 5 }, (_, i) => ({ _skeletonId: i }));
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
@@ -29,6 +37,8 @@ export default function HomeScreen() {
   const { currentUser, favoriteSongs, getFavoriteSongs } = useUserStore();
   const { initializeQueue } = usePlayerStore();
 
+  const { top } = useSafeAreaInsets();
+
   useEffect(() => {
     if (
       madeForYouAlbums.length <= 0 ||
@@ -42,7 +52,12 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    if (trending.length > 0 || featured.length > 0) {
+    // Only initialize queue when data arrives AND no song is actively playing.
+    // This prevents wiping the user's playback (queue, index, shuffle) on data refresh.
+    if (
+      (trending.length > 0 || featured.length > 0) &&
+      !usePlayerStore.getState().currentSong
+    ) {
       initializeQueue([...trending, ...featured]);
     }
   }, [trending, featured]);
@@ -51,7 +66,7 @@ export default function HomeScreen() {
     if (currentUser && favoriteSongs.length === 0) {
       getFavoriteSongs();
     }
-  }, [currentUser]); // Added currentUser to dependencies
+  }, [currentUser]);
 
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
@@ -62,20 +77,69 @@ export default function HomeScreen() {
         backgroundColor: colors.background,
       }}
     >
+      {/* Sticky Categories Section */}
+      <View
+        style={{
+          backgroundColor: colors.background,
+          paddingTop: top + 55,
+          paddingBottom: 8,
+        }}
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            gap: 8,
+            paddingHorizontal: screenPadding.horizontal,
+          }}
+        >
+          <Categories />
+        </ScrollView>
+      </View>
+
+      {/* Scrollable Content */}
       <FlatList
         data={[
           {
-            title: "Recently Played",
+            title: "Continue Listening",
             data: featured,
             renderItem: (item: Song, index: number) => (
-              <SongCard key={item?._id ?? index} song={item} isLoading={isLoading} />
+              <RecentlyPlayedCard
+                key={item?._id ?? index}
+                song={item}
+                isLoading={false}
+              />
+            ),
+            skeletonItem: (_: any, index: number) => (
+              <SongCardSkeleton key={`skeleton-recently-${index}`} />
+            ),
+          },
+          {
+            title: "Featured",
+            data: featured,
+            renderItem: (item: Song, index: number) => (
+              <SongCard
+                key={item?._id ?? index}
+                song={item}
+                isLoading={false}
+              />
+            ),
+            skeletonItem: (_: any, index: number) => (
+              <SongCardSkeleton key={`skeleton-recently-${index}`} />
             ),
           },
           {
             title: "Trending",
             data: trending,
             renderItem: (item: Song, index: number) => (
-              <SongCard key={item?._id ?? index} song={item} isLoading={isLoading} />
+              <SongCard
+                key={item?._id ?? index}
+                song={item}
+                isLoading={false}
+              />
+            ),
+            skeletonItem: (_: any, index: number) => (
+              <SongCardSkeleton key={`skeleton-trending-${index}`} />
             ),
           },
           {
@@ -85,8 +149,11 @@ export default function HomeScreen() {
               <AlbumCard
                 key={item?._id ?? index}
                 album={item}
-                isLoading={isLoading}
+                isLoading={false}
               />
+            ),
+            skeletonItem: (_: any, index: number) => (
+              <SongCardSkeleton key={`skeleton-albums-${index}`} />
             ),
           },
         ]}
@@ -99,7 +166,7 @@ export default function HomeScreen() {
         )}
         keyExtractor={(item) => item.title}
         ListHeaderComponent={
-          <VStack space="md" className="p-2 mt-16">
+          <VStack space="md" className="p-2 pb-2">
             <SearchBox />
           </VStack>
         }
@@ -138,13 +205,17 @@ const HomeScreenSection = React.memo(
         initialNumToRender={5}
         windowSize={5}
         removeClippedSubviews={true}
-        keyExtractor={(item: any, index) =>
+        keyExtractor={(_: any, index) =>
           isLoading
-            ? `skeleton-${index}`
-            : item?._id?.toString() ?? `item-${index}`
+            ? `skeleton-${section.title}-${index}`
+            : _?._id?.toString() ?? `item-${index}`
         }
-        data={isLoading ? Array.from({ length: 5 }) : section.data}
-        renderItem={({ item, index }) => section.renderItem(item as any, index)}
+        data={isLoading ? SKELETON_DATA : section.data}
+        renderItem={({ item, index }) =>
+          isLoading
+            ? section.skeletonItem(item, index)
+            : section.renderItem(item as any, index)
+        }
       />
     </VStack>
   )

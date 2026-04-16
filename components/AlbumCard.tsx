@@ -24,7 +24,7 @@ const AlbumCard = React.memo(({ album, isLoading }: SectionGridProps) => {
       <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
         <View>
           {isLoading ? (
-            <Skeleton className="w-36 rounded-md" />
+            <Skeleton className="max-w-36 max-h-36 rounded-md" />
           ) : (
             <Image
               source={{

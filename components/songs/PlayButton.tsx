@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { Fab, FabIcon } from "../ui/fab";
 
 import { Colors } from "@/constants/Colors";
-import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
@@ -23,13 +22,13 @@ const PlayButton = ({ song }: { song: Song }) => {
 
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  const { player, status } = usePlayer();
+
 
   const { isBroadcasting, playSong } = useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom } = useRoomStore();
 
-  const { currentSong, setCurrentSong } = usePlayerStore();
+  const { currentSong, setCurrentSong, setIsPlaying, isPlaying } = usePlayerStore();
 
   const currentTrack = currentSong?.songId === song?.songId;
 
@@ -49,15 +48,17 @@ const PlayButton = ({ song }: { song: Song }) => {
     }
 
     if (currentTrack) {
-      return player.play();
+      // Same song — just resume via store
+      setIsPlaying(true);
+      return;
     }
 
+    // New song — setCurrentSong sets isPlaying=true
     setCurrentSong(song);
   };
   const handlePauseSong = (song: Song) => {
-    if (!song || !player.playing) return;
-
-    player.pause();
+    if (!song) return;
+    setIsPlaying(false);
   };
 
   const rotationAnimationSyle = useAnimatedStyle(() => {
@@ -69,23 +70,10 @@ const PlayButton = ({ song }: { song: Song }) => {
       ],
     };
   });
-  useEffect(() => {
-    if (status.isBuffering) {
-      rotation.value = 0;
-      rotation.value = withRepeat(
-        withTiming(360, { duration: 1000 }),
-        -1,
-        false
-      );
-    }
 
-    return () => {
-      rotation.value = 0;
-    };
-  }, [status.isBuffering]);
   return (
     <>
-      {currentTrack && status.playing ? (
+      {currentTrack && isPlaying ? (
         <Fab
           onPress={() => handlePauseSong(song)}
           size="md"
@@ -111,7 +99,8 @@ const PlayButton = ({ song }: { song: Song }) => {
             shadowRadius: 10,
           }}
         >
-          {status.isBuffering && currentSong?._id === song._id ? (
+          {/* Removed isBuffering condition to avoid heavy frame-rate subscriptions */}
+          {isPlaying && currentTrack ? (
             <Animated.View style={rotationAnimationSyle}>
               <FabIcon as={Loader2Icon} color="white" />
             </Animated.View>

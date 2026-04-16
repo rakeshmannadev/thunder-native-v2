@@ -2,11 +2,11 @@ import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
 
 const SHEET_HEIGHT = 300;
 
@@ -45,7 +45,7 @@ export default function BottomSheetMenu({
             SHEET_HEIGHT,
             { stiffness: 160, damping: 20 },
             () => {
-              scheduleOnRN(onClose);
+              runOnJS(onClose)();
             }
           );
         } else {

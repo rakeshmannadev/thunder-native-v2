@@ -96,6 +96,13 @@ const useSocketStore = create<SocketState>((set, get) => ({
   roomId: "",
   currentTime: 0,
   connectSocket: (userId) => {
+    // Clean up existing socket to prevent listener stacking on reconnect
+    const existingSocket = get().socket;
+    if (existingSocket) {
+      existingSocket.removeAllListeners();
+      existingSocket.disconnect();
+    }
+
     const socket = io(socketUrl!, {
       query: {
         userId,

@@ -1,7 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
-import { usePlayer } from "@/providers/PlayerProvider";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Artist, Song } from "@/types";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
@@ -22,8 +21,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
-  const { status } = usePlayer();
-  const { currentSong, setCurrentSong } = usePlayerStore();
+  const { currentSong, setCurrentSong, isPlaying } = usePlayerStore();
   const isActive = currentSong?.audioUrl == song.audioUrl;
 
   const [menuVisible, setMenuVisible] = useState(false);
@@ -100,7 +98,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
             className="absolute top-0 left-0 aspect-square w-[60] rounded-lg flex flex-row items-center justify-center 
              bg-gray-600/80"
           >
-            {status.playing ? (
+            {isPlaying ? (
               <MusicVisualizer size={30} />
             ) : (
               <PlayIcon color={"white"} size={30} />

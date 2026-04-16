@@ -2,9 +2,24 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+// In-memory token cache — avoids disk I/O on every API call
+let cachedToken: string | null = null;
+
+export const setCachedToken = (token: string | null) => {
+  cachedToken = token;
+};
+
+export const clearCachedToken = () => {
+  cachedToken = null;
+};
+
+// Only falls back to AsyncStorage if cache is empty (cold start)
 const getAccessToken = async () => {
+  if (cachedToken) return cachedToken;
   const token = await AsyncStorage.getItem("accessToken");
-  return token ? token : null;
+  if (token) cachedToken = token;
+  return token;
 };
 
 export const axiosInstance = axios.create({
