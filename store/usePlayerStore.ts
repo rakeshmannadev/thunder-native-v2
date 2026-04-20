@@ -1,12 +1,12 @@
 import { setAudioPreference } from "@/helpers";
 import { AudioPreferenceType, qualites, Song } from "@/types";
+import TrackPlayer from "react-native-track-player";
 import { create } from "zustand";
 
 type LoopMode = "off" | "all" | "one";
 
 interface PlayerStore {
   currentSong: Song | null;
-  isPlaying: boolean;
   isShuffle: boolean;
   loop: LoopMode;
   queue: Song[];
@@ -18,10 +18,8 @@ interface PlayerStore {
   playAlbum: (songs: Song[], startIndex: number) => void;
   setCurrentSong: (song: Song | null) => void;
   playQueueIndex: (index: number) => void;
-  togglePlay: () => void;
   playNext: () => void;
   playPrevious: () => void;
-  setIsPlaying: (state: boolean) => void;
   hasNext: () => boolean;
   setShuffle: (state: boolean) => void;
   setLoop: (mode: LoopMode) => void;
@@ -33,7 +31,6 @@ interface PlayerStore {
 
 const usePlayerStore = create<PlayerStore>((set, get) => ({
   currentSong: null,
-  isPlaying: false,
   isShuffle: false,
   loop: "off",
   queue: [],
@@ -47,9 +44,9 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   initializeQueue: (songs: Song[], startIndex: number = 0) => {
     set({
       queue: songs,
-      originalQueue: [], // Reset backup
+      originalQueue: [],
       currentIndex: startIndex,
-      isShuffle: false, // Reset shuffle on new queue init
+      isShuffle: false,
       loop: "off",
     });
   },
@@ -61,9 +58,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
         originalQueue: [...originalQueue, ...songs],
       });
     } else {
-      set({
-        queue: [...queue, ...songs],
-      });
+      set({ queue: [...queue, ...songs] });
     }
   },
   insertToQueue(song: Song, position: number) {
@@ -76,12 +71,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
     }
     newQueue.splice(targetPos, 0, song);
 
-    // If shuffled, append to originalQueue to maintain it
-    let newOriginalQueue = originalQueue;
-    if (isShuffle) {
-      newOriginalQueue = [...originalQueue, song];
-    }
-
+    const newOriginalQueue = isShuffle ? [...originalQueue, song] : originalQueue;
     set({
       queue: newQueue,
       originalQueue: isShuffle ? newOriginalQueue : originalQueue,
@@ -89,26 +79,19 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
   playAlbum: (songs: Song[], startIndex = 0) => {
     if (songs.length === 0) return;
-
-    const song = songs[startIndex];
-
     set({
       queue: songs,
       originalQueue: [],
       isShuffle: false,
-      currentSong: song,
+      currentSong: songs[startIndex],
       currentIndex: startIndex,
-      isPlaying: true,
     });
   },
   setCurrentSong: (song: Song | null) => {
     if (!song) return;
-
     const songIndex = get().queue.findIndex((s) => s._id === song._id);
-
     set({
       currentSong: song,
-      isPlaying: true,
       currentIndex: songIndex !== -1 ? songIndex : get().currentIndex,
     });
   },
@@ -118,97 +101,57 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
       set({
         currentSong: queue[index],
         currentIndex: index,
-        isPlaying: true,
       });
     }
   },
-  togglePlay: () => {
-    const willStartPlaying = !get().isPlaying;
-    set({
-      isPlaying: willStartPlaying,
-    });
-  },
   playNext: () => {
     const { currentIndex, queue, isShuffle, loop } = get();
-    let nextIndex;
+    let nextIndex: number;
 
     if (loop === "one") {
-      // If repeat is active, stay on the current song
       nextIndex = currentIndex % queue.length;
     } else if (isShuffle) {
-      // Shuffle mode: Pick a random song that isn't the current one
       do {
         nextIndex = Math.floor(Math.random() * queue.length);
       } while (nextIndex === currentIndex && queue.length > 1);
     } else {
-      // Sequential mode
       nextIndex = currentIndex + 1;
     }
 
     if (nextIndex < queue.length) {
-      const nextSong = queue[nextIndex];
-
-      set({
-        currentSong: nextSong,
-        currentIndex: nextIndex,
-        isPlaying: true,
-      });
+      set({ currentSong: queue[nextIndex], currentIndex: nextIndex });
     } else if (loop === "all" && queue.length > 0) {
-      set({
-        currentSong: queue[0],
-        currentIndex: 0,
-        isPlaying: true,
-      });
-    } else {
-      set({ isPlaying: false });
+      set({ currentSong: queue[0], currentIndex: 0 });
     }
+    // If no next and no loop — do nothing; RNTP state already reflects stopped
   },
   playPrevious: () => {
     const { currentIndex, queue, loop } = get();
-    if (!queue || queue.length === 0) {
-      set({ isPlaying: false });
-      return;
-    }
+    if (!queue || queue.length === 0) return;
 
     let previousIndex = currentIndex - 1;
-
-    // Loop all behavior on previous
     if (loop === "all" && previousIndex < 0) {
       previousIndex = queue.length - 1;
     }
 
     if (previousIndex >= 0) {
-      const prevSong = queue[previousIndex];
-      set({
-        currentSong: prevSong,
-        currentIndex: previousIndex,
-        isPlaying: true,
-      });
-    } else {
-      set({ isPlaying: false });
+      set({ currentSong: queue[previousIndex], currentIndex: previousIndex });
     }
   },
   hasNext: () => {
     const { currentIndex, queue, loop } = get();
     return currentIndex < queue.length - 1 || loop === "all";
   },
-  setIsPlaying: (state) => {
-    set({ isPlaying: state });
-  },
   setShuffle: (state) => {
     const { isShuffle, queue, originalQueue, currentSong } = get();
     if (state === isShuffle) return;
 
     if (state) {
-      // Enable Shuffle
-      const currentQueue = [...queue];
-      const backup = [...currentQueue];
-
-      const shuffled = currentQueue.sort(() => Math.random() - 0.5);
+      const backup = [...queue];
+      const shuffled = [...queue].sort(() => Math.random() - 0.5);
       const newIndex = currentSong
         ? shuffled.findIndex((s) => s._id === currentSong._id)
         : -1;
-
       set({
         isShuffle: true,
         queue: shuffled,
@@ -216,13 +159,10 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
         currentIndex: newIndex !== -1 ? newIndex : 0,
       });
     } else {
-      // Disable Shuffle
       const restored = originalQueue.length > 0 ? originalQueue : queue;
-
       const newIndex = currentSong
         ? restored.findIndex((s) => s._id === currentSong._id)
         : 0;
-
       set({
         isShuffle: false,
         queue: restored,
@@ -235,11 +175,8 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
     set({ loop: mode });
   },
   stopPlayer: () => {
-    set({
-      currentSong: null,
-      isPlaying: false,
-      currentIndex: -1,
-    });
+    TrackPlayer.reset();
+    set({ currentSong: null, currentIndex: -1 });
   },
   setAudioPreference: async (pref) => {
     const currentPref = get().audioPreference;

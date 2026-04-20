@@ -17,6 +17,7 @@
       "permissions": [
         "WAKE_LOCK",
         "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "INTERNET",
         "ACCESS_NETWORK_STATE",
         "ACCESS_WIFI_STATE",
@@ -55,7 +56,6 @@
           }
         }
       ],
-      "expo-audio",
       "expo-web-browser"
     ],
     "experiments": {

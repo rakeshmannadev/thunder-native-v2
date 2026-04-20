@@ -5,18 +5,19 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { setAudioModeAsync } from "expo-audio";
 import { useFonts } from "expo-font";
 import { Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import "react-native-reanimated";
 
 import SearchBar from "@/components/search/SearchBar";
 import ExpandablePlayer from "@/components/songs/ExpandablePlayer";
 import { Colors } from "@/constants/Colors";
-import { getAudioPreference } from "@/helpers";
-import PlayerProvider from "@/providers/PlayerProvider";
+import { useLogTrackPlayerState } from "@/hooks/useLogTrackPlayerState";
+import { useSetupTrackPlayer } from "@/hooks/useSetupTrackPlayer";
+import { useTrackPlayerSync } from "@/hooks/useTrackPlayerSync";
+import { playbackService } from "@/services/playbackServices";
 import usePlayerStore from "@/store/usePlayerStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
@@ -26,6 +27,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import TrackPlayer from "react-native-track-player";
 
 const hideFloatingPlayerScreens = [
   "profile",
@@ -47,54 +49,40 @@ const withoutTabBarScreens = [
   "create-room",
 ];
 SplashScreen.preventAutoHideAsync();
+TrackPlayer.registerPlaybackService(() => playbackService);
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
-  const { setAudioPreference, currentSong } = usePlayerStore();
+  const { currentSong } = usePlayerStore();
 
   const { bottom } = useSafeAreaInsets();
   const bottomOffSet = bottom + 50;
 
   const currentSegment = segments[segments.length - 1]; //
 
-  const { getCurrentUser, currentUser } = useUserStore();
+  const { getCurrentUser } = useUserStore();
   const { disconnectSocket, socket } = useSocketStore();
+
+  // trackplayer setup
+
+  const handleTrackPlayerLoaded = useCallback(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  useSetupTrackPlayer({ onLoad: handleTrackPlayerLoaded });
+  useLogTrackPlayerState();
+  useTrackPlayerSync();
 
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-
-  // * Set audio mode to play in background and silent mode globally
-  useEffect(() => {
-    (async () => {
-      try {
-        await setAudioModeAsync({
-          playsInSilentMode: true,
-          shouldPlayInBackground: true,
-          interruptionModeAndroid: "doNotMix",
-          interruptionMode: "doNotMix",
-          shouldRouteThroughEarpiece: false,
-        });
-      } catch (error) {
-        console.log("Error while setting global audio mode:", error);
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
-  useEffect(() => {
-    const setPreference = async () => {
-      const preference = await getAudioPreference();
-      setAudioPreference(preference!);
-    };
-    setPreference();
-  }, []);
 
   useEffect(() => {
     getCurrentUser();
@@ -120,7 +108,7 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <PlayerProvider>
+          <>
             <GestureHandlerRootView style={{ flex: 1 }}>
               <Stack>
                 <Stack.Screen
@@ -250,7 +238,7 @@ export default function RootLayout() {
                   />
                 )}
             </GestureHandlerRootView>
-          </PlayerProvider>
+          </>
         </ThemeProvider>
       </SafeAreaProvider>
     </GluestackUIProvider>

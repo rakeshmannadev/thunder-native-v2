@@ -20,6 +20,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
+import TrackPlayer, { useIsPlaying } from "react-native-track-player";
 
 type PlayerControlsProps = {
   style?: ViewStyle;
@@ -71,18 +72,20 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
 };
 
 export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
-  const togglePlay = usePlayerStore((s) => s.togglePlay);
-  const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const { playing } = useIsPlaying();
 
+  const handlePress = () => {
+    if (playing) {
+      TrackPlayer.pause();
+    } else {
+      TrackPlayer.play();
+    }
+  };
 
   return (
     <View style={[{ height: iconSize }, style]}>
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={togglePlay}
-      >
-        {/* Removed isBuffering condition to avoid heavy frame-rate subscriptions */}
-        {isPlaying ? (
+      <TouchableOpacity activeOpacity={0.85} onPress={handlePress}>
+        {playing ? (
           <Pause size={iconSize} color={colors.icon} />
         ) : (
           <Play size={iconSize} color={colors.icon} />

@@ -3,6 +3,7 @@ import { Song, SongRequest, User } from "@/types";
 import { showToast } from "@/hooks/useToastMessage";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
+import TrackPlayer from "react-native-track-player";
 import usePlayerStore from "./usePlayerStore";
 import useRoomStore from "./useRoomStore";
 import useUserStore from "./useUserStore";
@@ -292,7 +293,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
     );
 
     socket.on("sync-request", ({ from }) => {
-      const { socket, isBroadcasting, currentJockey, requestedUser, roomId, currentStreamingQueue } = get();
+      const { socket, isBroadcasting, isPlayingSong, currentJockey, requestedUser, roomId, currentStreamingQueue } = get();
       if (!socket) return;
 
       socket.emit("sync-state", {
@@ -301,7 +302,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
         currentJockey,
         requestedUser,
         roomId,
-        isPlaying: !usePlayerStore.getState().isPlaying,
+        isPlaying: isPlayingSong,
         time: 0,
         song: usePlayerStore.getState().currentSong,
         songs: currentStreamingQueue,
@@ -317,7 +318,8 @@ const useSocketStore = create<SocketState>((set, get) => ({
 
     socket.on("broadcastEnded", (data) => {
       set({ isBroadcasting: false, isPlayingSong: false });
-      usePlayerStore.setState({ currentSong: null, isPlaying: false });
+      usePlayerStore.setState({ currentSong: null });
+      TrackPlayer.reset();
       showToast(data.message);
     });
 
@@ -424,7 +426,8 @@ const useSocketStore = create<SocketState>((set, get) => ({
         isBroadcasting: false,
         isPlayingSong: false,
       });
-      usePlayerStore.setState({ currentSong: null, isPlaying: false });
+      usePlayerStore.setState({ currentSong: null });
+      TrackPlayer.reset();
       console.log("Socket disconnected.");
     }
   },

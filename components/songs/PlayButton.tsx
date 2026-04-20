@@ -1,5 +1,5 @@
 import { Song } from "@/types";
-import React, { useEffect } from "react";
+import React from "react";
 import { Fab, FabIcon } from "../ui/fab";
 
 import { Colors } from "@/constants/Colors";
@@ -12,9 +12,8 @@ import { useColorScheme } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withTiming,
 } from "react-native-reanimated";
+import TrackPlayer, { useIsPlaying } from "react-native-track-player";
 
 const PlayButton = ({ song }: { song: Song }) => {
   const colorScheme = useColorScheme();
@@ -22,13 +21,12 @@ const PlayButton = ({ song }: { song: Song }) => {
 
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-
-
   const { isBroadcasting, playSong } = useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom } = useRoomStore();
 
-  const { currentSong, setCurrentSong, setIsPlaying, isPlaying } = usePlayerStore();
+  const { currentSong, setCurrentSong } = usePlayerStore();
+  const { playing: isPlaying } = useIsPlaying();
 
   const currentTrack = currentSong?.songId === song?.songId;
 
@@ -48,17 +46,16 @@ const PlayButton = ({ song }: { song: Song }) => {
     }
 
     if (currentTrack) {
-      // Same song — just resume via store
-      setIsPlaying(true);
+      // Same song — just resume directly via RNTP
+      TrackPlayer.play();
       return;
     }
 
-    // New song — setCurrentSong sets isPlaying=true
+    // New song — useTrackPlayerSync watches currentSong change and loads/plays it
     setCurrentSong(song);
   };
-  const handlePauseSong = (song: Song) => {
-    if (!song) return;
-    setIsPlaying(false);
+  const handlePauseSong = () => {
+    TrackPlayer.pause();
   };
 
   const rotationAnimationSyle = useAnimatedStyle(() => {
@@ -75,7 +72,7 @@ const PlayButton = ({ song }: { song: Song }) => {
     <>
       {currentTrack && isPlaying ? (
         <Fab
-          onPress={() => handlePauseSong(song)}
+          onPress={handlePauseSong}
           size="md"
           placement="bottom right"
           style={{

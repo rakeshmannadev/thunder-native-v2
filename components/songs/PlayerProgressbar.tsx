@@ -1,42 +1,31 @@
 import { colors, fontSize } from "@/constants/tokens";
 import { formatSecondsToMinutes } from "@/helpers/miscellaneous";
-import { usePlayer } from "@/providers/PlayerProvider";
+
 import usePlayerStore from "@/store/usePlayerStore";
 import { defaultStyles, utilsStyles } from "@/styles";
-import { useAudioPlayerStatus } from "expo-audio";
-import { useEffect } from "react";
 import { StyleSheet, Text, View, ViewProps } from "react-native";
 import { Slider } from "react-native-awesome-slider";
-import { useSharedValue } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
+import { useSharedValue, useDerivedValue } from "react-native-reanimated";
+import TrackPlayer, { useProgress } from "react-native-track-player";
 
 export const PlayerProgressBar = ({ style }: ViewProps) => {
   const { currentSong } = usePlayerStore();
-  const { player } = usePlayer();
-  const status = useAudioPlayerStatus(player);
+
+
+  const { duration, position } = useProgress(250);
 
   const isSliding = useSharedValue(false);
-  const progress = useSharedValue(0);
   const min = useSharedValue(0);
   const max = useSharedValue(1);
 
-  const trackElapsedTime = formatSecondsToMinutes(status.currentTime);
-  const trackRemainingTime = formatSecondsToMinutes(
-    Math.max(status.duration - status.currentTime, 0)
+  // Derives progress on the UI thread whenever position/duration update
+  // useDerivedValue is the correct Reanimated API — never write .value during render
+  const progress = useDerivedValue(() =>
+    !isSliding.value && duration > 0 ? position / duration : 0
   );
-  useEffect(() => {
-    if (status.didJustFinish) {
-      progress.value = 0;
-      isSliding.value = false;
-    }
-  }, [status.didJustFinish]);
-  const updateProgress = () => {
-    if (!isSliding.value) {
-      progress.value =
-        status.duration > 0 ? status.currentTime / status.duration : 0;
-    }
-  };
-  scheduleOnRN(updateProgress);
+
+  const trackElapsedTime = formatSecondsToMinutes(position);
+  const trackRemainingTime = formatSecondsToMinutes(Math.max(duration - position, 0));
 
   return (
     <View style={style}>
@@ -53,16 +42,15 @@ export const PlayerProgressBar = ({ style }: ViewProps) => {
         }}
         onSlidingStart={() => (isSliding.value = true)}
         onValueChange={async (value) => {
-          // await TrackPlayer.seekTo(value * duration);
-          await player.seekTo(value * status.duration);
+          await TrackPlayer.seekTo(value * duration);
         }}
         onSlidingComplete={async (value) => {
           // if the user is not sliding, we should not update the position
           if (!isSliding.value) return;
 
           isSliding.value = false;
-          await player.seekTo(value * status.duration);
-          // await TrackPlayer.seekTo(value * duration);
+
+          await TrackPlayer.seekTo(value * duration);
         }}
       />
 

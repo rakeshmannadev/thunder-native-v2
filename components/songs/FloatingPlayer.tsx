@@ -11,11 +11,12 @@ import {
 
 import { Colors } from "@/constants/Colors";
 import { borderRadius, fontSize } from "@/constants/tokens";
-import { usePlayer } from "@/providers/PlayerProvider";
+
+import { formatSecondsToMinutes } from "@/helpers/miscellaneous";
 import usePlayerStore from "@/store/usePlayerStore";
-import { useAudioPlayerStatus } from "expo-audio";
 import { useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
+import { useProgress } from "react-native-track-player";
 import { PlayPauseButton, SkipToNextButton } from "./PlayerControls";
 
 const FloatingPlayer = ({
@@ -29,14 +30,16 @@ const FloatingPlayer = ({
   const router = useRouter();
 
   const { currentSong, playNext } = usePlayerStore();
-  const { player } = usePlayer();
-  const status = useAudioPlayerStatus(player);
-  const { currentTime, duration } = status;
+  // const { player } = usePlayer();
+  // const status = useAudioPlayerStatus(player);
+  // const { currentTime, duration } = status;
 
   const unknownTrackImageUri = require("../../assets/images/unknown_track.png");
 
-  //? Calculate current progress of the song
-  const progress = duration && duration > 0 ? currentTime / duration : 0;
+  const { duration, position } = useProgress(250);
+
+  // Plain JS ratio — no shared values needed for a simple flex progress bar
+  const progressRatio = duration > 0 ? position / duration : 0;
 
   if (!currentSong) return null;
 
@@ -92,9 +95,9 @@ const FloatingPlayer = ({
         </View>
         <View style={styles.progressContainer}>
           <Animated.View
-            style={{ backgroundColor: colors.primary, flex: progress }}
+            style={{ backgroundColor: colors.primary, flex: progressRatio }}
           />
-          <View style={{ flex: 1 - progress }} />
+          <View style={{ flex: 1 - progressRatio }} />
         </View>
       </View>
       {/* </LinearGradient> */}
