@@ -1,26 +1,13 @@
 import { colors } from "@/constants/tokens";
+import { useTrackPlayerRepeatMode } from "@/hooks/usePlayerRepeatMode";
 import usePlayerStore from "@/store/usePlayerStore";
-import { usePathname } from "expo-router";
-import {
-  ArrowRight,
-  LoaderCircleIcon,
-  Pause,
-  Play,
-  Repeat,
-  Repeat1,
-  Shuffle,
-  SkipBackIcon,
-  SkipForwardIcon,
-} from "lucide-react-native";
-import { useEffect } from "react";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { ComponentProps } from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
-import TrackPlayer, { useIsPlaying } from "react-native-track-player";
+import TrackPlayer, {
+  RepeatMode,
+  useIsPlaying,
+} from "react-native-track-player";
 
 type PlayerControlsProps = {
   style?: ViewStyle;
@@ -35,43 +22,44 @@ type PlayerButtonProps = {
 };
 
 export const PlayerControls = ({ style }: PlayerControlsProps) => {
-  const { playNext, playPrevious, setShuffle, isShuffle, loop, setLoop } =
-    usePlayerStore();
+  const { setShuffle, isShuffle } = usePlayerStore();
+
   const handleShuffle = () => {
     setShuffle(!isShuffle);
   };
 
-  const handlePlayNext = () => {
-    playNext();
+  const handlePlayNext = async () => {
+    await TrackPlayer.skipToNext();
   };
-  const handlePlayPrevious = () => {
-    playPrevious();
-  };
-
-  const handleLoop = () => {
-    if (loop === "off") setLoop("all");
-    else if (loop === "all") setLoop("one");
-    else setLoop("off");
+  const handlePlayPrevious = async () => {
+    await TrackPlayer.skipToPrevious();
   };
 
   return (
     <View style={[styles.container, style]}>
       <View style={styles.row}>
-        <ShuffleButton handlePress={handleShuffle} isShuffle={isShuffle} />
+        <ShuffleButton
+          handlePress={handleShuffle}
+          iconSize={30}
+          isShuffle={isShuffle}
+        />
 
         <SkipToPreviousButton iconSize={30} handlePress={handlePlayPrevious} />
 
-        <PlayPauseButton iconSize={30} />
+        <PlayPauseButton iconSize={60} />
 
         <SkipToNextButton iconSize={30} handlePress={handlePlayNext} />
 
-        <RepeatButton handlePress={handleLoop} loopMode={loop} />
+        <PlayerRepeatToggle size={30} />
       </View>
     </View>
   );
 };
 
-export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
+export const PlayPauseButton = ({
+  style,
+  iconSize = 48,
+}: PlayerButtonProps) => {
   const { playing } = useIsPlaying();
 
   const handlePress = () => {
@@ -85,11 +73,11 @@ export const PlayPauseButton = ({ style, iconSize }: PlayerButtonProps) => {
   return (
     <View style={[{ height: iconSize }, style]}>
       <TouchableOpacity activeOpacity={0.85} onPress={handlePress}>
-        {playing ? (
-          <Pause size={iconSize} color={colors.icon} />
-        ) : (
-          <Play size={iconSize} color={colors.icon} />
-        )}
+        <Ionicons
+          name={playing ? "pause-circle" : "play-circle"}
+          size={iconSize}
+          color={colors.text}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -106,7 +94,7 @@ export const SkipToNextButton = ({
       onPress={handlePress}
       style={style} // Pass style
     >
-      <SkipForwardIcon size={iconSize} color={colors.icon} />
+      <Ionicons name="play-forward" size={iconSize} color={colors.text} />
     </TouchableOpacity>
   );
 };
@@ -121,52 +109,59 @@ export const SkipToPreviousButton = ({
       onPress={handlePress}
       style={style} // Pass style
     >
-      <SkipBackIcon size={iconSize} color={colors.icon} />
+      <Ionicons name="play-back" size={iconSize} color={colors.text} />
     </TouchableOpacity>
   );
 };
-export const RepeatButton = ({
-  iconSize = 30,
-  handlePress,
-  loopMode = "off",
-  style,
-}: PlayerButtonProps) => {
-  const location = usePathname();
 
-  const iconColor = colors.icon;
+type IconProps = Omit<ComponentProps<typeof MaterialCommunityIcons>, "name">;
 
-  const isOne = loopMode === "one";
-  const isAll = loopMode === "all";
-  const isOff = loopMode === "off";
+const repeatOrder = [
+  RepeatMode.Off,
+  RepeatMode.Track,
+  RepeatMode.Queue,
+] as const;
 
-  const displayColor = isOff
-    ? location === "/player"
-      ? "rgba(255,255,255,0.5)"
-      : "grey"
-    : iconColor;
+export const PlayerRepeatToggle = ({ ...iconProps }: IconProps) => {
+  const { repeatMode, changeRepeatMode } = useTrackPlayerRepeatMode();
+
+  const toggleRepeatMode = () => {
+    if (repeatMode == null) return;
+
+    const currentIndex = repeatOrder.indexOf(repeatMode);
+    const nextIndex = (currentIndex + 1) % repeatOrder.length;
+
+    changeRepeatMode(repeatOrder[nextIndex]);
+  };
+
+  const icon =
+    repeatMode === RepeatMode.Off
+      ? "repeat-off"
+      : repeatMode === RepeatMode.Track
+        ? "repeat-once"
+        : "repeat";
 
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={handlePress} style={style}>
-      {isOne ? (
-        <Repeat1 size={iconSize} color={iconColor} />
-      ) : (
-        <Repeat size={iconSize} color={displayColor} />
-      )}
-    </TouchableOpacity>
+    <MaterialCommunityIcons
+      name={icon}
+      onPress={toggleRepeatMode}
+      color={colors.icon}
+      {...iconProps}
+    />
   );
 };
 export const ShuffleButton = ({
-  iconSize = 30,
+  iconSize = 48,
   handlePress,
   isShuffle,
 }: PlayerButtonProps) => {
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
-      {!isShuffle ? (
-        <ArrowRight size={iconSize} color={colors.icon} />
-      ) : (
-        <Shuffle size={iconSize} color={colors.icon} />
-      )}
+      <Ionicons
+        name={isShuffle ? "shuffle" : "arrow-forward"}
+        size={iconSize}
+        color={colors.text}
+      />
     </TouchableOpacity>
   );
 };

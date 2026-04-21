@@ -1,5 +1,6 @@
 // components/player/QueueScreen.tsx
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
 import {
   Dimensions,
@@ -17,6 +18,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -30,9 +32,9 @@ import MenuModal, { MenuItem } from "../MenuModal";
 import MusicVisualizer from "./MusicVisualizer";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const QUEUE_HEIGHT = SCREEN_HEIGHT * 0.75; // 75% of screen for more content
-const PEEK_HEIGHT = 100;
-const COLLAPSED_Y = QUEUE_HEIGHT - PEEK_HEIGHT;
+const QUEUE_HEIGHT = SCREEN_HEIGHT;
+const PEEK_HEIGHT = 0;
+const DISMISS_THRESHOLD = SCREEN_HEIGHT * 0.3;
 
 // ── Spring configs ──────────────────────────────────────────────────
 // Expand: slightly elastic snap for a satisfying open
@@ -86,14 +88,15 @@ const QueueRow = React.memo(
     prev.isActive === next.isActive && prev.item._id === next.item._id
 );
 
-export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
+export default function QueueScreen({ imageUrl }: { imageUrl?: string }) {
+  const router = useRouter();
   const { queue, currentSong, currentIndex, playQueueIndex } = usePlayerStore();
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
-  // sheet translate (start peeked)
-  const translateY = useSharedValue(COLLAPSED_Y);
+  // sheet translate (start expanded since it's a route)
+  const translateY = useSharedValue(0);
   const startY = useSharedValue(0);
 
   // track scroll offset to lock sheet drag while user scrolls
@@ -113,21 +116,20 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
       .onUpdate((e) => {
         const next = Math.max(
           0,
-          Math.min(startY.value + e.translationY, COLLAPSED_Y)
+          Math.min(startY.value + e.translationY, SCREEN_HEIGHT)
         );
         translateY.value = next;
       })
       .onEnd((e) => {
-        // Use a lower threshold (35%) so small swipes feel responsive
-        const THRESHOLD = COLLAPSED_Y * 0.35;
-
-        // Velocity-aware snapping — fast swipes override position
-        if (e.velocityY < -600 || translateY.value < THRESHOLD) {
-          // Swiping up or past threshold → expand
+        // Velocity-aware snapping
+        if (e.velocityY > 1000 || translateY.value > DISMISS_THRESHOLD) {
+          // Swipe down to dismiss
+          translateY.value = withSpring(SCREEN_HEIGHT, COLLAPSE_SPRING, () => {
+            runOnJS(router.back)();
+          });
+        } else {
+          // Snap back to top
           translateY.value = withSpring(0, EXPAND_SPRING);
-        } else if (e.velocityY > 600 || translateY.value >= THRESHOLD) {
-          // Swiping down or below threshold → collapse
-          translateY.value = withSpring(COLLAPSED_Y, COLLAPSE_SPRING);
         }
       })
       .simultaneousWithExternalGesture(nativeScrollGesture);
@@ -138,35 +140,35 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
     // Progress: 0 = fully expanded, 1 = fully collapsed/peeked
     const progress = interpolate(
       translateY.value,
-      [0, COLLAPSED_Y],
+      [0, SCREEN_HEIGHT],
       [0, 1],
       Extrapolation.CLAMP
     );
 
     return {
       transform: [{ translateY: translateY.value }],
-      // Border radius opens up when expanded, rounds when collapsed
+      // Border radius opens up when expanded
       borderTopLeftRadius: interpolate(
         progress,
-        [0, 0.3],
-        [16, 32],
+        [0, 0.1],
+        [0, 32],
         Extrapolation.CLAMP
       ),
       borderTopRightRadius: interpolate(
         progress,
-        [0, 0.3],
-        [16, 32],
+        [0, 0.1],
+        [0, 32],
         Extrapolation.CLAMP
       ),
     };
   });
 
-  // Backdrop dims the content behind the queue when it slides up
+  // Backdrop dims the content behind — adjust for route
   const backdropStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       translateY.value,
-      [0, COLLAPSED_Y],
-      [0.5, 0],
+      [0, SCREEN_HEIGHT],
+      [0.8, 0],
       Extrapolation.CLAMP
     );
     return {
@@ -184,13 +186,27 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
       isActive={currentIndex === index}
       onPlay={(i) => {
         playQueueIndex(i);
-        translateY.value = withSpring(COLLAPSED_Y, COLLAPSE_SPRING);
       }}
       onMenu={(song) => {
         setMenuItems([
-          { key: "go_to_album", label: "Go to album", icon: "album", data: song.albumId },
-          { key: "go_to_artist", label: "Go to artist", icon: "artist", data: song.artists.primary[0].artistId },
-          { key: "save_to_playlist", label: "Save to playlist", icon: "playlist", data: song._id },
+          {
+            key: "go_to_album",
+            label: "Go to album",
+            icon: "album",
+            data: song.albumId,
+          },
+          {
+            key: "go_to_artist",
+            label: "Go to artist",
+            icon: "artist",
+            data: song.artists.primary[0].artistId,
+          },
+          {
+            key: "save_to_playlist",
+            label: "Save to playlist",
+            icon: "playlist",
+            data: song._id,
+          },
         ]);
         setMenuVisible(true);
       }}
@@ -213,11 +229,7 @@ export default function QueueScreen({ imageUrl }: { imageUrl: string }) {
       <GestureDetector gesture={panGesture}>
         <Animated.View
           pointerEvents="auto"
-          style={[
-            styles.sheet,
-            animatedStyle,
-            { zIndex: 100 },
-          ]}
+          style={[styles.sheet, animatedStyle, { zIndex: 100 }]}
         >
           {/* gradient background */}
           <LinearGradient
@@ -275,11 +287,7 @@ const styles = StyleSheet.create({
     zIndex: 99,
   },
   sheet: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: QUEUE_HEIGHT,
+    flex: 1,
     backgroundColor: "transparent",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,

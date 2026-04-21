@@ -1,16 +1,14 @@
 import GradientBackground from "@/components/GradientBackground";
 import { PlayerControls } from "@/components/songs/PlayerControls";
 import { PlayerProgressBar } from "@/components/songs/PlayerProgressbar";
-import QueueScreen from "@/components/songs/QueueScreen";
 import { MovingText } from "@/components/songs/useMovingText";
 
 import MenuModal, { MenuItem } from "@/components/MenuModal";
 import { colors, fontSize, screenPadding } from "@/constants/tokens";
-import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 
 import { defaultStyles } from "@/styles";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ChevronDownIcon, MoreVerticalIcon, Share2 } from "lucide-react-native";
@@ -18,6 +16,7 @@ import { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
+  Dimensions,
   Pressable,
   Share,
   StyleSheet,
@@ -25,10 +24,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  Easing,
+  Extrapolation,
+  interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
@@ -36,18 +41,19 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useActiveTrack } from "react-native-track-player";
 
-const PlayerScreen = ({
-  isExpandableMode = false,
-  onCollapse,
-}: {
-  isExpandableMode?: boolean;
-  onCollapse?: () => void;
-}) => {
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const DISMISS_THRESHOLD = SCREEN_HEIGHT * 0.25;
+
+const EXPAND_SPRING = { damping: 26, stiffness: 240, mass: 0.8 };
+const COLLAPSE_SPRING = { damping: 34, stiffness: 300, mass: 0.9 };
+
+const PlayerScreen = () => {
   const router = useRouter();
 
   const { addToFavorite, favoriteSongs, currentUser } = useUserStore();
-  const { currentSong } = usePlayerStore();
+  const currentSong = useActiveTrack();
 
   const { top } = useSafeAreaInsets();
 
@@ -65,7 +71,7 @@ const PlayerScreen = ({
           key: "go_to_artist",
           label: "Go to artist",
           icon: "artist",
-          data: currentSong.artists.primary[0]?.artistId,
+          data: currentSong.artist,
         },
         {
           key: "save_to_playlist",
@@ -83,7 +89,7 @@ const PlayerScreen = ({
       currentSong.imageUrl ?? "",
       currentSong.imageUrl,
       currentSong.albumId ?? "",
-      currentSong.artists.primary[0].name ?? "",
+      currentSong.artist ?? "",
       currentSong.duration ?? 0,
       currentSong.releaseYear ?? "",
       currentSong._id,
@@ -95,39 +101,82 @@ const PlayerScreen = ({
 
   const handleShare = async () => {
     if (!currentSong) return;
-
     try {
       const shareOptions = {
         title: currentSong.title,
-        message: `Check out this song: ${
-          currentSong.title
-        } by ${currentSong.artists.primary
-          .map((artist) => artist.name)
-          .join(", ")}`,
-        url: currentSong.imageUrl ?? "",
+        message: `Check out this song: ${currentSong.title} by ${currentSong.artist}`,
+        url: currentSong.artwork ?? "",
       };
-
       await Share.share(shareOptions);
     } catch (error) {
       console.error("Error sharing the song:", error);
     }
   };
 
-  // Artwork animation
-  const scale = useSharedValue(0.9);
-  const opacity = useSharedValue(0);
+  // ── Artwork entry animation ───────────────────────────────────────
+  const artworkScale = useSharedValue(0.9);
+  const artworkOpacity = useSharedValue(0);
 
   useEffect(() => {
-    // Reset and animate on song change — not on every mount
-    scale.value = 0.9;
-    opacity.value = 0;
-    scale.value = withDelay(100, withTiming(1, { duration: 800 }));
-    opacity.value = withTiming(1, { duration: 800 });
+    artworkScale.value = 0.9;
+    artworkOpacity.value = 0;
+    artworkScale.value = withDelay(100, withTiming(1, { duration: 800 }));
+    artworkOpacity.value = withTiming(1, { duration: 800 });
   }, [currentSong?._id]);
 
   const animatedArtworkStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
+    transform: [{ scale: artworkScale.value }],
+    opacity: artworkOpacity.value,
+  }));
+
+  // ── Swipe-to-dismiss gesture ──────────────────────────────────────
+  const translateY = useSharedValue(0);
+  const startY = useSharedValue(0);
+
+  const panGesture = Gesture.Pan()
+    .activeOffsetY(10) // activate only on intentional downward drag
+    .failOffsetY(-5) // fail fast on upward swipe so controls work
+    .onStart(() => {
+      startY.value = translateY.value;
+    })
+    .onUpdate((e) => {
+      // only allow dragging downward
+      translateY.value = Math.max(0, startY.value + e.translationY);
+    })
+    .onEnd((e) => {
+      if (e.velocityY > 1000 || translateY.value > DISMISS_THRESHOLD) {
+        // Fast ease-in to screen bottom then dismiss — no spring bounce delay
+        translateY.value = withTiming(
+          SCREEN_HEIGHT,
+          { duration: 150, easing: Easing.in(Easing.ease) },
+          () => {
+            runOnJS(router.back)();
+          }
+        );
+      } else {
+        // Snap back to fully open
+        translateY.value = withSpring(0, EXPAND_SPRING);
+      }
+    });
+
+  // Container slides with the finger + border-radius morphs on drag
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    // Solid background prevents black flash on the transparent modal
+    backgroundColor: "#000",
+    borderTopLeftRadius: interpolate(
+      translateY.value,
+      [0, 80],
+      [0, 24],
+      Extrapolation.CLAMP
+    ),
+    borderTopRightRadius: interpolate(
+      translateY.value,
+      [0, 80],
+      [0, 24],
+      Extrapolation.CLAMP
+    ),
+    overflow: "hidden",
   }));
 
   if (!currentSong) {
@@ -138,179 +187,164 @@ const PlayerScreen = ({
     );
   }
 
-  const content = (
-    <LinearGradient
-      style={[StyleSheet.absoluteFillObject, { flex: 1, overflow: "visible" }]}
-      colors={["#0F2027", "#203A43", "#2C5364"]}
-    >
-      <GradientBackground imageUrl={currentSong?.imageUrl} />
-      <View style={[styles.overlayContainer]}>
-        {/* Close button */}
-        <View style={styles.topBarIconContainer}>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() =>
-              isExpandableMode && onCollapse ? onCollapse() : router.back()
-            }
+  return (
+    <GestureDetector gesture={panGesture}>
+      <Animated.View style={[{ flex: 1 }, animatedContainerStyle]}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <LinearGradient
+            style={[StyleSheet.absoluteFill, { flex: 1, overflow: "visible" }]}
+            colors={["#0F2027", "#203A43", "#2C5364"]}
           >
-            <ChevronDownIcon size={30} color={"#fff"} />
-          </TouchableOpacity>
-
-          <View
-            style={{
-              height: "100%",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                setMenuVisible(true);
-              }}
-            >
-              <MoreVerticalIcon size={22} color={"#fff"} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={{ flex: 1, marginTop: top + 40 }}>
-          <View style={styles.artworkImageContainer}>
-            <Animated.Image
-              source={{
-                uri: currentSong.imageUrl,
-              }}
-              resizeMode="cover"
-              style={[styles.artworkImage, animatedArtworkStyle]}
-            />
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <View style={{ marginTop: 20 }}>
-              <View style={{ height: 60 }}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  {/* Track title */}
-                  <View style={styles.trackTitleContainer}>
-                    <MovingText
-                      text={currentSong.title ?? ""}
-                      animationThreshold={30}
-                      style={styles.trackTitleText}
-                    />
-                  </View>
-
-                  {/* Favorite button icon */}
-                  {currentUser && (
-                    <FontAwesome
-                      name={
-                        favoriteSongs.find(
-                          (song) => song._id === currentSong._id
-                        )
-                          ? "heart"
-                          : "heart-o"
-                      }
-                      size={20}
-                      color={
-                        favoriteSongs.find(
-                          (song) => song._id === currentSong._id
-                        )
-                          ? colors.primary
-                          : colors.icon
-                      }
-                      style={{ marginHorizontal: 14 }}
-                      onPress={handleAddToFavorite}
-                    />
-                  )}
-                  {/* Share button icon*/}
-                  <Pressable
-                    onPress={handleShare}
-                    style={({ pressed }) => [
-                      {
-                        backgroundColor: pressed
-                          ? "rgb(210, 230, 255)"
-                          : "white",
-                      },
-                      styles.iconContainer,
-                    ]}
-                  >
-                    <Share2 size={20} color={colors.icon} />
-                  </Pressable>
-                </View>
-
-                {/* Track artist */}
-                {currentSong.artists && (
-                  <Text
-                    numberOfLines={1}
-                    style={[styles.trackArtistText, { marginTop: 6 }]}
-                  >
-                    {currentSong.artists.primary
-                      .map((artist) => artist.name)
-                      .join(",")}
-                  </Text>
-                )}
+            <GradientBackground imageUrl={currentSong?.artwork} />
+            <View style={styles.overlayContainer}>
+              {/* Drag handle — visual cue that screen is swipeable */}
+              <View style={styles.dragHandleContainer}>
+                <View style={styles.dragHandle} />
               </View>
 
-              <PlayerProgressBar style={{ marginTop: 32 }} />
+              {/* Top bar */}
+              <View
+                style={[styles.topBarIconContainer, { paddingTop: top + 4 }]}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => router.back()}
+                >
+                  <ChevronDownIcon size={30} color={"#fff"} />
+                </TouchableOpacity>
 
-              <PlayerControls style={{ marginTop: 40 }} />
+                <View
+                  style={{
+                    height: "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => setMenuVisible(true)}
+                  >
+                    <MoreVerticalIcon size={22} color={"#fff"} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={{ flex: 1, marginTop: top + 4 }}>
+                <View style={styles.artworkImageContainer}>
+                  <Animated.Image
+                    source={{ uri: currentSong.artwork }}
+                    resizeMode="cover"
+                    style={[styles.artworkImage, animatedArtworkStyle]}
+                  />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <View style={{ marginTop: 20 }}>
+                    <View style={{ height: 60 }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        {/* Track title */}
+                        <View style={styles.trackTitleContainer}>
+                          <MovingText
+                            text={currentSong.title ?? ""}
+                            animationThreshold={30}
+                            style={styles.trackTitleText}
+                          />
+                        </View>
+
+                        {/* Favorite button */}
+                        {currentUser && (
+                          <FontAwesome
+                            name={
+                              favoriteSongs.find(
+                                (s) => s._id === currentSong._id
+                              )
+                                ? "heart"
+                                : "heart-o"
+                            }
+                            size={20}
+                            color={
+                              favoriteSongs.find(
+                                (s) => s._id === currentSong._id
+                              )
+                                ? colors.primary
+                                : colors.icon
+                            }
+                            style={{ marginHorizontal: 14 }}
+                            onPress={handleAddToFavorite}
+                          />
+                        )}
+
+                        {/* Share button */}
+                        <Pressable
+                          onPress={handleShare}
+                          style={({ pressed }) => [
+                            {
+                              backgroundColor: pressed
+                                ? "rgb(210, 230, 255)"
+                                : "white",
+                            },
+                            styles.iconContainer,
+                          ]}
+                        >
+                          <Share2 size={20} color={colors.icon} />
+                        </Pressable>
+                      </View>
+
+                      <Text
+                        numberOfLines={1}
+                        style={[
+                          styles.trackArtistText,
+                          { marginTop: 6, color: colors.textMuted },
+                        ]}
+                      >
+                        {currentSong.artist}
+                      </Text>
+                    </View>
+
+                    <PlayerProgressBar style={{ marginTop: 32 }} />
+                    <PlayerControls style={{ marginTop: 10 }} />
+
+                    {/* Queue button */}
+                    <View
+                      style={{
+                        marginTop: 12,
+                        paddingHorizontal: 32,
+                        flexDirection: "row",
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => router.push("/queue")}
+                      >
+                        <MaterialIcons
+                          name="queue-music"
+                          size={28}
+                          color={colors.icon}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
 
-            {/* <PlayerVolumeBar style={{ marginTop: "auto", marginBottom: 30 }} />
-
-            <View style={utilsStyles.centeredRow}>
-              <PlayerRepeatToggle size={30} style={{ marginBottom: 6 }} />
-            </View> */}
-          </View>
-        </View>
-      </View>
-      <QueueScreen imageUrl={currentSong.imageUrl} />
-
-      <MenuModal
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        items={menuItems}
-        title="Song Options"
-      />
-    </LinearGradient>
-  );
-
-  if (isExpandableMode) {
-    return <View style={{ flex: 1 }}>{content}</View>;
-  }
-
-  return <SafeAreaView style={{ flex: 1 }}>{content}</SafeAreaView>;
-};
-
-const DismissPlayerSymbol = () => {
-  const { top } = useSafeAreaInsets();
-
-  return (
-    <View
-      style={{
-        position: "absolute",
-        top: top + 8,
-        left: 0,
-        right: 0,
-        flexDirection: "row",
-        justifyContent: "center",
-      }}
-    >
-      <View
-        accessible={false}
-        style={{
-          width: 50,
-          height: 8,
-          borderRadius: 8,
-          backgroundColor: "#fff",
-          opacity: 0.7,
-        }}
-      />
-    </View>
+            <MenuModal
+              visible={menuVisible}
+              onClose={() => setMenuVisible(false)}
+              items={menuItems}
+              title="Song Options"
+            />
+          </LinearGradient>
+        </SafeAreaView>
+      </Animated.View>
+    </GestureDetector>
   );
 };
 
@@ -319,27 +353,33 @@ const styles = StyleSheet.create({
     ...defaultStyles.container,
     paddingHorizontal: screenPadding.horizontal,
   },
+  dragHandleContainer: {
+    alignItems: "center",
+    paddingTop: 10,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.35)",
+  },
   topBarIconContainer: {
     flexDirection: "row",
     height: 10,
-    width: " 100%",
+    width: "100%",
     justifyContent: "space-between",
     alignItems: "center",
     paddingInline: 8,
-    paddingTop: 42,
   },
   artworkImageContainer: {
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.44,
     shadowRadius: 20,
     elevation: 10,
     flexDirection: "row",
     justifyContent: "center",
-    height: "45%",
+    height: "55%",
   },
   artworkImage: {
     width: "100%",
@@ -358,7 +398,7 @@ const styles = StyleSheet.create({
   },
   trackArtistText: {
     ...defaultStyles.text,
-    fontSize: fontSize.base,
+    fontSize: fontSize.sm,
     opacity: 0.8,
     maxWidth: "90%",
   },

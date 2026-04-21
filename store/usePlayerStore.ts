@@ -41,7 +41,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
     quality: qualites.medium,
   },
 
-  initializeQueue: (songs: Song[], startIndex: number = 0) => {
+  initializeQueue: async (songs: Song[], startIndex: number = 0) => {
     set({
       queue: songs,
       originalQueue: [],
@@ -71,7 +71,9 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
     }
     newQueue.splice(targetPos, 0, song);
 
-    const newOriginalQueue = isShuffle ? [...originalQueue, song] : originalQueue;
+    const newOriginalQueue = isShuffle
+      ? [...originalQueue, song]
+      : originalQueue;
     set({
       queue: newQueue,
       originalQueue: isShuffle ? newOriginalQueue : originalQueue,

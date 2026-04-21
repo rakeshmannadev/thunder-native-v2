@@ -12,11 +12,10 @@ import { useCallback, useEffect } from "react";
 import "react-native-reanimated";
 
 import SearchBar from "@/components/search/SearchBar";
-import ExpandablePlayer from "@/components/songs/ExpandablePlayer";
+import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import { Colors } from "@/constants/Colors";
 import { useLogTrackPlayerState } from "@/hooks/useLogTrackPlayerState";
 import { useSetupTrackPlayer } from "@/hooks/useSetupTrackPlayer";
-import { useTrackPlayerSync } from "@/hooks/useTrackPlayerSync";
 import { playbackService } from "@/services/playbackServices";
 import usePlayerStore from "@/store/usePlayerStore";
 import useSocketStore from "@/store/useSocketStore";
@@ -29,9 +28,11 @@ import {
 } from "react-native-safe-area-context";
 import TrackPlayer from "react-native-track-player";
 
+// Screens on which the floating mini-player bar should NOT be shown
 const hideFloatingPlayerScreens = [
   "profile",
   "player",
+  "queue",
   "auth",
   "Signup",
   "Login",
@@ -41,6 +42,7 @@ const hideFloatingPlayerScreens = [
   "[id]",
   "library",
 ];
+
 const withoutTabBarScreens = [
   "library_content",
   "search",
@@ -48,6 +50,7 @@ const withoutTabBarScreens = [
   "[id]",
   "create-room",
 ];
+
 SplashScreen.preventAutoHideAsync();
 TrackPlayer.registerPlaybackService(() => playbackService);
 
@@ -57,14 +60,12 @@ export default function RootLayout() {
   const { currentSong } = usePlayerStore();
 
   const { bottom } = useSafeAreaInsets();
-  const bottomOffSet = bottom + 50;
+  const bottomOffset = bottom + 8;
 
-  const currentSegment = segments[segments.length - 1]; //
+  const currentSegment = segments[segments.length - 1];
 
   const { getCurrentUser } = useUserStore();
   const { disconnectSocket, socket } = useSocketStore();
-
-  // trackplayer setup
 
   const handleTrackPlayerLoaded = useCallback(() => {
     SplashScreen.hideAsync();
@@ -72,7 +73,6 @@ export default function RootLayout() {
 
   useSetupTrackPlayer({ onLoad: handleTrackPlayerLoaded });
   useLogTrackPlayerState();
-  useTrackPlayerSync();
 
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -102,6 +102,9 @@ export default function RootLayout() {
 
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
+  const showFloatingPlayer =
+    currentSong && !hideFloatingPlayerScreens.includes(currentSegment);
+
   return (
     <GluestackUIProvider mode={colorScheme === "light" ? "light" : "dark"}>
       <SafeAreaProvider>
@@ -115,6 +118,22 @@ export default function RootLayout() {
                   name="(tabs)"
                   options={{
                     headerShown: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="player"
+                  options={{
+                    presentation: "transparentModal",
+                    headerShown: false,
+                    animation: "slide_from_bottom",
+                  }}
+                />
+                <Stack.Screen
+                  name="queue"
+                  options={{
+                    presentation: "transparentModal",
+                    headerShown: false,
+                    animation: "slide_from_bottom",
                   }}
                 />
                 <Stack.Screen
@@ -167,7 +186,6 @@ export default function RootLayout() {
                     },
                   }}
                 />
-
                 <Stack.Screen
                   name="library_content/index"
                   options={{
@@ -184,7 +202,6 @@ export default function RootLayout() {
                     headerTransparent: true,
                   }}
                 />
-
                 <Stack.Screen
                   name="album/[id]"
                   options={{
@@ -227,16 +244,22 @@ export default function RootLayout() {
                 />
                 <Stack.Screen name="+not-found" />
               </Stack>
-              {currentSong &&
-                !hideFloatingPlayerScreens.includes(currentSegment) && (
-                  <ExpandablePlayer
-                    bottomOffset={
-                      withoutTabBarScreens.includes(currentSegment)
-                        ? 16
-                        : bottomOffSet
-                    }
-                  />
-                )}
+
+              {/* Floating mini-player bar — only shown on non-player screens */}
+              {showFloatingPlayer && (
+                <FloatingPlayer
+                  style={{
+                    position: "absolute",
+                    left: 8,
+                    right: 8,
+                    bottom: withoutTabBarScreens.includes(currentSegment)
+                      ? bottomOffset
+                      : bottom + 58,
+                    borderRadius: 12,
+                    overflow: "hidden",
+                  }}
+                />
+              )}
             </GestureHandlerRootView>
           </>
         </ThemeProvider>

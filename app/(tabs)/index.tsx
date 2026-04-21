@@ -52,8 +52,6 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    // Only initialize queue when data arrives AND no song is actively playing.
-    // This prevents wiping the user's playback (queue, index, shuffle) on data refresh.
     if (
       (trending.length > 0 || featured.length > 0) &&
       !usePlayerStore.getState().currentSong
@@ -208,7 +206,7 @@ const HomeScreenSection = React.memo(
         keyExtractor={(_: any, index) =>
           isLoading
             ? `skeleton-${section.title}-${index}`
-            : _?._id?.toString() ?? `item-${index}`
+            : (_?._id?.toString() ?? `item-${index}`)
         }
         data={isLoading ? SKELETON_DATA : section.data}
         renderItem={({ item, index }) =>

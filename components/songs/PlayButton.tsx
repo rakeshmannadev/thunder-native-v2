@@ -24,6 +24,7 @@ const PlayButton = ({ song }: { song: Song }) => {
   const { isBroadcasting, playSong } = useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom } = useRoomStore();
+  const { queue } = usePlayerStore();
 
   const { currentSong, setCurrentSong } = usePlayerStore();
   const { playing: isPlaying } = useIsPlaying();
@@ -45,11 +46,27 @@ const PlayButton = ({ song }: { song: Song }) => {
       return;
     }
 
-    if (currentTrack) {
-      // Same song — just resume directly via RNTP
-      TrackPlayer.play();
-      return;
-    }
+    console.log("enters");
+    await TrackPlayer.reset();
+
+    await TrackPlayer.setQueue(
+      queue.map((song) => ({
+        id: song._id,
+        url: song.audioUrl,
+        title: song.title,
+        artist: song.artists.primary.map((artist) => artist.name).join(", "),
+        artwork: song.imageUrl,
+      }))
+    );
+    await TrackPlayer.load({
+      id: song._id,
+      url: song.audioUrl,
+      title: song.title,
+      artist: song.artists.primary.map((artist) => artist.name).join(", "),
+      artwork: song.imageUrl,
+    });
+
+    await TrackPlayer.play();
 
     // New song — useTrackPlayerSync watches currentSong change and loads/plays it
     setCurrentSong(song);
