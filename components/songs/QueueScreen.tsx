@@ -1,7 +1,7 @@
 // components/player/QueueScreen.tsx
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -26,14 +26,12 @@ import Animated, {
 
 import { colors, fontSize } from "@/constants/tokens";
 import usePlayerStore from "@/store/usePlayerStore";
-import { Song } from "@/types";
 import { ListMusic, MoreVertical } from "lucide-react-native";
+import TrackPlayer, { Track } from "react-native-track-player";
 import MenuModal, { MenuItem } from "../MenuModal";
 import MusicVisualizer from "./MusicVisualizer";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const QUEUE_HEIGHT = SCREEN_HEIGHT;
-const PEEK_HEIGHT = 0;
 const DISMISS_THRESHOLD = SCREEN_HEIGHT * 0.3;
 
 // ── Spring configs ──────────────────────────────────────────────────
@@ -44,11 +42,11 @@ const COLLAPSE_SPRING = { damping: 34, stiffness: 300, mass: 0.9 };
 
 // ── Memoized row — only re-renders when isActive changes ────────────
 type QueueRowProps = {
-  item: Song;
+  item: Track;
   index: number;
   isActive: boolean;
   onPlay: (index: number) => void;
-  onMenu: (song: Song) => void;
+  onMenu: (song: Track) => void;
 };
 
 const QueueRow = React.memo(
@@ -60,7 +58,7 @@ const QueueRow = React.memo(
         activeOpacity={0.7}
       >
         <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-          <Image source={{ uri: item.imageUrl }} style={styles.songImage} />
+          <Image source={{ uri: item.artwork }} style={styles.songImage} />
           <View style={{ flex: 1 }}>
             <Text
               numberOfLines={1}
@@ -69,7 +67,7 @@ const QueueRow = React.memo(
               {item.title}
             </Text>
             <Text numberOfLines={1} style={styles.subtitle}>
-              {item.artists?.primary?.map((a: any) => a.name).join(", ")}
+              {item.artist}
             </Text>
           </View>
         </View>
@@ -85,15 +83,19 @@ const QueueRow = React.memo(
     </View>
   ),
   (prev, next) =>
-    prev.isActive === next.isActive && prev.item._id === next.item._id
+    prev.isActive === next.isActive && prev.item.mediaId === next.item.mediaId
 );
 
-export default function QueueScreen({ imageUrl }: { imageUrl?: string }) {
+export default function QueueScreen() {
   const router = useRouter();
-  const { queue, currentSong, currentIndex, playQueueIndex } = usePlayerStore();
-
+  const { currentIndex, playQueueIndex } = usePlayerStore();
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [queue, setQueue] = useState<Track[]>([]);
+
+  useEffect(() => {
+    TrackPlayer.getQueue().then(setQueue);
+  }, []);
 
   // sheet translate (start expanded since it's a route)
   const translateY = useSharedValue(0);
@@ -179,7 +181,7 @@ export default function QueueScreen({ imageUrl }: { imageUrl?: string }) {
   });
 
   // FlatList item renderer — delegates to memoized QueueRow
-  const renderItem = ({ item, index }: ListRenderItemInfo<Song>) => (
+  const renderItem = ({ item, index }: ListRenderItemInfo<Track>) => (
     <QueueRow
       item={item}
       index={index}
@@ -193,19 +195,19 @@ export default function QueueScreen({ imageUrl }: { imageUrl?: string }) {
             key: "go_to_album",
             label: "Go to album",
             icon: "album",
-            data: song.albumId,
+            data: song.album,
           },
           {
             key: "go_to_artist",
             label: "Go to artist",
             icon: "artist",
-            data: song.artists.primary[0].artistId,
+            data: song.artist,
           },
           {
             key: "save_to_playlist",
             label: "Save to playlist",
             icon: "playlist",
-            data: song._id,
+            data: song.mediaId,
           },
         ]);
         setMenuVisible(true);
@@ -257,7 +259,7 @@ export default function QueueScreen({ imageUrl }: { imageUrl?: string }) {
                 <FlatList
                   ref={listRef}
                   data={queue}
-                  keyExtractor={(item, index) => `${item._id}-${index}`}
+                  keyExtractor={(item, index) => `${item.mediaId}-${index}`}
                   renderItem={renderItem}
                   showsVerticalScrollIndicator={false}
                   onScroll={onScroll}

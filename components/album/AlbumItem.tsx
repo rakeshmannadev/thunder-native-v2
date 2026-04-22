@@ -1,7 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
-import usePlayerStore from "@/store/usePlayerStore";
 import { Artist, Song } from "@/types";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React, { useState } from "react";
@@ -12,6 +11,10 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import TrackPlayer, {
+  useActiveTrack,
+  useIsPlaying,
+} from "react-native-track-player";
 import MenuModal, { MenuItem } from "../MenuModal";
 import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
@@ -21,64 +24,82 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
-  const { currentSong, setCurrentSong, isPlaying } = usePlayerStore();
-  const isActive = currentSong?.audioUrl == song.audioUrl;
+  const currentSong = useActiveTrack();
+  const isPlaying = useIsPlaying();
+
+  const isActive = currentSong?.url == song.audioUrl;
 
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const menuItems: MenuItem[] = [
-    {
-      key: "play_next",
-      label: "Play next",
-      icon: "play_next",
-      data: song,
-    },
-    {
-      key: "add_to_queue",
-      label: "Add to Queue",
-      icon: "queue",
-      data: [song],
-    },
-    {
-      key: "add_to_playlist",
-      label: "Add to Playlist",
-      icon: "playlist",
-      data: song,
-    },
-    {
-      key: "go_to_artist",
-      label: "Go to Artist",
-      icon: "artist",
-      data: song.artists.primary[0],
-    },
-    {
-      key: "go_to_album",
-      label: "Go to Album",
-      icon: "album",
-      data: song.albumId,
-    },
-    {
-      key: "download",
-      label: "Download",
-      icon: "download",
-      data: song,
-    },
-    {
-      key: "share",
-      label: "Share",
-      icon: "share",
-      data: song,
-    },
-  ];
+  const playTrack = async (song: Song) => {
+    await TrackPlayer.load({
+      id: song._id,
+      title: song.title,
+      artist: song.artists.primary
+        .map((artist: Artist) => artist.name)
+        .join(", "),
+      artwork: song.imageUrl,
+      url: song.audioUrl,
+    });
+    await TrackPlayer.play();
+  };
+
+  const menuItems: MenuItem[] = isLoading
+    ? []
+    : [
+        {
+          key: "play_next",
+          label: "Play next",
+          icon: "play_next",
+          data: song,
+        },
+        {
+          key: "add_to_queue",
+          label: "Add to Queue",
+          icon: "queue",
+          data: [song],
+        },
+        {
+          key: "add_to_playlist",
+          label: "Add to Playlist",
+          icon: "playlist",
+          data: song,
+        },
+        {
+          key: "go_to_artist",
+          label: "Go to Artist",
+          icon: "artist",
+          data: song.artists?.primary?.[0],
+        },
+        {
+          key: "go_to_album",
+          label: "Go to Album",
+          icon: "album",
+          data: song.albumId,
+        },
+        {
+          key: "download",
+          label: "Download",
+          icon: "download",
+          data: song,
+        },
+        {
+          key: "share",
+          label: "Share",
+          icon: "share",
+          data: song,
+        },
+      ];
 
   return (
     <TouchableOpacity
-      onPress={() => setCurrentSong(song)}
-      className="flex flex-row gap-5 justify-between items-center  rounded-xl  mb-4 "
+      disabled={isLoading}
+      onPress={() => playTrack(song)}
+      className="flex flex-row gap-5 justify-between items-center  rounded-xl  mb-4  "
     >
       <View>
         {isLoading ? (
-          <Skeleton variant="rounded" className="w-12 h-10" />
+          <Skeleton variant="rounded" className="w-16 h-16" />
         ) : (
           <Image
             source={{
@@ -93,7 +114,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
             }}
           />
         )}
-        {isActive && (
+        {!isLoading && isActive && (
           <View
             className="absolute top-0 left-0 aspect-square w-[60] rounded-lg flex flex-row items-center justify-center 
              bg-gray-600/80"
@@ -106,7 +127,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
           </View>
         )}
       </View>
-      <View className="flex flex-1 gap-1 pr-4 ">
+      <View className="flex flex-1 gap-1  ">
         {isLoading ? (
           <SkeletonText className="w-28 h-4" />
         ) : (
@@ -118,7 +139,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
           {isLoading ? (
             <SkeletonText className="w-24 h-4" />
           ) : (
-            <View className="flex-1 flex-row items-center justify-start gap-2">
+            <View className="flex-1 flex-row items-center justify-between gap-2 pr-10">
               <ThemedText
                 numberOfLines={1}
                 type="default"

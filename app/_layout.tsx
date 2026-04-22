@@ -17,7 +17,6 @@ import { Colors } from "@/constants/Colors";
 import { useLogTrackPlayerState } from "@/hooks/useLogTrackPlayerState";
 import { useSetupTrackPlayer } from "@/hooks/useSetupTrackPlayer";
 import { playbackService } from "@/services/playbackServices";
-import usePlayerStore from "@/store/usePlayerStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { useColorScheme } from "react-native";
@@ -26,7 +25,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import TrackPlayer from "react-native-track-player";
+import TrackPlayer, { useActiveTrack } from "react-native-track-player";
 
 // Screens on which the floating mini-player bar should NOT be shown
 const hideFloatingPlayerScreens = [
@@ -39,7 +38,6 @@ const hideFloatingPlayerScreens = [
   "menu",
   "settings",
   "create_room",
-  "[id]",
   "library",
 ];
 
@@ -57,7 +55,7 @@ TrackPlayer.registerPlaybackService(() => playbackService);
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
-  const { currentSong } = usePlayerStore();
+  const currentSong = useActiveTrack();
 
   const { bottom } = useSafeAreaInsets();
   const bottomOffset = bottom + 8;

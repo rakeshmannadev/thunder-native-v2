@@ -13,7 +13,10 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import TrackPlayer, { useIsPlaying } from "react-native-track-player";
+import TrackPlayer, {
+  useActiveTrack,
+  useIsPlaying,
+} from "react-native-track-player";
 
 const PlayButton = ({ song }: { song: Song }) => {
   const colorScheme = useColorScheme();
@@ -26,10 +29,11 @@ const PlayButton = ({ song }: { song: Song }) => {
   const { currentRoom } = useRoomStore();
   const { queue } = usePlayerStore();
 
-  const { currentSong, setCurrentSong } = usePlayerStore();
+  const currentActiveTrack = useActiveTrack();
+
   const { playing: isPlaying } = useIsPlaying();
 
-  const currentTrack = currentSong?.songId === song?.songId;
+  const currentTrack = currentActiveTrack?.id === song?._id;
 
   const handlePlaySong = async (song: Song) => {
     if (!song) return;
@@ -47,29 +51,20 @@ const PlayButton = ({ song }: { song: Song }) => {
     }
 
     console.log("enters");
-    await TrackPlayer.reset();
+    // await TrackPlayer.reset();
 
-    await TrackPlayer.setQueue(
-      queue.map((song) => ({
+    await TrackPlayer.add(
+      {
         id: song._id,
         url: song.audioUrl,
         title: song.title,
         artist: song.artists.primary.map((artist) => artist.name).join(", "),
         artwork: song.imageUrl,
-      }))
+      },
+      0
     );
-    await TrackPlayer.load({
-      id: song._id,
-      url: song.audioUrl,
-      title: song.title,
-      artist: song.artists.primary.map((artist) => artist.name).join(", "),
-      artwork: song.imageUrl,
-    });
 
     await TrackPlayer.play();
-
-    // New song — useTrackPlayerSync watches currentSong change and loads/plays it
-    setCurrentSong(song);
   };
   const handlePauseSong = () => {
     TrackPlayer.pause();

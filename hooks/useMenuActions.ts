@@ -2,8 +2,11 @@ import usePlayerStore from "@/store/usePlayerStore";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
+import { Artist, Song } from "@/types";
 import { useRouter } from "expo-router";
 import { Appearance } from "react-native";
+import TrackPlayer from "react-native-track-player";
+import { showToast } from "./useToastMessage";
 
 const useMenuActions = () => {
   const router = useRouter();
@@ -14,7 +17,7 @@ const useMenuActions = () => {
   const { currentUser } = useUserStore();
   const { currentRoom, leaveJoinedRoom } = useRoomStore();
 
-  const handleMenuActions = (action: string, params?: number | any) => {
+  const handleMenuActions = async (action: string, params?: number | any) => {
     switch (action) {
       case "go_to_artist":
         router.push({ pathname: "/artist/[id]", params: { id: params } });
@@ -23,15 +26,49 @@ const useMenuActions = () => {
         router.push({ pathname: "/album/[id]", params: { id: params } });
         break;
       case "add_to_queue":
-        console.log("params", params);
-        if (params && Array.isArray(params)) {
-          addToQueue(params);
-        }
+        if (!params || !Array.isArray(params)) return;
+        const song: Song = params[0];
+
+        await TrackPlayer.add({
+          id: song._id,
+          title: song.title,
+          artist: song.artists.primary
+            .map((artist: Artist) => artist.name)
+            .join(", "),
+          artwork: song.imageUrl,
+          url: song.audioUrl,
+        });
+        showToast("Song added to queue");
         break;
       case "play_next":
-        if (params) {
-          insertToQueue(params, currentIndex + 1);
+        if (!params) return;
+        const songToPlayNext: Song = params;
+        const currentIndex = await TrackPlayer.getActiveTrackIndex();
+        if (currentIndex) {
+          await TrackPlayer.add(
+            {
+              id: songToPlayNext._id,
+              title: songToPlayNext.title,
+              artist: songToPlayNext.artists.primary
+                .map((artist: Artist) => artist.name)
+                .join(", "),
+              artwork: songToPlayNext.imageUrl,
+              url: songToPlayNext.audioUrl,
+            },
+            currentIndex + 1
+          );
+        } else {
+          await TrackPlayer.add({
+            id: songToPlayNext._id,
+            title: songToPlayNext.title,
+            artist: songToPlayNext.artists.primary
+              .map((artist: Artist) => artist.name)
+              .join(", "),
+            artwork: songToPlayNext.imageUrl,
+            url: songToPlayNext.audioUrl,
+          });
         }
+        showToast("Song added to queue");
         break;
       case "light":
         Appearance.setColorScheme("light");

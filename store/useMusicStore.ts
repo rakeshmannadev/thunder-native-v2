@@ -14,6 +14,7 @@ interface MusicStore {
   // Loading counter — isLoading is true when any fetch is in-flight
   _loadingCount: number;
   isLoading: boolean;
+  isAlbumFetching: boolean;
   searchLoading: boolean;
   fetchAllSongs: () => Promise<void>;
   fetchArtistById: (id: string) => Promise<void>;
@@ -48,6 +49,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   _loadingCount: 0,
   isLoading: false,
   searchLoading: false,
+  isAlbumFetching: false,
 
   fetchAllSongs: async () => {
     set(startLoading);
@@ -68,7 +70,10 @@ const useMusicStore = create<MusicStore>((set) => ({
         set({ featured: response.data.songs });
       }
     } catch (error: any) {
-      console.log("Error in fetching featured songs", error?.response?.data?.message);
+      console.log(
+        "Error in fetching featured songs",
+        error?.response?.data?.message
+      );
     } finally {
       set(stopLoading);
     }
@@ -139,7 +144,7 @@ const useMusicStore = create<MusicStore>((set) => ({
     }
   },
   fetchAlbumById: async (albumId) => {
-    set(startLoading);
+    set({ isAlbumFetching: true });
     try {
       const response = await axiosInstance.get(`/albums/${albumId}`);
       if (response.status) {
@@ -148,7 +153,7 @@ const useMusicStore = create<MusicStore>((set) => ({
     } catch (error: any) {
       console.log(error?.response?.data?.message);
     } finally {
-      set(stopLoading);
+      set({ isAlbumFetching: false });
     }
   },
   searchSong: async (query) => {
