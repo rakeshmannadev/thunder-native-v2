@@ -7,7 +7,7 @@ import {
 } from "@/constants/tokens";
 import { defaultStyles } from "@/styles";
 import { useLocalSearchParams } from "expo-router";
-import { HeartIcon, PlayIcon, Shuffle } from "lucide-react-native";
+import { Shuffle } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
   FlatList,
@@ -15,6 +15,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
@@ -23,11 +24,14 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import AlbumItem from "@/components/album/AlbumItem";
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
+import PlaylistCard from "@/components/playlist/PlaylistCard";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
+import useMusicStore from "@/store/useMusicStore";
 import useUserStore from "@/store/useUserStore";
+import { PlaylistSongs } from "@/types";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import TrackPlayer from "react-native-track-player";
 
 const PlaylistScreen = () => {
   const { id }: { id: string } = useLocalSearchParams();
@@ -35,44 +39,53 @@ const PlaylistScreen = () => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
   const { bottom, top } = useSafeAreaInsets();
-  const {
-    playlistLoading: isLoading,
-    getPlaylistSongs,
-    currentPlaylist,
-    addAlbumToPlaylist,
-    playlists,
-  } = useUserStore();
+  const { addAlbumToPlaylist, playlists } = useUserStore();
+  const { playlistLoading, currentPlaylist, getPlaylistSongs } =
+    useMusicStore();
 
   useEffect(() => {
     if (id) {
-      useUserStore.setState({ currentPlaylist: null });
       getPlaylistSongs(id);
     }
   }, [id, getPlaylistSongs]);
 
-  const handlePlay = async () => {};
+  const playPlaylist = async () => {
+    if (!currentPlaylist) return;
+    await TrackPlayer.reset();
+    await TrackPlayer.setQueue(
+      currentPlaylist.songs.map((song: PlaylistSongs) => ({
+        id: song.id,
+        title: song.name,
+        artist: song.artist_map.artists.map((artist) => artist.name).join(", "),
+        artwork: song.image[2].link,
+        url: song.download_url[3].link,
+      }))
+    );
+
+    await TrackPlayer.play();
+  };
   const handleShufflePlay = async () => {};
 
-  const handleAddAlbumToPlaylist = () => {
-    if (currentPlaylist) {
-      const songs: string[] = [];
-      currentPlaylist.songs.map((song: { _id: string }) => {
-        songs.push(song._id);
-      });
-      addAlbumToPlaylist(
-        currentPlaylist.playlistId,
-        currentPlaylist.playlistName,
-        currentPlaylist.artist,
-        currentPlaylist.albumId,
-        currentPlaylist.imageUrl,
-        songs
-      );
-    }
-  };
+  // const handleAddAlbumToPlaylist = () => {
+  //   if (currentPlaylist) {
+  //     const songs: string[] = [];
+  //     currentPlaylist.songs.map((song: { _id: string }) => {
+  //       songs.push(song._id);
+  //     });
+  //     addAlbumToPlaylist(
+  //       currentPlaylist.id!,
+  //       currentPlaylist.name!,
+  //       currentPlaylist.artist!,
+  //       currentPlaylist.albumId!,
+  //       currentPlaylist.imageUrl!,
+  //       songs
+  //     );
+  //   }
+  // };
 
-  const isAddedToPlaylist = playlists.find(
-    (playlist) => playlist.playlistId === currentPlaylist?.playlistId
-  );
+  // const isAddedToPlaylist = playlists.find(
+  //   (playlist) => playlist.playlistId === currentPlaylist?.playlistId
+  // );
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -84,12 +97,12 @@ const PlaylistScreen = () => {
         {/* --- Playlist Header Section --- */}
         <View style={[styles.headerSection, { marginTop: top }]}>
           <View style={styles.artworkContainer}>
-            {isLoading ? (
+            {playlistLoading ? (
               <Skeleton variant="sharp" />
             ) : (
               <Image
                 source={{
-                  uri: currentPlaylist?.imageUrl,
+                  uri: currentPlaylist?.image,
                 }}
                 style={styles.artwork}
                 resizeMode="cover"
@@ -98,31 +111,31 @@ const PlaylistScreen = () => {
           </View>
 
           <View style={styles.infoContainer}>
-            {isLoading ? (
+            {playlistLoading ? (
               <SkeletonText _lines={1} className="w-20 h-4" />
             ) : (
               <ThemedText
                 style={[styles.title, { color: colors.text }]}
                 className="text-2xl"
               >
-                {currentPlaylist?.playlistName ?? "Unknown Album"}
+                {currentPlaylist?.name ?? "Unknown Album"}
               </ThemedText>
             )}
 
-            {isLoading ? (
+            {playlistLoading ? (
               <SkeletonText className="w-16 h-4" />
             ) : (
               <ThemedText
                 darkColor={colors.textMuted}
                 lightColor={colors.textMuted}
+                numberOfLines={2}
+                ellipsizeMode="tail"
               >
-                {currentPlaylist?.artist
-                  .map((artist) => artist.name)
-                  .join(", ") ?? ""}
+                {currentPlaylist?.artists?.map((a) => a.name).join(", ") ?? ""}
               </ThemedText>
             )}
 
-            {isLoading ? (
+            {playlistLoading ? (
               <SkeletonText className="w-10 h-4" />
             ) : (
               <ThemedText
@@ -133,38 +146,44 @@ const PlaylistScreen = () => {
               </ThemedText>
             )}
 
-            {isLoading ? (
+            {playlistLoading ? (
               <SkeletonText className="w-32 h-8" />
             ) : (
               <View style={styles.controls}>
                 <Pressable
-                  onPress={handleAddAlbumToPlaylist}
                   style={[
                     styles.iconButton,
                     { backgroundColor: colors.component },
                   ]}
                 >
-                  <HeartIcon
+                  {/* <HeartIcon
                     size={20}
                     fill={isAddedToPlaylist ? "green" : "none"}
                     color={isAddedToPlaylist ? "green" : colors.icon}
-                  />
+                  /> */}
                 </Pressable>
 
-                <Button
-                  variant="solid"
-                  size="xl"
-                  onPress={handlePlay}
+                <TouchableOpacity
+                  onPress={playPlaylist}
                   style={{
                     paddingHorizontal: 12,
                     borderRadius: borderRadius.lg,
                     backgroundColor: colors.primary,
                     flex: 1,
+                    height: 48,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
                   }}
                 >
-                  <ButtonText style={{ color: "white" }}>Play</ButtonText>
-                  <ButtonIcon as={PlayIcon} color={"white"} size="lg" />
-                </Button>
+                  <ThemedText style={{ color: "white" }}>Play</ThemedText>
+                  <MaterialCommunityIcons
+                    name="play"
+                    size={22}
+                    color={"white"}
+                  />
+                </TouchableOpacity>
 
                 <Pressable
                   onPress={handleShufflePlay}
@@ -184,10 +203,10 @@ const PlaylistScreen = () => {
         {
           <FlatList
             data={currentPlaylist?.songs ?? []}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item, index) => index + "-" + item.id}
             scrollEnabled={false}
-            renderItem={({ item: song }) => (
-              <AlbumItem isLoading={isLoading} song={song} />
+            renderItem={({ item }: { item: PlaylistSongs }) => (
+              <PlaylistCard isLoading={playlistLoading} song={item} />
             )}
           />
         }

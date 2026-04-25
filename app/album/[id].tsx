@@ -1,10 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
-import {
-  HeartIcon,
-  MoreVerticalIcon,
-  PlayIcon,
-  Shuffle,
-} from "lucide-react-native";
+import { HeartIcon, MoreVerticalIcon, Shuffle } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -12,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
@@ -21,10 +17,8 @@ import {
 } from "react-native-safe-area-context";
 
 import AlbumItem from "@/components/album/AlbumItem";
-import GradientBackground from "@/components/GradientBackground";
 import MenuModal from "@/components/MenuModal";
 import { ThemedText } from "@/components/ThemedText";
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
@@ -32,7 +26,7 @@ import useMusicStore from "@/store/useMusicStore";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { Artist, Song } from "@/types";
-import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import TrackPlayer, { useActiveTrack } from "react-native-track-player";
 
 const AlbumScreen = () => {
@@ -56,7 +50,7 @@ const AlbumScreen = () => {
   }, [id, fetchAlbumById]);
 
   const isAddedToPlaylist = playlists.find(
-    (p) => p.albumId === currentAlbum?.albumId
+    (p) => p.id === currentAlbum?.albumId
   );
 
   const playAlbum = async (songs: Song[], index: number) => {
@@ -110,146 +104,147 @@ const AlbumScreen = () => {
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: colors.background }]}
     >
-      <LinearGradient
+      {/* <LinearGradient
         style={[StyleSheet.absoluteFill, { flex: 1, overflow: "visible" }]}
         colors={["#0F2027", "#203A43", "#2C5364"]}
-      >
-        <GradientBackground imageUrl={activeTrack?.artwork} />
-        <ScrollView style={{ flex: 1 }}>
-          <View style={styles.topBarIconContainer}>
-            <View
-              style={{
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Pressable onPressIn={() => setMenuVisible(true)}>
-                <MoreVerticalIcon size={22} color={colors.icon} />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* --- Album Header Section --- */}
-          <View style={[styles.headerSection, { marginTop: top }]}>
-            <View style={styles.artworkContainer}>
-              {isAlbumFetching ? (
-                <Skeleton variant="sharp" />
-              ) : (
-                <Image
-                  source={{
-                    uri: currentAlbum?.imageUrl,
-                  }}
-                  style={styles.artwork}
-                  resizeMode="cover"
-                />
-              )}
-            </View>
-
-            <View style={styles.infoContainer}>
-              {isAlbumFetching ? (
-                <SkeletonText _lines={1} className="w-20 h-4" />
-              ) : (
-                <ThemedText style={[styles.title, { color: colors.text }]}>
-                  {currentAlbum?.title ?? "Unknown Album"}
-                </ThemedText>
-              )}
-
-              {isAlbumFetching ? (
-                <SkeletonText className="w-16 h-4" />
-              ) : (
-                <ThemedText
-                  darkColor={colors.textMuted}
-                  lightColor={colors.textMuted}
-                >
-                  {currentAlbum?.artists.primary
-                    .map((a) => a.name)
-                    .join(", ") ?? ""}
-                </ThemedText>
-              )}
-
-              {isAlbumFetching ? (
-                <SkeletonText className="w-10 h-4" />
-              ) : (
-                <ThemedText
-                  darkColor={colors.textMuted}
-                  lightColor={colors.textMuted}
-                >
-                  {currentAlbum?.songs.length ?? 0} Songs
-                </ThemedText>
-              )}
-
-              {isAlbumFetching ? (
-                <SkeletonText className="w-32 h-8" />
-              ) : (
-                <View style={styles.controls}>
-                  <Pressable
-                    onPress={handleAddAlbumToFavorite}
-                    style={[
-                      styles.iconButton,
-                      { backgroundColor: colors.component },
-                    ]}
-                  >
-                    <HeartIcon
-                      size={20}
-                      fill={isAddedToPlaylist ? "green" : "none"}
-                      color={isAddedToPlaylist ? "green" : colors.icon}
-                    />
-                  </Pressable>
-
-                  <Button
-                    variant="solid"
-                    size="xl"
-                    onPress={handlePlay}
-                    style={{
-                      paddingHorizontal: 12,
-                      borderRadius: borderRadius.lg,
-                      backgroundColor: colors.primary,
-                      flex: 1,
-                    }}
-                  >
-                    <ButtonText style={{ color: "white" }}>Play</ButtonText>
-                    <ButtonIcon as={PlayIcon} color={"white"} size="lg" />
-                  </Button>
-
-                  <Pressable
-                    onPress={handleShufflePlay}
-                    style={[
-                      styles.iconButton,
-                      { backgroundColor: colors.component },
-                    ]}
-                  >
-                    <Shuffle size={22} color={colors.icon} />
-                  </Pressable>
-                </View>
-              )}
-            </View>
-          </View>
-
+      > */}
+      {/* <GradientBackground imageUrl={activeTrack?.artwork} /> */}
+      <ScrollView style={{ flex: 1 }}>
+        <View style={styles.topBarIconContainer}>
           <View
             style={{
-              paddingHorizontal: screenPadding.horizontal,
-              paddingBlock: 20,
-              paddingBottom: bottom + 50,
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {/* --- Tracklist Section --- */}
-            <FlatList
-              data={
-                isAlbumFetching
-                  ? Array(5).fill({} as Song)
-                  : (currentAlbum?.songs ?? [])
-              }
-              keyExtractor={(item, index) => item?._id ?? index.toString()}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item: song }) => (
-                <AlbumItem isLoading={isAlbumFetching} song={song} />
-              )}
-            />
+            <Pressable onPressIn={() => setMenuVisible(true)}>
+              <MoreVerticalIcon size={22} color={colors.icon} />
+            </Pressable>
           </View>
-        </ScrollView>
-      </LinearGradient>
+        </View>
+
+        {/* --- Album Header Section --- */}
+        <View style={[styles.headerSection, { marginTop: top }]}>
+          <View style={styles.artworkContainer}>
+            {isAlbumFetching ? (
+              <Skeleton variant="sharp" />
+            ) : (
+              <Image
+                source={{
+                  uri: currentAlbum?.imageUrl,
+                }}
+                style={styles.artwork}
+                resizeMode="cover"
+              />
+            )}
+          </View>
+
+          <View style={styles.infoContainer}>
+            {isAlbumFetching ? (
+              <SkeletonText _lines={1} className="w-20 h-4" />
+            ) : (
+              <ThemedText style={[styles.title, { color: colors.text }]}>
+                {currentAlbum?.title ?? "Unknown Album"}
+              </ThemedText>
+            )}
+
+            {isAlbumFetching ? (
+              <SkeletonText className="w-16 h-4" />
+            ) : (
+              <ThemedText
+                darkColor={colors.textMuted}
+                lightColor={colors.textMuted}
+              >
+                {currentAlbum?.artists.primary.map((a) => a.name).join(", ") ??
+                  ""}
+              </ThemedText>
+            )}
+
+            {isAlbumFetching ? (
+              <SkeletonText className="w-10 h-4" />
+            ) : (
+              <ThemedText
+                darkColor={colors.textMuted}
+                lightColor={colors.textMuted}
+              >
+                {currentAlbum?.songs.length ?? 0} Songs
+              </ThemedText>
+            )}
+
+            {isAlbumFetching ? (
+              <SkeletonText className="w-32 h-8" />
+            ) : (
+              <View style={styles.controls}>
+                <Pressable
+                  onPress={handleAddAlbumToFavorite}
+                  style={[
+                    styles.iconButton,
+                    { backgroundColor: colors.component },
+                  ]}
+                >
+                  <HeartIcon
+                    size={20}
+                    fill={isAddedToPlaylist ? "green" : "none"}
+                    color={isAddedToPlaylist ? "green" : colors.icon}
+                  />
+                </Pressable>
+
+                <TouchableOpacity
+                  onPress={handlePlay}
+                  style={{
+                    paddingHorizontal: 12,
+                    borderRadius: borderRadius.lg,
+                    backgroundColor: colors.primary,
+                    flex: 1,
+                  }}
+                >
+                  <ThemedText style={{ color: "white" }}>Play</ThemedText>
+                  <MaterialCommunityIcons
+                    name="play"
+                    size={22}
+                    color={"white"}
+                  />
+                </TouchableOpacity>
+
+                <Pressable
+                  onPress={handleShufflePlay}
+                  style={[
+                    styles.iconButton,
+                    { backgroundColor: colors.component },
+                  ]}
+                >
+                  <Shuffle size={22} color={colors.icon} />
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <View
+          style={{
+            paddingHorizontal: screenPadding.horizontal,
+            paddingBlock: 20,
+            paddingBottom: bottom + 50,
+          }}
+        >
+          {/* --- Tracklist Section --- */}
+          <FlatList
+            data={
+              isAlbumFetching
+                ? Array(5).fill({} as Song)
+                : (currentAlbum?.songs ?? [])
+            }
+            keyExtractor={(item, index) => item?._id ?? index.toString()}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item: song }) => (
+              <AlbumItem isLoading={isAlbumFetching} song={song} />
+            )}
+          />
+        </View>
+      </ScrollView>
+      {/* </LinearGradient> */}
       <MenuModal
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}

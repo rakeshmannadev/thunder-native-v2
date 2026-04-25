@@ -1,6 +1,7 @@
 import { CATEGORIES } from "@/constants/categories";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
+import usePlayerStore from "@/store/usePlayerStore";
 import { useState } from "react";
 import {
   ScrollView,
@@ -14,6 +15,7 @@ const Categories = () => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const [categories, setCategories] = useState(CATEGORIES);
+  const { setSelectedCategory } = usePlayerStore();
   return (
     <View style={{ paddingHorizontal: screenPadding.horizontal }}>
       <ScrollView
@@ -36,6 +38,7 @@ const Categories = () => {
                       : { ...c, active: false }
                   )
                 );
+                setSelectedCategory(category.name.toLowerCase());
               }}
             >
               <View

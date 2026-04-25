@@ -1,30 +1,54 @@
 import { axiosInstance } from "@/lib/axios";
-import { Album, Artist, SearchedSong, Song } from "@/types";
+import {
+  Album,
+  Artist,
+  Chart,
+  Featured,
+  Playlist,
+  SearchedSong,
+  Show,
+  Song,
+  TopAlbums,
+  TopArtists,
+} from "@/types";
 import { create } from "zustand";
 
 interface MusicStore {
   songs: Song[];
-  featured: Song[];
+  featured: Featured[];
   madeForYouAlbums: Album[];
   currentAlbum: Album | null;
   currentArtist: Artist | null;
   trending: Song[];
+  topAlbums: TopAlbums[];
+  currentPlaylist: Playlist | null;
+
   searchedSongs: SearchedSong | null;
   single: Song | null;
-  // Loading counter — isLoading is true when any fetch is in-flight
+  playlistLoading: boolean;
   _loadingCount: number;
   isLoading: boolean;
   isAlbumFetching: boolean;
   searchLoading: boolean;
+  charts: Chart[];
+  shows: Show[];
+  topArtists: TopArtists[];
+
   fetchAllSongs: () => Promise<void>;
   fetchArtistById: (id: string) => Promise<void>;
   fetchFeaturedSongs: () => Promise<void>;
   fetchMadeForYouAlbums: () => Promise<void>;
   fetchTrendingSongs: () => Promise<void>;
   fetchAlbumById: (albumId: string) => Promise<void>;
+  fetchCharts: () => Promise<void>;
+  fetchShows: () => Promise<void>;
   searchSong: (query: string) => Promise<void>;
   fetchSingle: (id: string) => Promise<void>;
   setSearchedSongs: (songs: SearchedSong | null) => void;
+  setChartData: (charts: Chart[]) => void;
+  fetchTopArtists: () => Promise<void>;
+  fetchTopAlbums: () => Promise<void>;
+  getPlaylistSongs: (id: string) => Promise<void>;
 }
 
 // Helpers to increment/decrement the loading counter
@@ -43,6 +67,12 @@ const useMusicStore = create<MusicStore>((set) => ({
   featured: [],
   madeForYouAlbums: [],
   trending: [],
+  charts: [],
+  shows: [],
+  topArtists: [],
+  topAlbums: [],
+  playlistLoading: false,
+  currentPlaylist: null,
   currentAlbum: null,
   currentArtist: null,
   searchedSongs: null,
@@ -65,9 +95,12 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchFeaturedSongs: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get("/songs/featured");
+      const response = await axiosInstance.get(
+        "/songs/collection/featured-playlists?page=10"
+      );
+
       if (response.status) {
-        set({ featured: response.data.songs });
+        set({ featured: response.data.collection.data });
       }
     } catch (error: any) {
       console.log(
@@ -143,6 +176,39 @@ const useMusicStore = create<MusicStore>((set) => ({
       set(stopLoading);
     }
   },
+  fetchCharts: async () => {
+    set(startLoading);
+    try {
+      const response = await axiosInstance.get(
+        "/songs/collection/charts?page=10"
+      );
+      console.log("res: ", response);
+      if (response.status) {
+        set({ charts: response.data?.collection || [] });
+      }
+    } catch (error: any) {
+      console.log("Error in fetching charts", error);
+    } finally {
+      set(stopLoading);
+    }
+  },
+  fetchShows: async () => {
+    set(startLoading);
+    try {
+      const response = await axiosInstance.get(
+        "/songs/collection/top-shows?page=10"
+      );
+      if (response.status) {
+        set({
+          shows: response.data?.collection.data || [],
+        });
+      }
+    } catch (error: any) {
+      console.log("Error in fetching shows", error);
+    } finally {
+      set(stopLoading);
+    }
+  },
   fetchAlbumById: async (albumId) => {
     set({ isAlbumFetching: true });
     try {
@@ -171,6 +237,61 @@ const useMusicStore = create<MusicStore>((set) => ({
   },
   setSearchedSongs(songs) {
     set({ searchedSongs: songs });
+  },
+  setChartData(charts) {
+    set({ charts });
+  },
+  fetchTopArtists: async () => {
+    set(startLoading);
+    try {
+      const response = await axiosInstance.get(
+        "/songs/collection/top-artists?page=10"
+      );
+      if (response.status) {
+        set({ topArtists: response.data?.collection || [] });
+      }
+    } catch (error: any) {
+      console.log(
+        "Error in fetching top artists",
+        error?.response?.data?.message
+      );
+      set({ topArtists: [] });
+    } finally {
+      set(stopLoading);
+    }
+  },
+  fetchTopAlbums: async () => {
+    set(startLoading);
+    try {
+      const response = await axiosInstance.get(
+        "/songs/collection/top-albums?page=10"
+      );
+      if (response.status) {
+        set({ topAlbums: response.data?.collection.data || [] });
+      }
+    } catch (error: any) {
+      console.log(
+        "Error in fetching top albums",
+        error?.response?.data?.message
+      );
+      set({ topAlbums: [] });
+    } finally {
+      set(stopLoading);
+    }
+  },
+  getPlaylistSongs: async (id) => {
+    set({ playlistLoading: true });
+    try {
+      const response = await axiosInstance.get(`/playlists/${id}`);
+
+      if (response.data.status) {
+        set({ currentPlaylist: response.data.playlist.data });
+      }
+    } catch (error: any) {
+      console.log(error.response.data.message);
+    } finally {
+      set({ playlistLoading: false });
+    }
   },
 }));
 export default useMusicStore;

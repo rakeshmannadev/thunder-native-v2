@@ -94,7 +94,11 @@ export const SkipToNextButton = ({
       onPress={handlePress}
       style={style} // Pass style
     >
-      <Ionicons name="play-forward" size={iconSize} color={colors.text} />
+      <MaterialCommunityIcons
+        name="skip-next"
+        size={iconSize}
+        color={colors.text}
+      />
     </TouchableOpacity>
   );
 };
@@ -109,7 +113,11 @@ export const SkipToPreviousButton = ({
       onPress={handlePress}
       style={style} // Pass style
     >
-      <Ionicons name="play-back" size={iconSize} color={colors.text} />
+      <MaterialCommunityIcons
+        name="skip-previous"
+        size={iconSize}
+        color={colors.text}
+      />
     </TouchableOpacity>
   );
 };
@@ -157,8 +165,8 @@ export const ShuffleButton = ({
 }: PlayerButtonProps) => {
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
-      <Ionicons
-        name={isShuffle ? "shuffle" : "arrow-forward"}
+      <MaterialCommunityIcons
+        name={isShuffle ? "shuffle-variant" : "shuffle-disabled"}
         size={iconSize}
         color={colors.text}
       />

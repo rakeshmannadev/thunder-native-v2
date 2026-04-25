@@ -1,8 +1,18 @@
-import AlbumCard from "@/components/AlbumCard";
+import TopAlbumsCard from "@/components/album/TopAlbumsCard";
+import ChartCard from "@/components/ChartCard";
+import FeaturedCard from "@/components/featured/FeaturedCard";
+import ShowCard from "@/components/ShowCard";
 import SongCard from "@/components/SongCard";
 import { ThemedText } from "@/components/ThemedText";
+import TopArtistCard from "@/components/TopArtist/TopArtistCard";
 import { VStack } from "@/components/ui/vstack";
-import { FlatList, ScrollView, useColorScheme, View } from "react-native";
+import {
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  useColorScheme,
+  View,
+} from "react-native";
 
 import Categories from "@/components/categories/Categories";
 import RecentlyPlayedCard from "@/components/RecentlyPlayedCard";
@@ -13,9 +23,9 @@ import { screenPadding } from "@/constants/tokens";
 import useMusicStore from "@/store/useMusicStore";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
-import { Album, Song } from "@/types";
+import { Featured, Song, TopAlbums, TopArtists } from "@/types";
 import { ArrowRightIcon } from "lucide-react-native";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -33,36 +43,68 @@ export default function HomeScreen() {
     fetchMadeForYouAlbums,
     fetchTrendingSongs,
     fetchFeaturedSongs,
+    charts,
+    shows,
+    fetchCharts,
+    fetchShows,
+    topArtists,
+    fetchTopArtists,
+    topAlbums,
+    fetchTopAlbums,
   } = useMusicStore();
-  const { currentUser, favoriteSongs, getFavoriteSongs } = useUserStore();
-  const { initializeQueue } = usePlayerStore();
+  const {
+    currentUser,
+    favoriteSongs,
+    getFavoriteSongs,
+    fetchRecentlyPlayed,
+    recentlyPlayed,
+  } = useUserStore();
+  const { initializeQueue, selectedCategory } = usePlayerStore();
+
+  useEffect(() => {
+    if (selectedCategory === "charts") {
+      fetchCharts();
+    } else if (selectedCategory === "shows") {
+      fetchShows();
+    }
+  }, [selectedCategory]);
 
   const { top } = useSafeAreaInsets();
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([
+      fetchTrendingSongs(),
+      fetchFeaturedSongs(),
+      fetchTopArtists(),
+      fetchTopAlbums(),
+    ]);
+    setRefreshing(false);
+  }, [fetchTrendingSongs, fetchFeaturedSongs, fetchTopArtists, fetchTopAlbums]);
+
   useEffect(() => {
     if (
-      madeForYouAlbums.length <= 0 ||
       trending.length <= 0 ||
-      featured.length <= 0
+      featured.length <= 0 ||
+      topArtists.length <= 0 ||
+      topAlbums.length <= 0
     ) {
-      fetchMadeForYouAlbums();
       fetchTrendingSongs();
       fetchFeaturedSongs();
+      fetchTopArtists();
+      fetchTopAlbums();
     }
   }, []);
 
   useEffect(() => {
     if (
-      (trending.length > 0 || featured.length > 0) &&
-      !usePlayerStore.getState().currentSong
+      currentUser &&
+      (favoriteSongs.length === 0 || recentlyPlayed.length === 0)
     ) {
-      initializeQueue([...trending, ...featured]);
-    }
-  }, [trending, featured]);
-
-  useEffect(() => {
-    if (currentUser && favoriteSongs.length === 0) {
       getFavoriteSongs();
+      fetchRecentlyPlayed();
     }
   }, [currentUser]);
 
@@ -96,82 +138,179 @@ export default function HomeScreen() {
       </View>
 
       {/* Scrollable Content */}
-      <FlatList
-        data={[
-          {
-            title: "Continue Listening",
-            data: featured,
-            renderItem: (item: Song, index: number) => (
-              <RecentlyPlayedCard
-                key={item?._id ?? index}
-                song={item}
-                isLoading={false}
-              />
-            ),
-            skeletonItem: (_: any, index: number) => (
-              <SongCardSkeleton key={`skeleton-recently-${index}`} />
-            ),
-          },
-          {
-            title: "Featured",
-            data: featured,
-            renderItem: (item: Song, index: number) => (
-              <SongCard
-                key={item?._id ?? index}
-                song={item}
-                isLoading={false}
-              />
-            ),
-            skeletonItem: (_: any, index: number) => (
-              <SongCardSkeleton key={`skeleton-recently-${index}`} />
-            ),
-          },
-          {
-            title: "Trending",
-            data: trending,
-            renderItem: (item: Song, index: number) => (
-              <SongCard
-                key={item?._id ?? index}
-                song={item}
-                isLoading={false}
-              />
-            ),
-            skeletonItem: (_: any, index: number) => (
-              <SongCardSkeleton key={`skeleton-trending-${index}`} />
-            ),
-          },
-          {
-            title: "Albums",
-            data: madeForYouAlbums,
-            renderItem: (item: Album, index: number) => (
-              <AlbumCard
-                key={item?._id ?? index}
-                album={item}
-                isLoading={false}
-              />
-            ),
-            skeletonItem: (_: any, index: number) => (
-              <SongCardSkeleton key={`skeleton-albums-${index}`} />
-            ),
-          },
-        ]}
-        renderItem={({ item: section }) => (
-          <HomeScreenSection
-            section={section}
-            colors={colors}
-            isLoading={isLoading}
-          />
-        )}
-        keyExtractor={(item) => item.title}
-        ListHeaderComponent={
-          <VStack space="md" className="p-2 pb-2">
-            <SearchBox />
-          </VStack>
-        }
-        ListFooterComponent={<View style={{ height: 100 }} />}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        removeClippedSubviews={true}
-      />
+      {selectedCategory === "charts" ? (
+        <FlatList
+          key="charts-grid"
+          data={charts}
+          numColumns={2}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            paddingHorizontal: screenPadding.horizontal,
+          }}
+          contentContainerStyle={{
+            paddingBottom: 100,
+            gap: 16,
+            paddingTop: 8,
+          }}
+          renderItem={({ item, index }) => (
+            <View style={{ flex: 1 }}>
+              <ChartCard chart={item} isLoading={isLoading} />
+            </View>
+          )}
+          keyExtractor={(item, index) =>
+            item.id?.toString() || index.toString()
+          }
+          ListHeaderComponent={
+            <VStack space="md" className="p-2 pb-2">
+              <SearchBox />
+            </VStack>
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+        />
+      ) : selectedCategory === "shows" ? (
+        <FlatList
+          key="shows-grid"
+          data={shows}
+          numColumns={2}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            paddingHorizontal: screenPadding.horizontal,
+          }}
+          contentContainerStyle={{
+            paddingBottom: 100,
+            gap: 16,
+            paddingTop: 8,
+          }}
+          renderItem={({ item, index }) => (
+            <View style={{ flex: 1 }}>
+              <ShowCard show={item} isLoading={isLoading} />
+            </View>
+          )}
+          keyExtractor={(item, index) =>
+            item.id?.toString() || index.toString()
+          }
+          ListHeaderComponent={
+            <VStack space="md" className="p-2 pb-2">
+              <SearchBox />
+            </VStack>
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+        />
+      ) : (
+        <FlatList
+          key="all-list"
+          data={[
+            {
+              title: "Continue Listening",
+              data: recentlyPlayed,
+              renderItem: (item: Song, index: number) => (
+                <RecentlyPlayedCard
+                  key={item?._id ?? index}
+                  song={item}
+                  isLoading={false}
+                />
+              ),
+              skeletonItem: (_: any, index: number) => (
+                <SongCardSkeleton key={`skeleton-recently-${index}`} />
+              ),
+            },
+            {
+              title: "Featured",
+              data: featured,
+              renderItem: (item: Featured, index: number) => (
+                <FeaturedCard
+                  key={item?.id ?? item?.id ?? index}
+                  featured={item}
+                  isLoading={false}
+                />
+              ),
+              skeletonItem: (_: any, index: number) => (
+                <SongCardSkeleton key={`skeleton-featured-${index}`} />
+              ),
+            },
+            {
+              title: "Trending",
+              data: trending,
+              renderItem: (item: Song, index: number) => (
+                <SongCard
+                  key={item?._id ?? index}
+                  song={item}
+                  isLoading={false}
+                />
+              ),
+              skeletonItem: (_: any, index: number) => (
+                <SongCardSkeleton key={`skeleton-trending-${index}`} />
+              ),
+            },
+            {
+              title: "Top Artists",
+              data: topArtists,
+              renderItem: (item: TopArtists, index: number) => (
+                <TopArtistCard
+                  key={item?.id ?? index}
+                  artist={item}
+                  isLoading={false}
+                />
+              ),
+              skeletonItem: (_: any, index: number) => (
+                <SongCardSkeleton key={`skeleton-artists-${index}`} />
+              ),
+            },
+            {
+              title: "Top Albums",
+              data: topAlbums,
+              renderItem: (item: TopAlbums, index: number) => (
+                <TopAlbumsCard
+                  key={item?.albumId ?? item?.albumId ?? index}
+                  album={item}
+                  isLoading={false}
+                />
+              ),
+              skeletonItem: (_: any, index: number) => (
+                <SongCardSkeleton key={`skeleton-albums-${index}`} />
+              ),
+            },
+          ]}
+          renderItem={({ item: section }) => (
+            <HomeScreenSection
+              section={section}
+              colors={colors}
+              isLoading={isLoading}
+            />
+          )}
+          keyExtractor={(item) => item.title}
+          ListHeaderComponent={
+            <VStack space="md" className="p-2 pb-2">
+              <SearchBox />
+            </VStack>
+          }
+          ListFooterComponent={<View style={{ height: 100 }} />}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          removeClippedSubviews={true}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }

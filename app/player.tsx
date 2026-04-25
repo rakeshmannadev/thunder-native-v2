@@ -325,7 +325,7 @@ const PlayerScreen = () => {
                       >
                         <MaterialIcons
                           name="queue-music"
-                          size={28}
+                          size={30}
                           color={colors.icon}
                         />
                       </TouchableOpacity>

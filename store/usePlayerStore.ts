@@ -27,6 +27,8 @@ interface PlayerStore {
   insertToQueue: (song: Song, position: number) => void;
   stopPlayer: () => void;
   setAudioPreference: (pref: Partial<AudioPreferenceType>) => void;
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
 }
 
 const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -40,6 +42,10 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
     downloadFirst: true,
     quality: qualites.medium,
   },
+  selectedCategory: "all",
+  setSelectedCategory: (category: string) => {
+    set({ selectedCategory: category });
+  },
 
   initializeQueue: async (songs: Song[], startIndex: number = 0) => {
     set({
@@ -49,16 +55,6 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
       isShuffle: false,
       loop: "off",
     });
-    await TrackPlayer.reset();
-    await TrackPlayer.setQueue(
-      songs.map((song) => ({
-        id: song._id,
-        url: song.audioUrl,
-        title: song.title,
-        artist: song.artists.primary.map((artist) => artist.name).join(", "),
-        artwork: song.imageUrl,
-      }))
-    );
   },
   addToQueue(songs: Song[]) {
     const { isShuffle, queue, originalQueue } = get();

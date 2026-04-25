@@ -8,6 +8,8 @@ interface UserStore {
   fetchPublicRooms: () => Promise<void>;
   fetchPlaylists: () => Promise<void>;
   getCurrentUser: () => Promise<void>;
+  fetchRecentlyPlayed: () => Promise<void>;
+  saveRecentlyPlayed: (id: string) => Promise<void>;
   addToFavorite: (
     artist: Array<any>,
     imageUrl: string,
@@ -21,7 +23,7 @@ interface UserStore {
     title: string,
     playlistName: string
   ) => Promise<void>;
-  getPlaylistSongs: (id: string) => Promise<void>;
+
   addSongToPlaylist: (
     playlistId: string | any,
     songId: string,
@@ -43,7 +45,7 @@ interface UserStore {
   currentUser: User | null;
   playlists: Playlist[];
   favoriteSongs: Song[];
-  currentPlaylist: Playlist | null;
+  recentlyPlayed: Song[];
   isLoading: boolean;
   playlistLoading: boolean;
   fetchingPlaylist: boolean;
@@ -59,7 +61,8 @@ const useUserStore = create<UserStore>((set, get) => ({
   publicRooms: [],
   playlists: [],
   favoriteSongs: [],
-  currentPlaylist: null,
+  recentlyPlayed: [],
+
   currentUser: null,
   fetchJoinedRooms: async () => {
     set({ isFetchingRooms: true });
@@ -166,20 +169,7 @@ const useUserStore = create<UserStore>((set, get) => ({
       //   toast.error(error.response.data.message);
     }
   },
-  getPlaylistSongs: async (id) => {
-    set({ playlistLoading: true });
-    try {
-      const response = await axiosInstance.get(`/user/getPlaylistSongs/${id}`);
 
-      if (response.data.status) {
-        set({ currentPlaylist: response.data.songs });
-      }
-    } catch (error: any) {
-      console.log(error.response.data.message);
-    } finally {
-      set({ playlistLoading: false });
-    }
-  },
   addSongToPlaylist: async (
     playlistId,
     songId,
@@ -243,6 +233,29 @@ const useUserStore = create<UserStore>((set, get) => ({
       }
     } catch (error: any) {
       console.log(error.response.data.message);
+    }
+  },
+  fetchRecentlyPlayed: async () => {
+    // set({ playlistLoading: true });
+    try {
+      const response = await axiosInstance.get("/user/getRecentlyPlayed");
+      set({ recentlyPlayed: response.data.songs });
+    } catch (error: any) {
+      console.log(
+        "Error in fetching recently played",
+        error?.response?.data?.message
+      );
+      set({ recentlyPlayed: [] });
+    }
+  },
+  saveRecentlyPlayed: async (id) => {
+    try {
+      await axiosInstance.post(`/user/saveRecentlyPlayed/${id}`);
+    } catch (error: any) {
+      console.log(
+        "Error in saving recently played",
+        error?.response?.data?.message
+      );
     }
   },
 }));

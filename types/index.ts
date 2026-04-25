@@ -43,7 +43,7 @@ export interface Album {
       {
         id: string;
         name: string;
-      }
+      },
     ];
     all: any[];
     featured: any[];
@@ -59,7 +59,7 @@ export interface SearchedSong {
         title: string;
         image: [{ quality: string; url: string }];
         artist: string;
-      }
+      },
     ];
   };
   artists: {
@@ -70,7 +70,7 @@ export interface SearchedSong {
         image: [{ quality: string; url: string }];
         type: string;
         description: string;
-      }
+      },
     ];
   };
   playlists: {
@@ -80,7 +80,7 @@ export interface SearchedSong {
         title: string;
         type: string;
         image: [{ quality: string; url: string }];
-      }
+      },
     ];
   };
   songs: {
@@ -90,7 +90,7 @@ export interface SearchedSong {
         title: string;
         singers: string;
         image: [{ quality: string; url: string }];
-      }
+      },
     ];
   };
   topQuery: {
@@ -100,7 +100,7 @@ export interface SearchedSong {
         title: string;
         image: [{ quality: string; url: string }];
         type: string;
-      }
+      },
     ];
   };
 }
@@ -156,23 +156,82 @@ export interface Message {
 }
 
 export interface Playlist {
-  _id: string | any;
+  id?: string;
+  name?: string;
+  subtitle?: string;
+  type?: string;
+  headerDesc?: string;
+  url?: string;
+  image?: string;
+  language?: string;
+  explicit?: boolean;
+  listCount?: number;
+  listType?: string;
+  userId?: string;
+  isDolbyContent?: boolean;
+  lastUpdated?: string;
+  username?: string;
+  firstname?: string;
+  lastname?: string;
+  followerCount?: number;
+  fanCount?: number;
+  share?: number;
+  videoCount?: number;
+  artists?: Artist[];
+  songs?: PlaylistSongs[] | any;
+}
 
-  playlistId: string | null;
-  playlistName: string;
-  year: string | null;
-  description: string | null;
-  imageUrl: string;
-  artist: {
-    id: string;
-    artistId: string;
-    name: string;
-    role: string;
-    image: string;
-    type: string;
+export interface PlaylistSongs {
+  id: string;
+  name: string;
+  subtitle: string;
+  type: string;
+  url: string;
+  image: Image[];
+  language: string;
+  year: number;
+  headerDesc: string;
+  playCount: number;
+  explicit: boolean;
+  list: string;
+  listType: string;
+  listCount: number;
+  music: string;
+  artist_map: {
+    artists: {
+      id: string;
+      name: string;
+      url: string;
+      role: string;
+      type: string;
+      image: Image[];
+    }[];
+    featuredArtists: any[];
+    primaryArtists: PrimaryArtist[];
+    image: Image[];
+  };
+  album: string;
+  albumId: string;
+  albumUrl: string;
+  label: string;
+  labelUrl: string;
+  origin: string;
+  isDolbyContent: boolean;
+  "320kbps": boolean;
+  download_url: {
+    quality: string;
+    link: string;
   }[];
-  albumId: string | any;
-  songs: Song[] | any;
+  duration: number;
+  hasLyrics: boolean;
+  lyricsSnippet: string;
+  starred: boolean;
+  releaseDate: string;
+  trillerAvailable: boolean;
+  copyrightText: string;
+  vcode?: string;
+  vlink?: string;
+  lyricsId?: string;
 }
 export interface User {
   _id: string;
@@ -213,4 +272,107 @@ export enum qualites {
   low = "low",
   medium = "medium",
   high = "high",
+}
+
+export interface Chart {
+  id: string;
+  name: string;
+  subtitle: string;
+  type: string;
+  url: string;
+  explicit: boolean;
+  image: string;
+  firstName: string;
+  count: number;
+}
+
+export interface Show {
+  id: string;
+  name: string;
+  subtitle: string;
+  type: string;
+  image: Image[];
+  bannerImage: string;
+  url: string;
+  explicit: boolean;
+  badge: string;
+  releaseDate: string;
+  seasonNumber: number;
+}
+
+interface Image {
+  quality: string;
+  link: string;
+}
+
+export interface Featured {
+  id: string;
+  name: string;
+  subtitle: string;
+  type: string;
+  headerDesc: string;
+  url: string;
+  image: string;
+  explicit: boolean;
+  userId: string;
+  lastUpdated: string;
+  firstname: string;
+  followerCount: number;
+}
+
+export interface TopArtists {
+  id: string;
+  name: string;
+  image: Image[];
+  url: string;
+  isFollowed: boolean;
+  followerCount: number;
+}
+
+export interface TopAlbums {
+  id: string;
+  name: string;
+  subtitle: string;
+  type: string;
+  url: string;
+  image: Image[];
+  language: string;
+  year: number;
+  headerDesc: string;
+  playCount: number;
+  explicit: boolean;
+  list: string;
+  listType: string;
+  listCount: number;
+  music: string;
+  artist_map: ArtistMap;
+  album: string;
+  albumUrl: string;
+  label: string;
+  labelUrl: string;
+  origin: string;
+  isDolbyContent: boolean;
+  "320kbps": boolean;
+  download_url: Image[];
+  duration: number;
+  hasLyrics: boolean;
+  lyricsSnippet: string;
+  starred: boolean;
+  releaseDate: string;
+  trillerAvailable: boolean;
+  copyrightText: string;
+}
+
+interface ArtistMap {
+  artists: Artist[];
+  featuredArtists: any[];
+  primaryArtists: PrimaryArtist[];
+}
+interface PrimaryArtist {
+  id: string;
+  name: string;
+  url: string;
+  role: string;
+  type: string;
+  image: Image[];
 }

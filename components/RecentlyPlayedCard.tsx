@@ -53,7 +53,7 @@ const RecentlyPlayedCard = ({
               style={{ color: colors.primary }}
               className="text-[9px]  uppercase tracking-widest font-bold"
             >
-              Resuming
+              Resume Listening
             </Text>
           </View>
         </View>
