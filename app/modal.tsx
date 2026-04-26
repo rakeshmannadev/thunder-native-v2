@@ -1,89 +1,43 @@
-// app/menu-modal.tsx
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import React, { useCallback, useMemo, useRef } from "react";
+import { StyleSheet, Text } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { Colors } from "@/constants/Colors";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
+const Modal = () => {
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
-// Optional: define type for params
-type MenuModalParams = {
-  title?: string;
-  actionKey?: string;
-  iconKey?: string;
+  // callbacks
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log("handleSheetChanges", index);
+  }, []);
+
+  const snapPoints = useMemo(() => ["25%", "50%", "70%"], []);
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      <BottomSheet
+        snapPoints={snapPoints}
+        ref={bottomSheetRef}
+        enablePanDownToClose
+        onChange={handleSheetChanges}
+      >
+        <BottomSheetView style={styles.contentContainer}>
+          <Text>Awesome 🎉</Text>
+        </BottomSheetView>
+      </BottomSheet>
+    </GestureHandlerRootView>
+  );
 };
 
-export default function MenuModal() {
-  const colorScheme = useColorScheme();
-  const router = useRouter();
-  const params = useLocalSearchParams<MenuModalParams>();
-
-  const { title, actionKey, iconKey } = params;
-
-  // resolve icon from iconKey, action from actionKey (use registry as before)
-  // For now, we’ll make a simple example
-
-  return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor:
-            colorScheme === "light"
-              ? Colors["light"].background
-              : Colors["dark"].background,
-        },
-      ]}
-    >
-      <View style={styles.handle} />
-      <Text style={styles.title}>{title ?? "Options"}</Text>
-
-      <TouchableOpacity
-        style={styles.item}
-        onPress={() => {
-          console.log("Action pressed", actionKey);
-          router.back(); // dismiss modal
-        }}
-      >
-        <Text style={styles.itemText}>Some Action</Text>
-      </TouchableOpacity>
-
-      {/* Add more items as needed */}
-    </View>
-  );
-}
+export default Modal;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: "grey",
   },
-  handle: {
-    width: 60,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    alignSelf: "center",
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "700",
-    marginBottom: 16,
-  },
-  item: {
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#333",
-  },
-  itemText: {
-    color: "#fff",
-    fontSize: 16,
+  contentContainer: {
+    flex: 1,
+    padding: 36,
+    alignItems: "center",
   },
 });

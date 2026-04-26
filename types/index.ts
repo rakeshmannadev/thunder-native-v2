@@ -1,5 +1,6 @@
 export interface Song {
   _id: string;
+  id: string;
   songId: string;
   title: string;
   artists: {
@@ -348,6 +349,7 @@ export interface TopAlbums {
   artist_map: ArtistMap;
   album: string;
   albumUrl: string;
+  album_id: string;
   label: string;
   labelUrl: string;
   origin: string;

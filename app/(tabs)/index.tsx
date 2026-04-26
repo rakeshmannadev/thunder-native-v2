@@ -20,10 +20,18 @@ import SearchBox from "@/components/searchbox/SearchBox";
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import useMusicStore from "@/store/useMusicStore";
+import {
+  getCharts,
+  getFeaturedSongs,
+  getShows,
+  getTopAlbums,
+  getTopArtists,
+  getTrendingSongs,
+} from "@/services/songService";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { Featured, Song, TopAlbums, TopArtists } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRightIcon } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -36,23 +44,6 @@ const SKELETON_DATA = Array.from({ length: 5 }, (_, i) => ({ _skeletonId: i }));
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const {
-    isLoading,
-    madeForYouAlbums,
-    trending,
-    featured,
-    fetchMadeForYouAlbums,
-    fetchTrendingSongs,
-    fetchFeaturedSongs,
-    charts,
-    shows,
-    fetchCharts,
-    fetchShows,
-    topArtists,
-    fetchTopArtists,
-    topAlbums,
-    fetchTopAlbums,
-  } = useMusicStore();
-  const {
     currentUser,
     favoriteSongs,
     getFavoriteSongs,
@@ -61,42 +52,91 @@ export default function HomeScreen() {
   } = useUserStore();
   const { initializeQueue, selectedCategory } = usePlayerStore();
 
-  useEffect(() => {
-    if (selectedCategory === "charts") {
-      fetchCharts();
-    } else if (selectedCategory === "shows") {
-      fetchShows();
-    }
-  }, [selectedCategory]);
+  const {
+    data: trendingRes,
+    isLoading: trendingLoading,
+    refetch: refetchTrending,
+  } = useQuery({
+    queryKey: ["trending"],
+    queryFn: getTrendingSongs,
+  });
+  const {
+    data: featuredRes,
+    isLoading: featuredLoading,
+    refetch: refetchFeatured,
+  } = useQuery({
+    queryKey: ["featured"],
+    queryFn: getFeaturedSongs,
+  });
+  const {
+    data: topArtistsRes,
+    isLoading: topArtistsLoading,
+    refetch: refetchTopArtists,
+  } = useQuery({
+    queryKey: ["topArtists"],
+    queryFn: getTopArtists,
+  });
+  const {
+    data: topAlbumsRes,
+    isLoading: topAlbumsLoading,
+    refetch: refetchTopAlbums,
+  } = useQuery({
+    queryKey: ["topAlbums"],
+    queryFn: getTopAlbums,
+  });
+  const {
+    data: chartsRes,
+    isLoading: chartsLoading,
+    refetch: refetchCharts,
+  } = useQuery({
+    queryKey: ["charts"],
+    queryFn: getCharts,
+    enabled: selectedCategory === "charts",
+  });
+  const {
+    data: showsRes,
+    isLoading: showsLoading,
+    refetch: refetchShows,
+  } = useQuery({
+    queryKey: ["shows"],
+    queryFn: getShows,
+    enabled: selectedCategory === "shows",
+  });
+
+  const trending = trendingRes?.data?.songs || [];
+  const featured = featuredRes?.data?.collection?.data || [];
+  const topArtists = topArtistsRes?.data?.collection || [];
+  const topAlbums = topAlbumsRes?.data?.collection?.data || [];
+  const charts = chartsRes?.data?.collection || [];
+  const shows = showsRes?.data?.collection?.data || [];
 
   const { top } = useSafeAreaInsets();
-
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([
-      fetchTrendingSongs(),
-      fetchFeaturedSongs(),
-      fetchTopArtists(),
-      fetchTopAlbums(),
-    ]);
-    setRefreshing(false);
-  }, [fetchTrendingSongs, fetchFeaturedSongs, fetchTopArtists, fetchTopAlbums]);
-
-  useEffect(() => {
-    if (
-      trending.length <= 0 ||
-      featured.length <= 0 ||
-      topArtists.length <= 0 ||
-      topAlbums.length <= 0
-    ) {
-      fetchTrendingSongs();
-      fetchFeaturedSongs();
-      fetchTopArtists();
-      fetchTopAlbums();
+    if (selectedCategory === "charts") {
+      await refetchCharts();
+    } else if (selectedCategory === "shows") {
+      await refetchShows();
+    } else {
+      await Promise.all([
+        refetchTrending(),
+        refetchFeatured(),
+        refetchTopArtists(),
+        refetchTopAlbums(),
+      ]);
     }
-  }, []);
+    setRefreshing(false);
+  }, [
+    selectedCategory,
+    refetchTrending,
+    refetchFeatured,
+    refetchTopArtists,
+    refetchTopAlbums,
+    refetchCharts,
+    refetchShows,
+  ]);
 
   useEffect(() => {
     if (
@@ -154,7 +194,7 @@ export default function HomeScreen() {
           }}
           renderItem={({ item, index }) => (
             <View style={{ flex: 1 }}>
-              <ChartCard chart={item} isLoading={isLoading} />
+              <ChartCard chart={item} isLoading={chartsLoading} />
             </View>
           )}
           keyExtractor={(item, index) =>
@@ -190,7 +230,7 @@ export default function HomeScreen() {
           }}
           renderItem={({ item, index }) => (
             <View style={{ flex: 1 }}>
-              <ShowCard show={item} isLoading={isLoading} />
+              <ShowCard show={item} isLoading={showsLoading} />
             </View>
           )}
           keyExtractor={(item, index) =>
@@ -227,6 +267,7 @@ export default function HomeScreen() {
               skeletonItem: (_: any, index: number) => (
                 <SongCardSkeleton key={`skeleton-recently-${index}`} />
               ),
+              isLoading: false, // user store isn't loading here
             },
             {
               title: "Featured",
@@ -241,6 +282,7 @@ export default function HomeScreen() {
               skeletonItem: (_: any, index: number) => (
                 <SongCardSkeleton key={`skeleton-featured-${index}`} />
               ),
+              isLoading: featuredLoading,
             },
             {
               title: "Trending",
@@ -255,6 +297,7 @@ export default function HomeScreen() {
               skeletonItem: (_: any, index: number) => (
                 <SongCardSkeleton key={`skeleton-trending-${index}`} />
               ),
+              isLoading: trendingLoading,
             },
             {
               title: "Top Artists",
@@ -269,13 +312,14 @@ export default function HomeScreen() {
               skeletonItem: (_: any, index: number) => (
                 <SongCardSkeleton key={`skeleton-artists-${index}`} />
               ),
+              isLoading: topArtistsLoading,
             },
             {
               title: "Top Albums",
               data: topAlbums,
               renderItem: (item: TopAlbums, index: number) => (
                 <TopAlbumsCard
-                  key={item?.albumId ?? item?.albumId ?? index}
+                  key={item?.id ?? item?.id ?? index}
                   album={item}
                   isLoading={false}
                 />
@@ -283,14 +327,11 @@ export default function HomeScreen() {
               skeletonItem: (_: any, index: number) => (
                 <SongCardSkeleton key={`skeleton-albums-${index}`} />
               ),
+              isLoading: topAlbumsLoading,
             },
           ]}
           renderItem={({ item: section }) => (
-            <HomeScreenSection
-              section={section}
-              colors={colors}
-              isLoading={isLoading}
-            />
+            <HomeScreenSection section={section} colors={colors} />
           )}
           keyExtractor={(item) => item.title}
           ListHeaderComponent={
@@ -316,15 +357,7 @@ export default function HomeScreen() {
 }
 
 const HomeScreenSection = React.memo(
-  ({
-    section,
-    colors,
-    isLoading,
-  }: {
-    section: any;
-    colors: any;
-    isLoading: boolean;
-  }) => (
+  ({ section, colors }: { section: any; colors: any }) => (
     <VStack space="md" className="mt-2 p-2">
       <View className="w-full flex flex-row justify-between items-center pr-2">
         <ThemedText
@@ -343,13 +376,13 @@ const HomeScreenSection = React.memo(
         windowSize={5}
         removeClippedSubviews={true}
         keyExtractor={(_: any, index) =>
-          isLoading
+          section.isLoading
             ? `skeleton-${section.title}-${index}`
             : (_?._id?.toString() ?? `item-${index}`)
         }
-        data={isLoading ? SKELETON_DATA : section.data}
+        data={section.isLoading ? SKELETON_DATA : section.data}
         renderItem={({ item, index }) =>
-          isLoading
+          section.isLoading
             ? section.skeletonItem(item, index)
             : section.renderItem(item as any, index)
         }

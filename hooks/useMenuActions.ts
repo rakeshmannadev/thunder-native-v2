@@ -2,11 +2,11 @@ import usePlayerStore from "@/store/usePlayerStore";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
-import { Artist, Song } from "@/types";
+import { Song } from "@/types";
 import { useRouter } from "expo-router";
 import { Appearance } from "react-native";
-import TrackPlayer from "react-native-track-player";
 import { showToast } from "./useToastMessage";
+import { addSongToQueue, playNext } from "./useTrackPlayerActions";
 
 const useMenuActions = () => {
   const router = useRouter();
@@ -29,45 +29,13 @@ const useMenuActions = () => {
         if (!params || !Array.isArray(params)) return;
         const song: Song = params[0];
 
-        await TrackPlayer.add({
-          id: song._id,
-          title: song.title,
-          artist: song.artists.primary
-            .map((artist: Artist) => artist.name)
-            .join(", "),
-          artwork: song.imageUrl,
-          url: song.audioUrl,
-        });
+        addSongToQueue(song);
         showToast("Song added to queue");
         break;
       case "play_next":
         if (!params) return;
         const songToPlayNext: Song = params;
-        const currentIndex = await TrackPlayer.getActiveTrackIndex();
-        if (currentIndex) {
-          await TrackPlayer.add(
-            {
-              id: songToPlayNext._id,
-              title: songToPlayNext.title,
-              artist: songToPlayNext.artists.primary
-                .map((artist: Artist) => artist.name)
-                .join(", "),
-              artwork: songToPlayNext.imageUrl,
-              url: songToPlayNext.audioUrl,
-            },
-            currentIndex + 1
-          );
-        } else {
-          await TrackPlayer.add({
-            id: songToPlayNext._id,
-            title: songToPlayNext.title,
-            artist: songToPlayNext.artists.primary
-              .map((artist: Artist) => artist.name)
-              .join(", "),
-            artwork: songToPlayNext.imageUrl,
-            url: songToPlayNext.audioUrl,
-          });
-        }
+        playNext(songToPlayNext);
         showToast("Song added to queue");
         break;
       case "light":

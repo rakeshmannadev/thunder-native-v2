@@ -1,18 +1,20 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import AlbumCard from "@/components/AlbumCard";
+import AlbumPlayButton from "@/components/AlbumPlayButton";
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { ThemedText } from "@/components/ThemedText";
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
-import useMusicStore from "@/store/useMusicStore";
+import { playAlbum } from "@/hooks/useTrackPlayerActions";
+import { getArtistById } from "@/services/songService";
 import usePlayerStore from "@/store/usePlayerStore";
 import { defaultStyles } from "@/styles";
 import { Album, Song } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
-import { PlayIcon, RadioIcon, Shuffle } from "lucide-react-native";
-import React, { useEffect } from "react";
+import { RadioIcon, Shuffle } from "lucide-react-native";
+import React from "react";
 import {
   FlatList,
   Image,
@@ -34,21 +36,17 @@ const ArtistPage = () => {
   const { bottom, top } = useSafeAreaInsets();
   const { id }: { id: string } = useLocalSearchParams();
 
-  const { currentArtist, fetchArtistById, isLoading, fetchAlbumById } =
-    useMusicStore();
-  const { setShuffle, playAlbum } = usePlayerStore();
+  const { setShuffle } = usePlayerStore();
 
-  useEffect(() => {
-    if (id) {
-      useMusicStore.setState({ currentArtist: null });
-      fetchArtistById(id);
-    }
-  }, [id, fetchArtistById]);
+  const { data: currentArtist, isLoading } = useQuery({
+    queryKey: ["artist", id],
+    queryFn: () => getArtistById(id as string),
+    enabled: !!id,
+  });
 
   const handlePlay = () => {
     if (!currentArtist) return;
     const songs: Song[] = [...currentArtist.topSongs];
-    setShuffle(false);
     playAlbum(songs, 0);
   };
   const handleShufflePlay = () => {
@@ -58,32 +56,10 @@ const ArtistPage = () => {
     playAlbum(songs, Math.floor(Math.random() * songs.length));
   };
 
-  // if (isLoading) {
-  //   return (
-  //     <View
-  //       style={{
-  //         backgroundColor:
-  //           Colors[colorScheme === "dark" ? "dark" : "light"].background,
-  //       }}
-  //       className="flex-1 justify-center items-center"
-  //     >
-  //       <ActivityIndicator size="large" color={colors.primary} />
-  //     </View>
-  //   );
-  // }
-
-  // if (!currentArtist) return null;
-
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: colors.background }]}
     >
-      {/* <LinearGradient
-        colors={["#0F2027", "#203A43", "#2C5364"]}
-        style={StyleSheet.absoluteFillObject}
-      />
-      {!isLoading && <GradientBackground imageUrl={currentArtist?.image} />} */}
-
       <ScrollView
         showsVerticalScrollIndicator={true}
         contentContainerStyle={[
@@ -157,20 +133,7 @@ const ArtistPage = () => {
                   <RadioIcon size={20} color={colors.text} />
                 </Pressable>
 
-                <Button
-                  variant="solid"
-                  size="xl"
-                  onPress={handlePlay}
-                  style={{
-                    paddingHorizontal: 12,
-                    borderRadius: borderRadius.lg,
-                    backgroundColor: colors.primary,
-                    flex: 1,
-                  }}
-                >
-                  <ButtonText style={{ color: colors.text }}>Play</ButtonText>
-                  <ButtonIcon as={PlayIcon} color={colors.text} size="lg" />
-                </Button>
+                <AlbumPlayButton handlePlay={handlePlay} />
 
                 <Pressable
                   onPress={handleShufflePlay}

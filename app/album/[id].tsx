@@ -1,13 +1,12 @@
 import { useLocalSearchParams } from "expo-router";
 import { HeartIcon, MoreVerticalIcon, Shuffle } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   FlatList,
   Image,
   Pressable,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
@@ -17,17 +16,18 @@ import {
 } from "react-native-safe-area-context";
 
 import AlbumItem from "@/components/album/AlbumItem";
+import AlbumPlayButton from "@/components/AlbumPlayButton";
 import MenuModal from "@/components/MenuModal";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
-import useMusicStore from "@/store/useMusicStore";
+import { playAlbum } from "@/hooks/useTrackPlayerActions";
+import { getAlbumById } from "@/services/songService";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { Artist, Song } from "@/types";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import TrackPlayer, { useActiveTrack } from "react-native-track-player";
+import { useQuery } from "@tanstack/react-query";
 
 const AlbumScreen = () => {
   const { id }: { id: string } = useLocalSearchParams();
@@ -37,39 +37,19 @@ const AlbumScreen = () => {
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
   const { addAlbumToPlaylist, playlists } = useUserStore();
-  const { isAlbumFetching, fetchAlbumById, currentAlbum } = useMusicStore();
   const { setShuffle } = usePlayerStore();
 
-  const activeTrack = useActiveTrack();
+  const { data: albumRes, isLoading: isAlbumFetching } = useQuery({
+    queryKey: ["album", id],
+    queryFn: () => getAlbumById(id as string),
+    enabled: !!id,
+  });
 
-  useEffect(() => {
-    if (id) {
-      useMusicStore.setState({ currentAlbum: null });
-      fetchAlbumById(id);
-    }
-  }, [id, fetchAlbumById]);
+  const currentAlbum = albumRes?.data?.album;
 
   const isAddedToPlaylist = playlists.find(
     (p) => p.id === currentAlbum?.albumId
   );
-
-  const playAlbum = async (songs: Song[], index: number) => {
-    await TrackPlayer.reset();
-    await TrackPlayer.setQueue(
-      songs.map((song) => ({
-        id: song._id,
-        title: song.title,
-        artist: song.artists.primary
-          .map((artist: Artist) => artist.name)
-          .join(", "),
-        artwork: song.imageUrl,
-        url: song.audioUrl,
-      }))
-    );
-
-    await TrackPlayer.skip(index);
-    await TrackPlayer.play();
-  };
 
   const handlePlay = () => {
     if (!currentAlbum) return;
@@ -86,7 +66,7 @@ const AlbumScreen = () => {
   };
   const handleAddAlbumToFavorite = () => {
     if (!currentAlbum) return;
-    const songs = currentAlbum.songs.map((s) => s._id);
+    const songs = currentAlbum.songs.map((s: Song) => s._id);
     addAlbumToPlaylist(
       null,
       currentAlbum.title,
@@ -156,8 +136,9 @@ const AlbumScreen = () => {
                 darkColor={colors.textMuted}
                 lightColor={colors.textMuted}
               >
-                {currentAlbum?.artists.primary.map((a) => a.name).join(", ") ??
-                  ""}
+                {currentAlbum?.artists.primary
+                  .map((a: Artist) => a.name)
+                  .join(", ") ?? ""}
               </ThemedText>
             )}
 
@@ -190,22 +171,7 @@ const AlbumScreen = () => {
                   />
                 </Pressable>
 
-                <TouchableOpacity
-                  onPress={handlePlay}
-                  style={{
-                    paddingHorizontal: 12,
-                    borderRadius: borderRadius.lg,
-                    backgroundColor: colors.primary,
-                    flex: 1,
-                  }}
-                >
-                  <ThemedText style={{ color: "white" }}>Play</ThemedText>
-                  <MaterialCommunityIcons
-                    name="play"
-                    size={22}
-                    color={"white"}
-                  />
-                </TouchableOpacity>
+                <AlbumPlayButton handlePlay={handlePlay} />
 
                 <Pressable
                   onPress={handleShufflePlay}

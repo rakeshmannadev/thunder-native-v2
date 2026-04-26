@@ -10,6 +10,7 @@ import { Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect } from "react";
 import "react-native-reanimated";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import SearchBar from "@/components/search/SearchBar";
 import FloatingPlayer from "@/components/songs/FloatingPlayer";
@@ -19,6 +20,7 @@ import { useSetupTrackPlayer } from "@/hooks/useSetupTrackPlayer";
 import { playbackService } from "@/services/playbackServices";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
@@ -31,7 +33,6 @@ import TrackPlayer, { useActiveTrack } from "react-native-track-player";
 const hideFloatingPlayerScreens = [
   "profile",
   "player",
-  "queue",
   "auth",
   "Signup",
   "Login",
@@ -103,165 +104,162 @@ export default function RootLayout() {
   const showFloatingPlayer =
     currentSong && !hideFloatingPlayerScreens.includes(currentSegment);
 
-  return (
-    <GluestackUIProvider mode={colorScheme === "light" ? "light" : "dark"}>
-      <SafeAreaProvider>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <Stack>
-                <Stack.Screen
-                  name="(tabs)"
-                  options={{
-                    headerShown: false,
-                  }}
-                />
-                <Stack.Screen
-                  name="player"
-                  options={{
-                    presentation: "transparentModal",
-                    headerShown: false,
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="queue"
-                  options={{
-                    presentation: "transparentModal",
-                    headerShown: false,
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="auth"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="settings/index"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="search/index"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                    headerStyle: {
-                      backgroundColor: colors.background,
-                    },
-                    headerRight: () => <SearchBar />,
-                  }}
-                />
-                <Stack.Screen
-                  name="notification/index"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                    headerStyle: {
-                      backgroundColor: colors.background,
-                    },
-                  }}
-                />
-                <Stack.Screen
-                  name="request_song/index"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                    headerStyle: {
-                      backgroundColor: colors.background,
-                    },
-                  }}
-                />
-                <Stack.Screen
-                  name="library_content/index"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="create_room/index"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="album/[id]"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="artist/[id]"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="song/[id]"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="playlist/[id]"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="room/[id]"
-                  options={{
-                    headerShown: true,
-                    headerTitle: "",
-                    headerTransparent: true,
-                  }}
-                />
-                <Stack.Screen name="+not-found" />
-              </Stack>
+  const queryClient = new QueryClient();
 
-              {/* Floating mini-player bar — only shown on non-player screens */}
-              {showFloatingPlayer && (
-                <FloatingPlayer
-                  style={{
-                    position: "absolute",
-                    left: 8,
-                    right: 8,
-                    bottom: withoutTabBarScreens.includes(currentSegment)
-                      ? bottomOffset
-                      : bottom + 58,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                  }}
-                />
-              )}
+  return (
+    <QueryClientProvider client={queryClient}>
+      <GluestackUIProvider mode={colorScheme === "light" ? "light" : "dark"}>
+        <SafeAreaProvider>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <BottomSheetModalProvider>
+                <Stack>
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{
+                      headerShown: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="player"
+                    options={{
+                      presentation: "transparentModal",
+                      headerShown: false,
+                      animation: "slide_from_bottom",
+                    }}
+                  />
+
+                  <Stack.Screen
+                    name="auth"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="settings/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="search/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                      headerStyle: {
+                        backgroundColor: colors.background,
+                      },
+                      headerRight: () => <SearchBar />,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="notification/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                      headerStyle: {
+                        backgroundColor: colors.background,
+                      },
+                    }}
+                  />
+                  <Stack.Screen
+                    name="request_song/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                      headerStyle: {
+                        backgroundColor: colors.background,
+                      },
+                    }}
+                  />
+                  <Stack.Screen
+                    name="library_content/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="create_room/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="album/[id]"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="artist/[id]"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="song/[id]"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="playlist/[id]"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="room/[id]"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+
+                {/* Floating mini-player bar — only shown on non-player screens */}
+                {showFloatingPlayer && (
+                  <FloatingPlayer
+                    style={{
+                      position: "absolute",
+                      left: 8,
+                      right: 8,
+                      bottom: withoutTabBarScreens.includes(currentSegment)
+                        ? bottomOffset
+                        : bottom + 58,
+                      borderRadius: 12,
+                      overflow: "hidden",
+                    }}
+                  />
+                )}
+              </BottomSheetModalProvider>
             </GestureHandlerRootView>
-          </>
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </GluestackUIProvider>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </GluestackUIProvider>
+    </QueryClientProvider>
   );
 }

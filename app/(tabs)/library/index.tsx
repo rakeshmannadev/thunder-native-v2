@@ -1,3 +1,4 @@
+import Modal from "@/app/modal";
 import EmptyLibrary from "@/components/EmptyLibrary";
 import { ThemedText } from "@/components/ThemedText";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
@@ -218,6 +219,7 @@ const index = () => {
           Create Playlist
         </ButtonText>
       </Button>
+      <Modal />
     </SafeAreaView>
   );
 };

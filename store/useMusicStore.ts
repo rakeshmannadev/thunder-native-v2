@@ -1,4 +1,18 @@
-import { axiosInstance } from "@/lib/axios";
+import {
+  getAllSongs,
+  getFeaturedSongs,
+  getArtistById,
+  getSongById,
+  getAlbumById,
+  getMadeForYouAlbums,
+  getTrendingSongs,
+  getCharts,
+  getShows,
+  searchSongQuery,
+  getTopArtists,
+  getTopAlbums,
+  getPlaylistById,
+} from "@/services/songService";
 import {
   Album,
   Artist,
@@ -84,7 +98,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchAllSongs: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get("/songs");
+      const response = await getAllSongs();
       set({ songs: response.data.songs });
     } catch (error: any) {
       console.log(error?.response?.data?.message);
@@ -95,9 +109,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchFeaturedSongs: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get(
-        "/songs/collection/featured-playlists?page=10"
-      );
+      const response = await getFeaturedSongs();
 
       if (response.status) {
         set({ featured: response.data.collection.data });
@@ -114,7 +126,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchArtistById: async (id: string) => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get(`/artists/${id}`);
+      const response = await getArtistById(id);
       set({ currentArtist: response.data.artist });
     } catch (error: any) {
       console.log(error?.response?.data?.message);
@@ -126,12 +138,12 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchSingle: async (id) => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get(`/songs/${id}`);
+      const response = await getSongById(id);
       if (response.data) {
         // Fetch album and artist in parallel instead of sequentially (#7)
         const [albumResponse, artistResponse] = await Promise.all([
-          axiosInstance.get(`/albums/${response.data.song.albumId}`),
-          axiosInstance.get(`/artists/${response.data.song.artistId}`),
+          getAlbumById(response.data.song.albumId),
+          getArtistById(response.data.song.artistId),
         ]);
         if (albumResponse.status) {
           set({ currentAlbum: albumResponse.data.album });
@@ -153,7 +165,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchMadeForYouAlbums: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get("/albums");
+      const response = await getMadeForYouAlbums();
       if (response.status) {
         set({ madeForYouAlbums: response.data.albums });
       }
@@ -166,7 +178,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchTrendingSongs: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get("/songs/trending");
+      const response = await getTrendingSongs();
       if (response.status) {
         set({ trending: response.data?.songs });
       }
@@ -179,9 +191,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchCharts: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get(
-        "/songs/collection/charts?page=10"
-      );
+      const response = await getCharts();
       console.log("res: ", response);
       if (response.status) {
         set({ charts: response.data?.collection || [] });
@@ -195,9 +205,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchShows: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get(
-        "/songs/collection/top-shows?page=10"
-      );
+      const response = await getShows();
       if (response.status) {
         set({
           shows: response.data?.collection.data || [],
@@ -212,7 +220,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchAlbumById: async (albumId) => {
     set({ isAlbumFetching: true });
     try {
-      const response = await axiosInstance.get(`/albums/${albumId}`);
+      const response = await getAlbumById(albumId);
       if (response.status) {
         set({ currentAlbum: response.data.album });
       }
@@ -225,7 +233,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   searchSong: async (query) => {
     set({ searchLoading: true });
     try {
-      const response = await axiosInstance.get(`/songs/searchSong/${query}`);
+      const response = await searchSongQuery(query);
       if (response.data.status) {
         set({ searchedSongs: response.data.song });
       }
@@ -244,9 +252,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchTopArtists: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get(
-        "/songs/collection/top-artists?page=10"
-      );
+      const response = await getTopArtists();
       if (response.status) {
         set({ topArtists: response.data?.collection || [] });
       }
@@ -263,9 +269,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   fetchTopAlbums: async () => {
     set(startLoading);
     try {
-      const response = await axiosInstance.get(
-        "/songs/collection/top-albums?page=10"
-      );
+      const response = await getTopAlbums();
       if (response.status) {
         set({ topAlbums: response.data?.collection.data || [] });
       }
@@ -282,7 +286,7 @@ const useMusicStore = create<MusicStore>((set) => ({
   getPlaylistSongs: async (id) => {
     set({ playlistLoading: true });
     try {
-      const response = await axiosInstance.get(`/playlists/${id}`);
+      const response = await getPlaylistById(id);
 
       if (response.data.status) {
         set({ currentPlaylist: response.data.playlist.data });

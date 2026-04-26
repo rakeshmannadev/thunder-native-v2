@@ -23,10 +23,13 @@ const TopAlbumsCard = React.memo(
     const router = useRouter();
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
+    console.log("album", album);
     const handlePress = () => {
-      if (album?.id) {
-        router.push({ pathname: "/album/[id]", params: { id: album.id } });
+      if (album?.album_id) {
+        router.push({
+          pathname: "/album/[id]",
+          params: { id: album.album_id },
+        });
       }
     };
 
