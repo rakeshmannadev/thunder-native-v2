@@ -1,6 +1,6 @@
 export interface Song {
   _id: string;
-  id: string;
+  id?: string;
   songId: string;
   title: string;
   artists: {
@@ -33,6 +33,11 @@ export interface Artist {
   topSongs: Song[];
   albums: Album[];
   singles: Album[];
+  id?: string;
+
+  url?: string;
+
+  images?: Image[];
 }
 export interface Album {
   _id: string;
@@ -157,6 +162,7 @@ export interface Message {
 }
 
 export interface Playlist {
+  _id: string;
   id?: string;
   name?: string;
   subtitle?: string;
@@ -199,20 +205,13 @@ export interface PlaylistSongs {
   listCount: number;
   music: string;
   artist_map: {
-    artists: {
-      id: string;
-      name: string;
-      url: string;
-      role: string;
-      type: string;
-      image: Image[];
-    }[];
+    artists: Artist[];
     featuredArtists: any[];
     primaryArtists: PrimaryArtist[];
     image: Image[];
   };
   album: string;
-  albumId: string;
+  album_id: string;
   albumUrl: string;
   label: string;
   labelUrl: string;

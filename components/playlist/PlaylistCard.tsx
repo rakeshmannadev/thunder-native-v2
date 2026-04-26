@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
+import { playSong } from "@/hooks/useTrackPlayerActions";
 import { PlaylistSongs } from "@/types";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React, { useState } from "react";
@@ -11,10 +12,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import TrackPlayer, {
-  useActiveTrack,
-  useIsPlaying,
-} from "react-native-track-player";
+import { useActiveTrack, useIsPlaying } from "react-native-track-player";
 import MenuModal, { MenuItem } from "../MenuModal";
 import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
@@ -36,19 +34,19 @@ const PlaylistCard = ({
   const isActive = currentSong?.id == song.id;
 
   const [menuVisible, setMenuVisible] = useState(false);
+  const filteredSong = {
+    _id: song.id,
+    title: song.name,
+    artists: {
+      primary: song.artist_map?.artists,
+    },
+    imageUrl: song.image?.[2]?.link,
+    audioUrl: song.download_url[song.download_url.length - 1].link,
+    duration: song.duration,
+  };
 
-  const playTrack = async (song: PlaylistSongs) => {
-    await TrackPlayer.load({
-      id: song.id,
-      title: song.name,
-      artist:
-        song.artist_map?.artists
-          ?.map((artist: any) => artist.name)
-          .join(", ") || "",
-      artwork: song.image?.[2]?.link,
-      url: song.download_url[song.download_url.length - 1].link,
-    });
-    await TrackPlayer.play();
+  const playTrack = async () => {
+    playSong(filteredSong);
   };
 
   const menuItems: MenuItem[] = isLoading
@@ -58,13 +56,13 @@ const PlaylistCard = ({
           key: "play_next",
           label: "Play next",
           icon: "play_next",
-          data: song,
+          data: filteredSong,
         },
         {
           key: "add_to_queue",
           label: "Add to Queue",
           icon: "queue",
-          data: [song],
+          data: [filteredSong],
         },
         {
           key: "add_to_playlist",
@@ -76,13 +74,13 @@ const PlaylistCard = ({
           key: "go_to_artist",
           label: "Go to Artist",
           icon: "artist",
-          data: song.artist_map?.artists?.[0],
+          data: song.artist_map?.artists?.[0].id,
         },
         {
           key: "go_to_album",
           label: "Go to Album",
           icon: "album",
-          data: song.albumId,
+          data: song.album_id,
         },
         {
           key: "download",
@@ -101,7 +99,7 @@ const PlaylistCard = ({
   return (
     <TouchableOpacity
       disabled={isLoading}
-      onPress={() => playTrack(song)}
+      onPress={playTrack}
       className="flex flex-row gap-5 justify-between items-center  rounded-xl  mb-4  "
     >
       <View>

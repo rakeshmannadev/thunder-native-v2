@@ -23,6 +23,7 @@ const useMenuActions = () => {
         router.push({ pathname: "/artist/[id]", params: { id: params } });
         break;
       case "go_to_album":
+        console.log("albumId: ", params);
         router.push({ pathname: "/album/[id]", params: { id: params } });
         break;
       case "add_to_queue":

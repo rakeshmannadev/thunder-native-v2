@@ -19,16 +19,15 @@ const playAlbum = async (songs: Song[], index: number) => {
   await TrackPlayer.play();
 };
 
-const playSong = async (song: Song) => {
-  await TrackPlayer.reset();
+const playSong = async (song: Partial<Song>) => {
   await TrackPlayer.load({
     id: song?._id ?? song.id,
     title: song.title,
-    artist: song.artists.primary
-      .map((artist: Artist) => artist.name)
-      .join(", "),
-    artwork: song.imageUrl,
-    url: song.audioUrl,
+    artist:
+      song?.artists?.primary?.map((artist: Artist) => artist.name).join(", ") ||
+      "",
+    artwork: song?.imageUrl,
+    url: song?.audioUrl || "",
   });
 
   await TrackPlayer.play();

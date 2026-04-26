@@ -181,7 +181,7 @@ export default function HomeScreen() {
       {selectedCategory === "charts" ? (
         <FlatList
           key="charts-grid"
-          data={charts}
+          data={chartsLoading ? SKELETON_DATA : charts}
           numColumns={2}
           columnWrapperStyle={{
             justifyContent: "space-between",
@@ -217,7 +217,7 @@ export default function HomeScreen() {
       ) : selectedCategory === "shows" ? (
         <FlatList
           key="shows-grid"
-          data={shows}
+          data={showsLoading ? SKELETON_DATA : shows}
           numColumns={2}
           columnWrapperStyle={{
             justifyContent: "space-between",
