@@ -1,9 +1,6 @@
 import { HapticTab } from "@/components/HapticTab";
-import HeaderRight from "@/components/HeaderRight";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
-import { LogoIcon } from "@/constants/Icons";
-import { fontSize } from "@/constants/tokens";
 
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
@@ -20,13 +17,12 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: colors.accent,
-          headerShown: true,
           headerTransparent: true,
-          headerLeft: () => <LogoIcon />,
-          headerRight: () => <HeaderRight />,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
+          // headerLeft: () => <LogoIcon />,
+          // headerRight: () => <HeaderRight />,
+          // headerStyle: {
+          //   backgroundColor: colors.background,
+          // },
           tabBarButton: HapticTab,
           tabBarBackground: TabBarBackground,
           tabBarStyle: {
@@ -42,16 +38,15 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => (
               <FontAwesome size={28} name="home" color={color} />
             ),
-            headerTitle: "Thunder",
-            headerShown: true,
+            headerShown: false,
             headerTransparent: true,
-            headerTitleStyle: {
-              marginLeft: 4,
-              color: colors.text,
-              fontSize: fontSize.lg,
-              fontWeight: "600",
-              letterSpacing: 1,
-            },
+            // headerTitleStyle: {
+            //   marginLeft: 4,
+            //   color: colors.text,
+            //   fontSize: fontSize.lg,
+            //   fontWeight: "600",
+            //   letterSpacing: 1,
+            // },
           }}
         />
         <Tabs.Screen
@@ -90,11 +85,12 @@ export default function TabLayout() {
           name="profile/index"
           options={{
             title: "Profile",
+
             tabBarIcon: ({ color }) => (
               <FontAwesome size={28} name="user" color={color} />
             ),
             headerTitle: "Profile",
-            headerShown: true,
+            headerShown: false,
             headerTransparent: true,
             headerTitleStyle: { marginLeft: 10 },
           }}

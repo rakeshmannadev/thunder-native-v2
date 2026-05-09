@@ -1,5 +1,5 @@
 import { setAudioPreference } from "@/helpers";
-import { AudioPreferenceType, qualites, Song } from "@/types";
+import { AudioPreferenceType, Song } from "@/types";
 import TrackPlayer from "react-native-track-player";
 import { create } from "zustand";
 
@@ -40,7 +40,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   currentIndex: -1,
   audioPreference: {
     downloadFirst: true,
-    quality: qualites.medium,
+    quality: "high",
   },
   selectedCategory: "all",
   setSelectedCategory: (category: string) => {
@@ -97,7 +97,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
   setCurrentSong: (song: Song | null) => {
     if (!song) return;
-    const songIndex = get().queue.findIndex((s) => s._id === song._id);
+    const songIndex = get().queue.findIndex((s) => s.id === song.id);
     set({
       currentSong: song,
       currentIndex: songIndex !== -1 ? songIndex : get().currentIndex,
@@ -158,7 +158,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
       const backup = [...queue];
       const shuffled = [...queue].sort(() => Math.random() - 0.5);
       const newIndex = currentSong
-        ? shuffled.findIndex((s) => s._id === currentSong._id)
+        ? shuffled.findIndex((s) => s.id === currentSong.id)
         : -1;
       set({
         isShuffle: true,
@@ -169,7 +169,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
     } else {
       const restored = originalQueue.length > 0 ? originalQueue : queue;
       const newIndex = currentSong
-        ? restored.findIndex((s) => s._id === currentSong._id)
+        ? restored.findIndex((s) => s.id === currentSong.id)
         : 0;
       set({
         isShuffle: false,

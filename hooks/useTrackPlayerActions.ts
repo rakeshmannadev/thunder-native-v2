@@ -1,17 +1,20 @@
-import { Artist, Song } from "@/types";
+import { Song } from "@/types";
 import TrackPlayer from "react-native-track-player";
 
 const playAlbum = async (songs: Song[], index: number) => {
   await TrackPlayer.reset();
   await TrackPlayer.setQueue(
     songs.map((song: Song) => ({
-      id: song._id,
-      title: song.title,
-      artist: song.artists.primary
-        .map((artist: Artist) => artist.name)
-        .join(", "),
-      artwork: song.imageUrl,
-      url: song.audioUrl,
+      id: song.id,
+      title: song.name,
+      artist: song.subtitle || "unknown",
+      artwork: song.image[song.image.length - 1].link,
+      url: song.download_url[song.download_url.length - 1].link,
+      album: song.album,
+      album_id: song.album_id,
+      duration: song.duration,
+      artist_map: song.artist_map,
+      release_date: song.release_date,
     }))
   );
 
@@ -19,15 +22,20 @@ const playAlbum = async (songs: Song[], index: number) => {
   await TrackPlayer.play();
 };
 
-const playSong = async (song: Partial<Song>) => {
+const playSong = async (song: Song) => {
+  await TrackPlayer.reset();
+
   await TrackPlayer.load({
-    id: song?._id ?? song.id,
-    title: song.title,
-    artist:
-      song?.artists?.primary?.map((artist: Artist) => artist.name).join(", ") ||
-      "",
-    artwork: song?.imageUrl,
-    url: song?.audioUrl || "",
+    id: song.id,
+    title: song.name,
+    artist: song.subtitle,
+    artwork: song.image[song.image.length - 1].link,
+    url: song.download_url[song.download_url.length - 1].link,
+    album: song.album,
+    album_id: song.album_id,
+    duration: song.duration,
+    artist_map: song.artist_map,
+    release_date: song.release_date,
   });
 
   await TrackPlayer.play();
@@ -35,13 +43,16 @@ const playSong = async (song: Partial<Song>) => {
 
 const addSongToQueue = async (song: Song) => {
   await TrackPlayer.add({
-    id: song._id,
-    title: song.title,
-    artist: song.artists.primary
-      .map((artist: Artist) => artist.name)
-      .join(", "),
-    artwork: song.imageUrl,
-    url: song.audioUrl,
+    id: song.id,
+    title: song.name,
+    artist: song.subtitle,
+    artwork: song.image[song.image.length - 1].link,
+    url: song.download_url[song.download_url.length - 1].link,
+    album: song.album,
+    album_id: song.album_id,
+    duration: song.duration,
+    artist_map: song.artist_map,
+    release_date: song.release_date,
   });
 };
 
@@ -50,13 +61,16 @@ const playNext = async (song: Song) => {
   if (currentIndex) {
     await TrackPlayer.add(
       {
-        id: song._id,
-        title: song.title,
-        artist: song.artists.primary
-          .map((artist: Artist) => artist.name)
-          .join(", "),
-        artwork: song.imageUrl,
-        url: song.audioUrl,
+        id: song.id,
+        title: song.name,
+        artist: song.subtitle,
+        artwork: song.image[song.image.length - 1].link,
+        url: song.download_url[song.download_url.length - 1].link,
+        album: song.album,
+        album_id: song.album_id,
+        duration: song.duration,
+        artist_map: song.artist_map,
+        release_date: song.release_date,
       },
       currentIndex + 1
     );

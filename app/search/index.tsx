@@ -8,7 +8,11 @@ import SongResultCard from "@/components/search/SongResultCard";
 import TopResultCard from "@/components/search/TopResultCard";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
+import useDebounceSearch from "@/hooks/useDebouceSearch";
+import { searchSongQuery } from "@/services/songService";
 import useMusicStore from "@/store/useMusicStore";
+import { SearchedSong } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import {
   ActivityIndicator,
@@ -40,7 +44,18 @@ type Section = {
 
 const index = () => {
   const colorSchema = useColorScheme();
-  const { searchedSongs, searchLoading } = useMusicStore();
+  const { searchQuery } = useMusicStore();
+  const debouncedValue = useDebounceSearch(searchQuery, 1000);
+
+  const { data: searchedSongRes, isLoading: searchLoading } = useQuery({
+    queryKey: ["search", debouncedValue],
+    queryFn: () => searchSongQuery(debouncedValue),
+    enabled: debouncedValue.length > 0,
+    select: (response) => response.data,
+  });
+
+  const searchedSongs: SearchedSong = searchedSongRes?.song;
+
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
   const { top } = useSafeAreaInsets();
@@ -72,31 +87,31 @@ const index = () => {
     {
       key: "top",
       title: "Top result",
-      data: searchedSongs.topQuery.results,
+      data: searchedSongs.top_query.data,
       component: TopResultCard,
     },
     {
       key: "songs",
       title: "Songs",
-      data: searchedSongs.songs.results,
+      data: searchedSongs.songs.data,
       component: SongResultCard,
     },
     {
       key: "albums",
       title: "Albums",
-      data: searchedSongs.albums.results,
+      data: searchedSongs.albums.data,
       component: AlbumResultCard,
     },
     {
       key: "playlists",
       title: "Playlists",
-      data: searchedSongs.playlists.results,
+      data: searchedSongs.playlists.data,
       component: PlaylistResultCard,
     },
     {
       key: "artists",
       title: "Artists",
-      data: searchedSongs.artists.results,
+      data: searchedSongs.artists.data,
       component: ArtistResultCard,
     },
   ];

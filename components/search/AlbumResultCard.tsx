@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import { AlbumResult } from "@/types";
 import { router } from "expo-router";
 import { ChevronRightIcon } from "lucide-react-native";
@@ -33,7 +34,7 @@ const AlbumResultCard = ({
         flexDirection: "row",
         alignItems: "center",
       }}
-      onPressIn={() => router.push(`../../album/${result.id}`)}
+      onPress={() => router.push(`../../album/${result.id}`)}
     >
       <View className="flex-1 flex-row w-full gap-4 items-center">
         {isLoading ? (
@@ -41,7 +42,7 @@ const AlbumResultCard = ({
         ) : (
           <Image
             source={{
-              uri: `${result.image[result.image.length - 1].url}`,
+              uri: resolveImage(result.image[result.image.length - 1].link),
             }}
             className="aspect-square w-24 rounded-xl"
           />
@@ -60,7 +61,7 @@ const AlbumResultCard = ({
                 maxWidth: "85%",
               }}
             >
-              {result.title}
+              {result.name}
             </Text>
           )}
           {isLoading ? (
@@ -75,7 +76,7 @@ const AlbumResultCard = ({
                 fontWeight: 500,
               }}
             >
-              {result.artist}
+              {result.subtitle}
             </Text>
           )}
         </View>

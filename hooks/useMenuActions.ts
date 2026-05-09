@@ -20,10 +20,10 @@ const useMenuActions = () => {
   const handleMenuActions = async (action: string, params?: number | any) => {
     switch (action) {
       case "go_to_artist":
+        console.log("artistId: ", params);
         router.push({ pathname: "/artist/[id]", params: { id: params } });
         break;
       case "go_to_album":
-        console.log("albumId: ", params);
         router.push({ pathname: "/album/[id]", params: { id: params } });
         break;
       case "add_to_queue":
@@ -45,13 +45,14 @@ const useMenuActions = () => {
       case "dark":
         Appearance.setColorScheme("dark");
         break;
-      case "download_first":
-        setAudioPreference({ downloadFirst: true });
-
+      case "low":
+        setAudioPreference({ quality: "low" });
         break;
-      case "streaming":
-        setAudioPreference({ downloadFirst: false });
-
+      case "medium":
+        setAudioPreference({ quality: "medium" });
+        break;
+      case "high":
+        setAudioPreference({ quality: "high" });
         break;
       case "start_broadcast":
         if (currentUser && currentRoom) {

@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import { PlaylistResult } from "@/types";
 import { router } from "expo-router";
 import { ChevronRightIcon } from "lucide-react-native";
@@ -34,7 +35,7 @@ const PlaylistResultCard = ({
         flexDirection: "row",
         alignItems: "center",
       }}
-      onPressIn={() => router.push(`../../playlist/${result.id}`)}
+      onPress={() => router.push(`../../playlist/${result.id}`)}
     >
       <View className="flex-1 flex-row w-full gap-4 items-center">
         {isLoading ? (
@@ -42,7 +43,7 @@ const PlaylistResultCard = ({
         ) : (
           <Image
             source={{
-              uri: `${result.image[result.image.length - 1].url}`,
+              uri: resolveImage(result.image[result.image.length - 1].link),
             }}
             className="aspect-square w-24 rounded-xl"
           />
@@ -62,7 +63,7 @@ const PlaylistResultCard = ({
               }}
               className="pr-8"
             >
-              {result.title}
+              {result.name}
             </Text>
           )}
           {isLoading ? (

@@ -1,288 +1,396 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import AlbumCard from "@/components/AlbumCard";
-import AlbumPlayButton from "@/components/AlbumPlayButton";
+import PlaylistCard from "@/components/PlaylistCard";
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { ThemedText } from "@/components/ThemedText";
-import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
+import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
-import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
+import { screenPadding } from "@/constants/tokens";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getArtistById } from "@/services/songService";
 import usePlayerStore from "@/store/usePlayerStore";
-import { defaultStyles } from "@/styles";
-import { Album, Song } from "@/types";
+import { Artist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
-import { RadioIcon, Shuffle } from "lucide-react-native";
+import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ArrowLeft, Play, Radio, Shuffle } from "lucide-react-native";
 import React from "react";
 import {
+  Dimensions,
   FlatList,
-  Image,
   Pressable,
-  ScrollView,
+  StatusBar,
   StyleSheet,
   useColorScheme,
   View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import Animated, {
+  FadeInDown,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const { width } = Dimensions.get("window");
+const HEADER_HEIGHT = 450;
 
 const ArtistPage = () => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
-
+  const router = useRouter();
   const { bottom, top } = useSafeAreaInsets();
   const { id }: { id: string } = useLocalSearchParams();
+  const scrollY = useSharedValue(0);
 
   const { setShuffle } = usePlayerStore();
 
-  const { data: currentArtist, isLoading } = useQuery({
+  const { data: currentArtistResponse, isPending: isLoading } = useQuery({
     queryKey: ["artist", id],
     queryFn: () => getArtistById(id as string),
     enabled: !!id,
   });
 
+  const currentArtist: Artist = currentArtistResponse?.data?.artist;
+
   const handlePlay = () => {
-    if (!currentArtist) return;
-    const songs: Song[] = [...currentArtist.topSongs];
-    playAlbum(songs, 0);
+    if (!currentArtist || !currentArtist.top_songs) return;
+    playAlbum(currentArtist.top_songs, 0);
   };
+
   const handleShufflePlay = () => {
-    if (!currentArtist) return;
-    const songs: Song[] = [...currentArtist.topSongs];
+    if (!currentArtist || !currentArtist.top_songs) return;
+    const songs: Song[] = [...currentArtist.top_songs];
     setShuffle(true);
     playAlbum(songs, Math.floor(Math.random() * songs.length));
   };
 
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(scrollY.value, [0, HEADER_HEIGHT - 120], [1, 0]),
+      transform: [
+        {
+          scale: interpolate(scrollY.value, [-100, 0], [1.15, 1], "clamp"),
+        },
+      ],
+    };
+  });
+
+  const artistImage = currentArtist?.image
+    ? resolveImage(currentArtist.image)
+    : null;
+
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: colors.background }]}
-    >
-      <ScrollView
-        showsVerticalScrollIndicator={true}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottom + 40 },
-        ]}
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Immersive Parallax Header */}
+      <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
+        {artistImage ? (
+          <Image
+            source={{ uri: artistImage }}
+            style={styles.headerImage}
+            contentFit="cover"
+          />
+        ) : (
+          <View
+            style={[
+              styles.headerImage,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          />
+        )}
+        <Animated.View style={StyleSheet.absoluteFillObject}>
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              { backgroundColor: "rgba(0,0,0,0.2)" },
+            ]}
+          />
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor: "transparent",
+                borderBottomWidth: 100,
+                borderBottomColor: colors.background,
+                opacity: 0.8,
+              },
+            ]}
+          />
+        </Animated.View>
+      </Animated.View>
+
+      {/* Navigation Bar */}
+      <View style={[styles.navBar, { top: top + 10 }]}>
+        <Pressable onPress={() => router.back()} style={styles.navButton}>
+          <ArrowLeft color="white" size={24} />
+        </Pressable>
+      </View>
+
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingTop: HEADER_HEIGHT - 120,
+          paddingBottom: bottom + 100,
+        }}
+        showsVerticalScrollIndicator={false}
       >
-        {/* --- Album Header Section --- */}
-        <View style={[styles.headerSection, { marginTop: top }]}>
-          <View style={styles.artworkContainer}>
-            {isLoading ? (
-              <Skeleton variant="sharp" />
-            ) : (
-              <Image
-                source={{
-                  uri: currentArtist?.image,
-                }}
-                style={styles.artwork}
-                resizeMode="cover"
+        <View style={styles.content}>
+          <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+            <ThemedText style={styles.title}>
+              {currentArtist?.name ??
+                (isLoading ? "Loading Artist..." : "Artist")}
+            </ThemedText>
+
+            <ThemedText
+              style={[styles.subtitle, { color: "rgba(255,255,255,0.8)" }]}
+            >
+              {isLoading
+                ? "Finding details..."
+                : `${currentArtist?.fan_count || 0} Monthly Listeners • ${currentArtist?.subtitle || ""}`}
+            </ThemedText>
+
+            {/* Action Bar */}
+            <View style={styles.actionRow}>
+              <Button
+                size="xl"
+                onPress={handlePlay}
+                style={[styles.playButton, { backgroundColor: colors.primary }]}
+              >
+                <ButtonIcon as={Play} color="white" size="lg" fill="white" />
+                <ButtonText style={styles.playButtonText}>Play</ButtonText>
+              </Button>
+
+              <Pressable
+                onPress={handleShufflePlay}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.secondaryBackground },
+                ]}
+              >
+                <Shuffle color={colors.text} size={22} />
+              </Pressable>
+
+              <Pressable
+                onPress={() => null}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.secondaryBackground },
+                ]}
+              >
+                <Radio color={colors.text} size={22} />
+              </Pressable>
+            </View>
+          </Animated.View>
+
+          {/* Sections */}
+          <View style={styles.sectionsContainer}>
+            {/* Albums */}
+            <Section title="Albums" isLoading={isLoading} colors={colors}>
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalListContent}
+                data={
+                  isLoading
+                    ? Array.from({ length: 5 })
+                    : currentArtist?.top_albums
+                }
+                keyExtractor={(item: any, index) =>
+                  isLoading ? `skeleton-album-${index}` : item.id.toString()
+                }
+                renderItem={({ item }) =>
+                  isLoading ? (
+                    <SongCardSkeleton />
+                  ) : (
+                    <AlbumCard album={item} isLoading={false} />
+                  )
+                }
               />
-            )}
-          </View>
+            </Section>
 
-          <View style={styles.infoContainer}>
-            {isLoading ? (
-              <SkeletonText _lines={1} className="w-20 h-4" />
-            ) : (
-              <ThemedText
-                style={[styles.title, { color: colors.text }]}
-                numberOfLines={1}
-                className="text-2xl"
+            {/* Latest Release */}
+            {!isLoading && currentArtist?.latest_release?.length > 0 && (
+              <Section
+                title="Latest Release"
+                isLoading={isLoading}
+                colors={colors}
               >
-                {currentArtist?.name ?? "Unknown Artist"}
-              </ThemedText>
+                <FlatList
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.horizontalListContent}
+                  data={currentArtist.latest_release}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={({ item }) => (
+                    <AlbumCard album={item} isLoading={false} />
+                  )}
+                />
+              </Section>
             )}
 
-            {isLoading ? (
-              <SkeletonText className="w-16 h-4" />
-            ) : (
-              <ThemedText
-                darkColor={colors.textMuted}
-                lightColor={colors.textMuted}
-                numberOfLines={1}
-              >
-                {(currentArtist &&
-                  currentArtist?.type.charAt(0).toUpperCase() +
-                    currentArtist?.type.slice(1)) ||
-                  "Artist"}
-              </ThemedText>
-            )}
-
-            {isLoading ? (
-              <SkeletonText className="w-10 h-4" />
-            ) : (
-              <ThemedText style={styles.songCount}>
-                {currentArtist?.topSongs.length ?? 0} Songs
-              </ThemedText>
-            )}
-
-            {isLoading ? (
-              <SkeletonText className="w-32 h-8" />
-            ) : (
-              <View style={styles.controls}>
-                <Pressable
-                  onPress={() => null}
-                  style={[
-                    styles.iconButton,
-                    { backgroundColor: colors.component },
-                  ]}
-                >
-                  <RadioIcon size={20} color={colors.text} />
-                </Pressable>
-
-                <AlbumPlayButton handlePlay={handlePlay} />
-
-                <Pressable
-                  onPress={handleShufflePlay}
-                  style={[
-                    styles.iconButton,
-                    { backgroundColor: colors.component },
-                  ]}
-                >
-                  <Shuffle size={22} color={colors.icon} />
-                </Pressable>
+            {/* Top Songs */}
+            <Section
+              title="Popular Tracks"
+              isLoading={isLoading}
+              colors={colors}
+            >
+              <View style={styles.verticalList}>
+                {isLoading
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <SongCardSkeleton key={i} />
+                    ))
+                  : currentArtist?.top_songs?.map((song, index) => (
+                      <Animated.View
+                        key={song.id}
+                        entering={FadeInDown.delay(300 + index * 50).duration(
+                          400
+                        )}
+                      >
+                        <AlbumItem song={song} isLoading={false} />
+                      </Animated.View>
+                    ))}
               </View>
-            )}
+            </Section>
+
+            {/* Playlists */}
+            {!isLoading &&
+              currentArtist?.dedicated_artist_playlist?.length > 0 && (
+                <Section
+                  title="Dedicated Artist Playlists"
+                  isLoading={isLoading}
+                  colors={colors}
+                >
+                  <FlatList
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.horizontalListContent}
+                    data={currentArtist.dedicated_artist_playlist}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => (
+                      <PlaylistCard playlist={item} isLoading={false} />
+                    )}
+                  />
+                </Section>
+              )}
           </View>
         </View>
-
-        {/* --- Albums Section --- */}
-
-        <ThemedText
-          type="subtitle"
-          style={{ paddingHorizontal: screenPadding.horizontal }}
-        >
-          Albums
-        </ThemedText>
-        <FlatList
-          scrollEnabled={true}
-          showsHorizontalScrollIndicator={false}
-          horizontal={true}
-          keyExtractor={(item: Album) =>
-            isLoading ? `skeleton-${Math.random()}` : item._id.toString()
-          }
-          data={isLoading ? Array.from({ length: 5 }) : currentArtist?.albums}
-          renderItem={({ item: Album }) =>
-            isLoading ? (
-              <SongCardSkeleton />
-            ) : (
-              <AlbumCard album={Album} isLoading={isLoading} />
-            )
-          }
-        />
-
-        {/* --- Singles Section --- */}
-
-        <ThemedText
-          type="subtitle"
-          style={{ paddingHorizontal: screenPadding.horizontal }}
-        >
-          Singles
-        </ThemedText>
-        <FlatList
-          scrollEnabled={true}
-          showsHorizontalScrollIndicator={false}
-          horizontal={true}
-          keyExtractor={(item: Album) =>
-            isLoading ? `skeleton-${Math.random()}` : item._id.toString()
-          }
-          data={isLoading ? Array.from({ length: 5 }) : currentArtist?.singles}
-          renderItem={({ item: Album }) =>
-            isLoading ? (
-              <SongCardSkeleton />
-            ) : (
-              <AlbumCard album={Album} isLoading={isLoading} />
-            )
-          }
-        />
-
-        {/* --- Top songs Section --- */}
-
-        <ThemedText
-          type="subtitle"
-          style={{ paddingHorizontal: screenPadding.horizontal }}
-        >
-          Top Songs
-        </ThemedText>
-        <FlatList
-          data={currentArtist?.topSongs}
-          keyExtractor={(item) => item._id}
-          scrollEnabled={false}
-          horizontal={false}
-          renderItem={({ item: song }) => (
-            <AlbumItem isLoading={isLoading} song={song} />
-          )}
-        />
-      </ScrollView>
-    </SafeAreaView>
+      </Animated.ScrollView>
+    </View>
   );
 };
 
-export default ArtistPage;
+const Section = ({ title, isLoading, children, colors }: any) => (
+  <View style={styles.section}>
+    <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+      {title}
+    </ThemedText>
+    {children}
+  </View>
+);
+
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
   },
-  scrollContent: {
-    flexDirection: "column",
-    gap: 10,
-    paddingHorizontal: screenPadding.horizontal,
-    paddingTop: 20,
+  headerContainer: {
+    position: "absolute",
+    width: width,
+    height: HEADER_HEIGHT,
+    zIndex: 0,
   },
-  listContainer: {
-    flexDirection: "column",
-    gap: 20,
-  },
-  headerSection: {
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 15,
-    marginBottom: 20,
-  },
-  artworkContainer: {
-    width: 280,
-    height: 280,
-
-    overflow: "hidden",
-    elevation: 6,
-  },
-  artwork: {
+  headerImage: {
     width: "100%",
     height: "100%",
-    borderRadius: borderRadius.lg,
   },
-  infoContainer: {
-    width: "100%",
+  navBar: {
+    position: "absolute",
+    left: screenPadding.horizontal,
+    right: screenPadding.horizontal,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
     alignItems: "center",
   },
+  content: {
+    paddingHorizontal: screenPadding.horizontal,
+  },
   title: {
-    ...defaultStyles.text,
-    fontSize: 22,
+    fontSize: 48,
+    fontWeight: "900",
+    color: "white",
+    letterSpacing: -1.5,
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 10,
+  },
+  subtitle: {
+    fontSize: 16,
     fontWeight: "700",
+    marginTop: 8,
+    marginBottom: 32,
   },
-  artist: {
-    ...defaultStyles.text,
-    fontSize: fontSize.base,
-    opacity: 0.8,
-    marginVertical: 6,
-  },
-  songCount: {
-    ...defaultStyles.text,
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  controls: {
+  actionRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginTop: 10,
+    marginBottom: 40,
   },
-  iconButton: {
-    padding: 6,
-    borderRadius: 50,
-    backgroundColor: "rgba(255,255,255,0.08)",
+  playButton: {
+    flex: 1,
+    height: 60,
+    borderRadius: 30,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  playButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  actionButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sectionsContainer: {
+    gap: 32,
+  },
+  section: {
+    gap: 16,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  horizontalListContent: {
+    gap: 16,
+    paddingRight: screenPadding.horizontal,
+  },
+  verticalList: {
+    gap: 4,
   },
 });
+
+export default ArtistPage;

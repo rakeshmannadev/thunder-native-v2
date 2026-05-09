@@ -37,13 +37,12 @@ interface MusicStore {
   topAlbums: TopAlbums[];
   currentPlaylist: Playlist | null;
 
-  searchedSongs: SearchedSong | null;
+  searchQuery: string;
   single: Song | null;
   playlistLoading: boolean;
   _loadingCount: number;
   isLoading: boolean;
   isAlbumFetching: boolean;
-  searchLoading: boolean;
   charts: Chart[];
   shows: Show[];
   topArtists: TopArtists[];
@@ -56,9 +55,8 @@ interface MusicStore {
   fetchAlbumById: (albumId: string) => Promise<void>;
   fetchCharts: () => Promise<void>;
   fetchShows: () => Promise<void>;
-  searchSong: (query: string) => Promise<void>;
   fetchSingle: (id: string) => Promise<void>;
-  setSearchedSongs: (songs: SearchedSong | null) => void;
+  setSearchQuery: (query: string) => void;
   setChartData: (charts: Chart[]) => void;
   fetchTopArtists: () => Promise<void>;
   fetchTopAlbums: () => Promise<void>;
@@ -89,10 +87,9 @@ const useMusicStore = create<MusicStore>((set) => ({
   currentPlaylist: null,
   currentAlbum: null,
   currentArtist: null,
-  searchedSongs: null,
+  searchQuery: "",
   _loadingCount: 0,
   isLoading: false,
-  searchLoading: false,
   isAlbumFetching: false,
 
   fetchAllSongs: async () => {
@@ -230,21 +227,8 @@ const useMusicStore = create<MusicStore>((set) => ({
       set({ isAlbumFetching: false });
     }
   },
-  searchSong: async (query) => {
-    set({ searchLoading: true });
-    try {
-      const response = await searchSongQuery(query);
-      if (response.data.status) {
-        set({ searchedSongs: response.data.song });
-      }
-    } catch (error: any) {
-      console.log(error?.response?.data?.message);
-    } finally {
-      set({ searchLoading: false });
-    }
-  },
-  setSearchedSongs(songs) {
-    set({ searchedSongs: songs });
+  setSearchQuery: (query) => {
+    set({ searchQuery: query });
   },
   setChartData(charts) {
     set({ charts });

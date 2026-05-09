@@ -53,6 +53,8 @@ const withoutTabBarScreens = [
 SplashScreen.preventAutoHideAsync();
 TrackPlayer.registerPlaybackService(() => playbackService);
 
+const queryClient = new QueryClient();
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
@@ -103,8 +105,6 @@ export default function RootLayout() {
 
   const showFloatingPlayer =
     currentSong && !hideFloatingPlayerScreens.includes(currentSegment);
-
-  const queryClient = new QueryClient();
 
   return (
     <QueryClientProvider client={queryClient}>

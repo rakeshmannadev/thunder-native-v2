@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
-import { Playlist, Room, Song, User } from "@/types";
+import { Artist, Playlist, Room, Song, User } from "@/types";
 
 import { create } from "zustand";
 
@@ -11,24 +11,17 @@ interface UserStore {
   fetchRecentlyPlayed: () => Promise<void>;
   saveRecentlyPlayed: (id: string) => Promise<void>;
   addToFavorite: (
-    artist: Array<any>,
-    imageUrl: string,
-    audioUrl: string,
-    albumId: string,
-    artistId: string,
-    duration: number,
-    releaseYear: string,
-    songId: string,
-    id: string,
-    title: string,
-    playlistName: string
+    song: Song,
+    playListName: string,
+    artists: Artist[],
+    imageUrl: string
   ) => Promise<void>;
 
   addSongToPlaylist: (
     playlistId: string | any,
-    songId: string,
+    song: Song,
     playListName: string,
-    artist: Array<any>,
+    artist: Artist[],
     imageUrl: string
   ) => Promise<void>;
   getFavoriteSongs: () => Promise<void>;
@@ -125,41 +118,22 @@ const useUserStore = create<UserStore>((set, get) => ({
     }
   },
   addToFavorite: async (
-    artist: Array<any>,
-    imageUrl: string,
-    audioUrl: string,
-    albumId: string,
-    artistId: string,
-    duration: number,
-    releaseYear: string,
-    songId: string,
-    id: string,
-    title: string,
-    playListName: string
+    song: Song,
+    playListName: string,
+    artists: Artist[],
+    imageUrl: string
   ) => {
     if (!get().currentUser) return;
     try {
       const response = await axiosInstance.post("/user/addToFavorite", {
-        artist,
-        imageUrl,
-        songId,
-        playListName,
+        artists: artists,
+        imageUrl: imageUrl,
+        playListName: playListName,
+        song,
       });
       if (response.data.status) {
-        const newSong: Song = {
-          _id: songId,
-          songId: id,
-          imageUrl,
-          audioUrl,
-          title,
-          albumId,
-          artistId,
-          artists: { primary: artist },
-          duration,
-          releaseYear,
-        };
         set({
-          favoriteSongs: [...get().favoriteSongs, newSong],
+          favoriteSongs: [...get().favoriteSongs, song],
         });
 
         // toast.success(response.data.message);
@@ -190,7 +164,7 @@ const useUserStore = create<UserStore>((set, get) => ({
         if (playlistId) {
           set((state) => ({
             playlists: state.playlists.map((playlist) =>
-              playlist._id === playlistId
+              playlist.id === playlistId
                 ? { ...playlist, songs: [...playlist.songs, songId] }
                 : playlist
             ),

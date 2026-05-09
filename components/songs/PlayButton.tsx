@@ -3,13 +3,14 @@ import React from "react";
 import { Fab, FabIcon } from "../ui/fab";
 
 import { Colors } from "@/constants/Colors";
+import { playSong } from "@/hooks/useTrackPlayerActions";
 import usePlayerStore from "@/store/usePlayerStore";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { PauseIcon, PlayIcon } from "lucide-react-native";
 import { useColorScheme } from "react-native";
-import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import { useSharedValue } from "react-native-reanimated";
 import TrackPlayer, {
   useActiveTrack,
   useIsPlaying,
@@ -21,25 +22,25 @@ const PlayButton = ({ song }: { song: Song }) => {
 
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  const { isBroadcasting, playSong } = useSocketStore();
+  const { isBroadcasting, playSong: broadcastSong } = useSocketStore();
   const { currentUser, saveRecentlyPlayed } = useUserStore();
   const { currentRoom } = useRoomStore();
-  const { queue } = usePlayerStore();
+  const { queue, audioPreference } = usePlayerStore();
 
   const currentActiveTrack = useActiveTrack();
 
   const { playing: isPlaying } = useIsPlaying();
 
-  const currentTrack = currentActiveTrack?.id === song?._id;
+  const currentTrack = currentActiveTrack?.id === song?.id;
 
   const handlePlaySong = async (song: Song) => {
     if (!song) return;
 
     if (isBroadcasting && currentUser && currentRoom) {
-      playSong(
+      broadcastSong(
         currentUser._id,
         currentRoom?.roomId,
-        song.songId,
+        song.id,
         null,
         0,
         currentUser
@@ -48,37 +49,17 @@ const PlayButton = ({ song }: { song: Song }) => {
     }
 
     const player = await TrackPlayer.getPlaybackState();
-    if (player.state === "paused" && currentActiveTrack?.id === song._id) {
+    if (player.state === "paused" && currentActiveTrack?.id === song.id) {
       await TrackPlayer.play();
       return;
     }
 
-    await TrackPlayer.reset();
-
-    await TrackPlayer.load({
-      id: song._id,
-      url: song.audioUrl,
-      title: song.title,
-      artist: song.artists.primary.map((artist) => artist.name).join(", "),
-      artwork: song.imageUrl,
-    });
-
-    await TrackPlayer.play();
-    await saveRecentlyPlayed(song._id);
+    playSong(song);
+    await saveRecentlyPlayed(song.id);
   };
   const handlePauseSong = () => {
     TrackPlayer.pause();
   };
-
-  const rotationAnimationSyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          rotate: `${rotation.value}deg`,
-        },
-      ],
-    };
-  });
 
   return (
     <>

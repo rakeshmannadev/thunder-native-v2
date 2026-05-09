@@ -23,7 +23,7 @@ export const getFeaturedSongs = async () => {
 export const getArtistById = async (id: string) => {
   try {
     const response = await axiosInstance.get(`/artists/${id}`);
-    return response.data?.artist;
+    return response;
   } catch (error: any) {
     throw error;
   }
@@ -89,7 +89,7 @@ export const getShows = async () => {
 
 export const searchSongQuery = async (query: string) => {
   try {
-    const response = await axiosInstance.get(`/songs/searchSong/${query}`);
+    const response = await axiosInstance.get(`/songs/search?query=${query}`);
     return response;
   } catch (error: any) {
     throw error;

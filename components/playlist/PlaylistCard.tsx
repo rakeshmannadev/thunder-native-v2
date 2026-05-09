@@ -2,7 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
 import { playSong } from "@/hooks/useTrackPlayerActions";
-import { PlaylistSongs } from "@/types";
+import { Song } from "@/types";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -23,7 +23,7 @@ const PlaylistCard = ({
   song,
 }: {
   isLoading: boolean;
-  song: PlaylistSongs;
+  song: Song;
 }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
@@ -38,7 +38,7 @@ const PlaylistCard = ({
     _id: song.id,
     title: song.name,
     artists: {
-      primary: song.artist_map?.artists,
+      primary: song.artist_map?.primary_artists,
     },
     imageUrl: song.image?.[2]?.link,
     audioUrl: song.download_url[song.download_url.length - 1].link,
@@ -74,7 +74,7 @@ const PlaylistCard = ({
           key: "go_to_artist",
           label: "Go to Artist",
           icon: "artist",
-          data: song.artist_map?.artists?.[0].id,
+          data: song.artist_map?.primary_artists?.[0].id,
         },
         {
           key: "go_to_album",
@@ -151,10 +151,7 @@ const PlaylistCard = ({
                 darkColor={colors.textMuted}
                 lightColor={colors.textMuted}
               >
-                {song.artist_map.artists
-                  .map((artist) => artist.name)
-                  .join(", ")}{" "}
-                {"•"}
+                {song.subtitle} {"•"}
               </ThemedText>
 
               <ThemedText

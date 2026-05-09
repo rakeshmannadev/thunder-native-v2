@@ -1,9 +1,8 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
-import useDebounceSearch from "@/hooks/useDebouceSearch";
 import useMusicStore from "@/store/useMusicStore";
 import { SearchIcon, XCircleIcon } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useColorScheme, View } from "react-native";
 import { Input, InputField, InputIcon, InputSlot } from "../ui/input";
 
@@ -11,15 +10,7 @@ const SearchBar = () => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  const [value, setValue] = useState<string>("");
-  const { searchSong, setSearchedSongs } = useMusicStore();
-  const debouncedValue = useDebounceSearch(value, 1000);
-
-  useEffect(() => {
-    if (debouncedValue) {
-      searchSong(debouncedValue);
-    }
-  }, [debouncedValue]);
+  const { searchQuery, setSearchQuery } = useMusicStore();
 
   return (
     <View className="pl-10  w-full">
@@ -45,16 +36,15 @@ const SearchBar = () => {
         <InputField
           autoFocus={true}
           placeholder="Search..."
-          onChangeText={setValue}
-          value={value}
-          defaultValue={value}
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          defaultValue={searchQuery}
         />
-        {value.trim().length > 0 && (
+        {searchQuery.trim().length > 0 && (
           <InputSlot
             className="pr-3"
             onPress={() => {
-              setValue("");
-              setSearchedSongs(null);
+              setSearchQuery("");
             }}
           >
             <InputIcon as={XCircleIcon} />

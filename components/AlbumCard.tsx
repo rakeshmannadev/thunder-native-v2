@@ -1,8 +1,15 @@
 import { Colors } from "@/constants/Colors";
+import { borderRadius } from "@/constants/tokens";
 import { Album } from "@/types";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Image, Pressable, Text, useColorScheme, View } from "react-native";
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { Card } from "./ui/card";
 import { Skeleton, SkeletonText } from "./ui/skeleton";
 import { VStack } from "./ui/vstack";
@@ -16,9 +23,17 @@ const AlbumCard = React.memo(({ album, isLoading }: SectionGridProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   return (
-    <Pressable
+    <TouchableOpacity
+      activeOpacity={0.7}
+      style={{
+        backgroundColor: colors.component,
+        borderRadius: borderRadius.md,
+        padding: 16,
+        flexDirection: "row",
+        alignItems: "center",
+      }}
       onPress={() =>
-        router.push({ pathname: "/album/[id]", params: { id: album.albumId } })
+        router.push({ pathname: "/album/[id]", params: { id: album.id } })
       }
     >
       <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
@@ -28,10 +43,10 @@ const AlbumCard = React.memo(({ album, isLoading }: SectionGridProps) => {
           ) : (
             <Image
               source={{
-                uri: `${album.imageUrl}`,
+                uri: album.image[album.image.length - 1].link,
               }}
               className="mb-1  w-36  rounded-md aspect-[263/240]"
-              alt={album.title}
+              alt={album.name}
             />
           )}
         </View>
@@ -50,7 +65,7 @@ const AlbumCard = React.memo(({ album, isLoading }: SectionGridProps) => {
                   fontWeight: 700,
                 }}
               >
-                {album.title}
+                {album.name}
               </Text>
             )}
           </View>
@@ -67,13 +82,13 @@ const AlbumCard = React.memo(({ album, isLoading }: SectionGridProps) => {
                   fontWeight: 500,
                 }}
               >
-                {album.artists.primary.map((artist) => artist.name).join(", ")}
+                {album.subtitle}
               </Text>
             )}
           </View>
         </VStack>
       </Card>
-    </Pressable>
+    </TouchableOpacity>
   );
 });
 

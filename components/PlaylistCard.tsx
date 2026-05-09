@@ -1,43 +1,57 @@
 import { Colors } from "@/constants/Colors";
-import { Playlist } from "@/types";
-import { Link } from "expo-router";
+import { borderRadius } from "@/constants/tokens";
+import { useRouter } from "expo-router";
 import React from "react";
-import { Image, Text, useColorScheme, View } from "react-native";
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import NoDataPlaceholder from "./NoDataPlaceholder";
 import { Card } from "./ui/card";
 import { Heading } from "./ui/heading";
 import { VStack } from "./ui/vstack";
 
 type SectionGridProps = {
-  playlist: Playlist;
+  playlist: any;
   isLoading: boolean;
 };
 const PlaylistCard = ({ playlist, isLoading }: SectionGridProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+  const router = useRouter();
 
   if (!playlist) return <NoDataPlaceholder />;
 
-  const id = playlist.id || playlist.playlistId;
-  const name = playlist.name || playlist.playlistName;
-  const imageUrl = playlist.image || playlist.imageUrl;
-  // If artists array is present in the new format, we can map over it, or just use the subtitle
-  const subtitle =
-    playlist.subtitle ||
-    (playlist.artists && playlist.artists.map((a: any) => a.name).join(", ")) ||
-    (playlist.artist && playlist.artist.map((a: any) => a.name).join(", "));
-
-  const href = `../${playlist.type === "album" || playlist.albumId ? "album" : "playlist"}/${
-    playlist.albumId || id
-  }`;
+  const id = playlist.id || playlist.id;
+  const name = playlist.name || playlist.name;
+  const imageUrl = playlist.image;
+  const subtitle = playlist.subtitle;
 
   return (
-    <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
-      <Link href={href as any}>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={() => {
+        router.push({
+          pathname: "/playlist/[id]",
+          params: { id: playlist.id },
+        });
+      }}
+      style={{
+        backgroundColor: colors.component,
+        borderRadius: borderRadius.md,
+        padding: 16,
+        flexDirection: "row",
+        alignItems: "center",
+      }}
+    >
+      <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
         <View>
           <Image
             source={{
-              uri: `${imageUrl}`,
+              uri: imageUrl,
             }}
             className="mb-1  w-36  rounded-md aspect-[263/240]"
             alt={name}
@@ -62,8 +76,8 @@ const PlaylistCard = ({ playlist, isLoading }: SectionGridProps) => {
             </Text>
           </View>
         </VStack>
-      </Link>
-    </Card>
+      </Card>
+    </TouchableOpacity>
   );
 };
 

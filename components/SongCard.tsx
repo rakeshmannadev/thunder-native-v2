@@ -13,7 +13,6 @@ const SongCard = React.memo(
   ({ song, isLoading }: { song: Song; isLoading: boolean }) => {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
     return (
       <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
         <View>
@@ -22,7 +21,7 @@ const SongCard = React.memo(
           ) : (
             <Image
               source={{
-                uri: song.imageUrl,
+                uri: song.image[song.image.length - 1].link,
               }}
               className="mb-1  w-36  rounded-md aspect-[263/240]"
               alt="image"
@@ -45,7 +44,7 @@ const SongCard = React.memo(
                   fontWeight: 700,
                 }}
               >
-                {song.title}
+                {song.name}
               </Text>
             )}
           </View>
@@ -61,7 +60,11 @@ const SongCard = React.memo(
                   fontWeight: 500,
                 }}
               >
-                {song.artists.primary.map((artist) => artist.name).join(", ")}
+                {song.artist_map
+                  ? song.artist_map?.artists?.primary_artists
+                      ?.map((artist) => artist.name)
+                      .join(", ")
+                  : "Unknown Artist"}
               </Text>
             )}
           </View>

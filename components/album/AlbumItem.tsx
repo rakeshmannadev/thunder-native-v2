@@ -1,7 +1,9 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
-import { Artist, Song } from "@/types";
+import { QUALITY_MAP } from "@/helpers/audioQualityMap";
+import usePlayerStore from "@/store/usePlayerStore";
+import { Song } from "@/types";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -26,20 +28,22 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
 
   const currentSong = useActiveTrack();
   const isPlaying = useIsPlaying();
+  const { audioPreference } = usePlayerStore();
 
-  const isActive = currentSong?.url == song.audioUrl;
+  const isActive = currentSong?.id == song.id;
 
   const [menuVisible, setMenuVisible] = useState(false);
 
   const playTrack = async (song: Song) => {
     await TrackPlayer.load({
-      id: song._id,
-      title: song.title,
-      artist: song.artists.primary
-        .map((artist: Artist) => artist.name)
-        .join(", "),
-      artwork: song.imageUrl,
-      url: song.audioUrl,
+      id: song.id,
+      title: song.name,
+      artist: song.subtitle,
+      artwork: song.image[song.image.length - 1].link,
+      url:
+        song.download_url.find(
+          (item) => item.quality === QUALITY_MAP[audioPreference.quality]
+        )?.link || song.download_url[0].link,
     });
     await TrackPlayer.play();
   };
@@ -69,13 +73,13 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
           key: "go_to_artist",
           label: "Go to Artist",
           icon: "artist",
-          data: song.artists?.primary?.[0],
+          data: song.artist_map?.primary_artists?.[0].id,
         },
         {
           key: "go_to_album",
           label: "Go to Album",
           icon: "album",
-          data: song.albumId,
+          data: song.album_id,
         },
         {
           key: "download",
@@ -103,7 +107,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
         ) : (
           <Image
             source={{
-              uri: `${song.imageUrl}`,
+              uri: song.image[song.image.length - 1].link,
             }}
             alt=""
             style={{
@@ -132,7 +136,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
           <SkeletonText className="w-28 h-4" />
         ) : (
           <ThemedText numberOfLines={1} type="defaultSemiBold">
-            {song.title}
+            {song.name}
           </ThemedText>
         )}
         <View className="flex flex-row items-center gap-2">
@@ -146,10 +150,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
                 darkColor={colors.textMuted}
                 lightColor={colors.textMuted}
               >
-                {song.artists.primary
-                  .map((artist: Artist) => artist.name)
-                  .join(", ")}{" "}
-                {"•"}
+                {song.subtitle} {"•"}
               </ThemedText>
 
               <ThemedText

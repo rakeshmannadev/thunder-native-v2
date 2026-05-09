@@ -27,7 +27,7 @@ const RecentlyPlayedCard = ({
         className="flex-shrink-0 w-64  backdrop-blur-sm rounded-2xl p-3 border  flex flex-row items-center gap-4 active:bg-white/5 transition-colors"
       >
         <Image
-          src={song.imageUrl}
+          src={song.image[song.image.length - 1].link}
           width={50}
           height={50}
           className="rounded-lg"
@@ -38,14 +38,16 @@ const RecentlyPlayedCard = ({
             style={{ color: colors.text }}
             className=" text-sm font-bold truncate"
           >
-            {song.title}
+            {song.name}
           </Text>
           <Text
             numberOfLines={1}
             style={{ color: colors.textMuted }}
             className="text-text-secondary-dark text-xs truncate"
           >
-            {song.artists.primary.map((artist) => artist.name).join(", ")}
+            {song.artists.artist_map.primary_artists
+              .map((artist) => artist.name)
+              .join(", ")}
           </Text>
           <View className="mt-1.5 flex flex-row items-center gap-1.5">
             <LucidePlayCircle size={14} color={colors.primary} />

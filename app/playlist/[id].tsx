@@ -1,279 +1,270 @@
 import { ThemedText } from "@/components/ThemedText";
-import {
-  borderRadius,
-  colors,
-  fontSize,
-  screenPadding,
-} from "@/constants/tokens";
-import { defaultStyles } from "@/styles";
-import { useLocalSearchParams } from "expo-router";
-import { Shuffle } from "lucide-react-native";
-import React, { useEffect } from "react";
-import {
-  FlatList,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-
 import PlaylistCard from "@/components/playlist/PlaylistCard";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
-import useMusicStore from "@/store/useMusicStore";
-import useUserStore from "@/store/useUserStore";
-import { PlaylistSongs } from "@/types";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import TrackPlayer from "react-native-track-player";
+import { screenPadding } from "@/constants/tokens";
+import { resolveImage } from "@/helpers/resolverImageUrl";
+import { playAlbum } from "@/hooks/useTrackPlayerActions";
+import { getPlaylistById } from "@/services/songService";
+import { Playlist, Song } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ArrowLeft, Play, Shuffle } from "lucide-react-native";
+import React from "react";
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from "react-native";
+import Animated, {
+  FadeInDown,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const { width } = Dimensions.get("window");
+const HEADER_HEIGHT = 400;
 
 const PlaylistScreen = () => {
   const { id }: { id: string } = useLocalSearchParams();
-
+  const router = useRouter();
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
   const { bottom, top } = useSafeAreaInsets();
-  const { addAlbumToPlaylist, playlists } = useUserStore();
-  const { playlistLoading, currentPlaylist, getPlaylistSongs } =
-    useMusicStore();
+  const scrollY = useSharedValue(0);
 
-  useEffect(() => {
-    if (id) {
-      getPlaylistSongs(id);
-    }
-  }, [id, getPlaylistSongs]);
+  const { data: playlistRes, isLoading: playlistLoading } = useQuery({
+    queryKey: ["playlist", id],
+    queryFn: async () => await getPlaylistById(id!),
+    enabled: !!id,
+  });
 
-  const playPlaylist = async () => {
-    if (!currentPlaylist) return;
-    await TrackPlayer.reset();
-    await TrackPlayer.setQueue(
-      currentPlaylist.songs.map((song: PlaylistSongs) => ({
-        id: song.id,
-        title: song.name,
-        artist: song.artist_map.artists.map((artist) => artist.name).join(", "),
-        artwork: song.image[2].link,
-        url: song.download_url[3].link,
-      }))
-    );
+  const currentPlaylist: Playlist = playlistRes?.data.playlist;
+  const songs = currentPlaylist?.songs || [];
 
-    await TrackPlayer.play();
+  const handlePlay = () => {
+    if (songs.length === 0) return;
+    playAlbum(songs, 0);
   };
-  const handleShufflePlay = async () => {};
 
-  // const handleAddAlbumToPlaylist = () => {
-  //   if (currentPlaylist) {
-  //     const songs: string[] = [];
-  //     currentPlaylist.songs.map((song: { _id: string }) => {
-  //       songs.push(song._id);
-  //     });
-  //     addAlbumToPlaylist(
-  //       currentPlaylist.id!,
-  //       currentPlaylist.name!,
-  //       currentPlaylist.artist!,
-  //       currentPlaylist.albumId!,
-  //       currentPlaylist.imageUrl!,
-  //       songs
-  //     );
-  //   }
-  // };
+  const handleShufflePlay = () => {
+    if (songs.length === 0) return;
+    playAlbum(songs, Math.floor(Math.random() * songs.length));
+  };
 
-  // const isAddedToPlaylist = playlists.find(
-  //   (playlist) => playlist.playlistId === currentPlaylist?.playlistId
-  // );
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(scrollY.value, [0, HEADER_HEIGHT - 120], [1, 0]),
+      transform: [
+        {
+          scale: interpolate(scrollY.value, [-100, 0], [1.1, 1], "clamp"),
+        },
+      ],
+    };
+  });
+
+  const playlistImage = currentPlaylist?.image ? resolveImage(currentPlaylist.image) : null;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottom + 40 },
-        ]}
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Parallax Header */}
+      <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
+        {playlistImage ? (
+          <Image source={{ uri: playlistImage }} style={styles.headerImage} />
+        ) : (
+          <View style={[styles.headerImage, { backgroundColor: colors.secondaryBackground }]} />
+        )}
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.5)", colors.background]}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </Animated.View>
+
+      {/* Header Bar (Back Button) */}
+      <View style={[styles.headerBar, { top: top + 10 }]}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <ArrowLeft color="white" size={24} />
+        </Pressable>
+      </View>
+
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingTop: HEADER_HEIGHT - 80,
+          paddingBottom: bottom + 100,
+        }}
+        showsVerticalScrollIndicator={false}
       >
-        {/* --- Playlist Header Section --- */}
-        <View style={[styles.headerSection, { marginTop: top }]}>
-          <View style={styles.artworkContainer}>
+        <View style={styles.content}>
+          <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+            <ThemedText style={styles.title}>
+              {currentPlaylist?.name ?? (playlistLoading ? "Loading..." : "Playlist")}
+            </ThemedText>
+            
+            <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
+              {playlistLoading ? "Finding tracks..." : `${songs.length} Songs • ${currentPlaylist?.subtitle || "Thunder Playlist"}`}
+            </ThemedText>
+
+            {/* Action Buttons */}
+            <View style={styles.actionRow}>
+              <Pressable
+                onPress={handlePlay}
+                style={[styles.playButton, { backgroundColor: colors.primary }]}
+              >
+                <Play color="white" size={24} fill="white" />
+                <ThemedText style={styles.playButtonText}>Play</ThemedText>
+              </Pressable>
+
+              <Pressable
+                onPress={handleShufflePlay}
+                style={[styles.shuffleButton, { backgroundColor: colors.secondaryBackground }]}
+              >
+                <Shuffle color={colors.text} size={22} />
+              </Pressable>
+            </View>
+          </Animated.View>
+
+          {/* Song List */}
+          <View style={styles.listContainer}>
             {playlistLoading ? (
-              <Skeleton variant="sharp" />
+              Array.from({ length: 10 }).map((_, i) => (
+                <View key={i} style={styles.skeletonItem}>
+                  <Skeleton className="w-14 h-14 rounded-lg" />
+                  <View style={{ flex: 1, gap: 8 }}>
+                    <SkeletonText className="w-48 h-4" />
+                    <SkeletonText className="w-32 h-3" />
+                  </View>
+                </View>
+              ))
             ) : (
-              <Image
-                source={{
-                  uri: currentPlaylist?.image,
-                }}
-                style={styles.artwork}
-                resizeMode="cover"
+              <FlatList
+                data={songs}
+                keyExtractor={(item, index) => `${id}-${item.id}-${index}`}
+                scrollEnabled={false}
+                renderItem={({ item, index }) => (
+                  <Animated.View entering={FadeInDown.delay(300 + index * 50).duration(400)}>
+                    <PlaylistCard isLoading={false} song={item} />
+                  </Animated.View>
+                )}
               />
             )}
           </View>
-
-          <View style={styles.infoContainer}>
-            {playlistLoading ? (
-              <SkeletonText _lines={1} className="w-20 h-4" />
-            ) : (
-              <ThemedText
-                style={[styles.title, { color: colors.text }]}
-                className="text-2xl"
-              >
-                {currentPlaylist?.name ?? "Unknown Album"}
-              </ThemedText>
-            )}
-
-            {playlistLoading ? (
-              <SkeletonText className="w-16 h-4" />
-            ) : (
-              <ThemedText
-                darkColor={colors.textMuted}
-                lightColor={colors.textMuted}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                {currentPlaylist?.artists?.map((a) => a.name).join(", ") ?? ""}
-              </ThemedText>
-            )}
-
-            {playlistLoading ? (
-              <SkeletonText className="w-10 h-4" />
-            ) : (
-              <ThemedText
-                darkColor={colors.textMuted}
-                lightColor={colors.textMuted}
-              >
-                {currentPlaylist?.songs.length ?? 0} Songs
-              </ThemedText>
-            )}
-
-            {playlistLoading ? (
-              <SkeletonText className="w-32 h-8" />
-            ) : (
-              <View style={styles.controls}>
-                <Pressable
-                  style={[
-                    styles.iconButton,
-                    { backgroundColor: colors.component },
-                  ]}
-                >
-                  {/* <HeartIcon
-                    size={20}
-                    fill={isAddedToPlaylist ? "green" : "none"}
-                    color={isAddedToPlaylist ? "green" : colors.icon}
-                  /> */}
-                </Pressable>
-
-                <TouchableOpacity
-                  onPress={playPlaylist}
-                  style={{
-                    paddingHorizontal: 12,
-                    borderRadius: borderRadius.lg,
-                    backgroundColor: colors.primary,
-                    flex: 1,
-                    height: 48,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 4,
-                  }}
-                >
-                  <ThemedText style={{ color: "white" }}>Play</ThemedText>
-                  <MaterialCommunityIcons
-                    name="play"
-                    size={22}
-                    color={"white"}
-                  />
-                </TouchableOpacity>
-
-                <Pressable
-                  onPress={handleShufflePlay}
-                  style={[
-                    styles.iconButton,
-                    { backgroundColor: colors.component },
-                  ]}
-                >
-                  <Shuffle size={22} color={colors.icon} />
-                </Pressable>
-              </View>
-            )}
-          </View>
         </View>
-
-        {/* Song lists */}
-        {
-          <FlatList
-            data={currentPlaylist?.songs ?? []}
-            keyExtractor={(item, index) => index + "-" + item.id}
-            scrollEnabled={false}
-            renderItem={({ item }: { item: PlaylistSongs }) => (
-              <PlaylistCard isLoading={playlistLoading} song={item} />
-            )}
-          />
-        }
-      </ScrollView>
-    </SafeAreaView>
+      </Animated.ScrollView>
+    </View>
   );
 };
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    paddingHorizontal: screenPadding.horizontal,
-    paddingTop: 20,
-  },
-  headerSection: {
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 15,
-    marginBottom: 20,
-    paddingHorizontal: screenPadding.horizontal,
-  },
-  artworkContainer: {
-    width: 280,
-    height: 280,
 
-    overflow: "hidden",
-    elevation: 6,
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
   },
-  artwork: {
+  headerContainer: {
+    position: "absolute",
+    width: width,
+    height: HEADER_HEIGHT,
+    zIndex: 0,
+  },
+  headerImage: {
     width: "100%",
     height: "100%",
-    borderRadius: borderRadius.lg,
+    resizeMode: "cover",
   },
-  infoContainer: {
-    width: "100%",
+  headerBar: {
+    position: "absolute",
+    left: screenPadding.horizontal,
+    right: screenPadding.horizontal,
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    zIndex: 10,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
-    paddingVertical: 2,
+    alignItems: "center",
+  },
+  content: {
+    paddingHorizontal: screenPadding.horizontal,
   },
   title: {
-    ...defaultStyles.text,
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 32,
+    fontWeight: "800",
+    color: "white",
+    letterSpacing: -0.5,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  artist: {
-    ...defaultStyles.text,
-    fontSize: fontSize.base,
-    opacity: 0.8,
-    marginVertical: 6,
+  subtitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginTop: 6,
+    marginBottom: 24,
   },
-  songCount: {
-    ...defaultStyles.text,
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  controls: {
+  actionRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginTop: 10,
+    marginBottom: 32,
   },
-  iconButton: {
-    padding: 6,
-    borderRadius: 50,
-    backgroundColor: "rgba(255,255,255,0.08)",
+  playButton: {
+    flex: 1,
+    height: 56,
+    borderRadius: 28,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  playButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  shuffleButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  listContainer: {
+    marginTop: 8,
+  },
+  skeletonItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 16,
   },
 });
+
 export default PlaylistScreen;

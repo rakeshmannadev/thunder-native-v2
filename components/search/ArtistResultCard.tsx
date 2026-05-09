@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import { ArtistResult } from "@/types";
 import { router } from "expo-router";
 import { ChevronRightIcon } from "lucide-react-native";
@@ -33,7 +34,7 @@ const ArtistResultCard = ({
         flexDirection: "row",
         alignItems: "center",
       }}
-      onPressIn={() => router.push(`../../artist/${result.id}`)}
+      onPress={() => router.push(`../../artist/${result.id}`)}
     >
       <View className="flex-1 flex-row w-full gap-4 items-center">
         {isLoading ? (
@@ -41,7 +42,7 @@ const ArtistResultCard = ({
         ) : (
           <Image
             source={{
-              uri: `${result.image[result.image.length - 1].url}`,
+              uri: resolveImage(result.image),
             }}
             className="aspect-square w-24 rounded-xl"
           />
@@ -61,7 +62,7 @@ const ArtistResultCard = ({
               }}
               className="pr-8"
             >
-              {result.title}
+              {result.name}
             </Text>
           )}
           {isLoading ? (

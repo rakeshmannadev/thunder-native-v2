@@ -1,145 +1,109 @@
 export interface Song {
-  _id: string;
-  id?: string;
-  songId: string;
-  title: string;
-  artists: {
-    primary: Artist[];
+  id: string;
+  name: string;
+  subtitle: string;
+  artist_map: {
+    primary_artists: Artist[];
   };
-  artistId: string;
-  imageUrl: string;
-  audioUrl: string;
-  releaseYear: string;
+  album: string;
+  album_id: string;
   duration: number;
-  albumId: string;
+  image: Image[];
+  download_url: Image[];
+  release_date: string;
 }
 
 export interface Artist {
-  _id: string;
+  id: string;
   name: string;
-  artistId: string;
-  role: string;
-  followers: number;
-  fanCount: number;
-  isVerified: boolean;
+  subtitle: string;
   type: string;
-  bio: [];
+  image: any;
+  top_songs: Song[];
+  top_albums: Album[];
+  dedicated_artist_playlist: any[];
+  featured_artist_playlist: any[];
+  singles: Album[];
+  latest_release: Album[];
+  all_songs: Song[];
+  similar_artists: Artist[];
+  bio: { text: string }[];
   dob: string;
   fb: string;
   twitter: string;
-  instagram: string;
   wiki: string;
-  image: string;
-  topSongs: Song[];
-  albums: Album[];
-  singles: Album[];
-  id?: string;
-
-  url?: string;
-
-  images?: Image[];
+  fan_count: number;
 }
 export interface Album {
-  _id: string;
-  albumId: string;
-  title: string;
-  imageUrl: string;
-  artists: {
-    primary: [
-      {
-        id: string;
-        name: string;
-      },
-    ];
-    all: any[];
-    featured: any[];
+  id: string;
+  name: string;
+  subtitle: string;
+  image: Image[];
+  duration: number;
+  year: number;
+  artist_map: {
+    primary_artists: Artist[];
   };
-  releaseYear: string;
   songs: Song[];
 }
 export interface SearchedSong {
   albums: {
-    results: [
-      {
-        id: string;
-        title: string;
-        image: [{ quality: string; url: string }];
-        artist: string;
-      },
-    ];
+    data: AlbumResult[];
   };
   artists: {
-    results: [
-      {
-        id: string;
-        title: string;
-        image: [{ quality: string; url: string }];
-        type: string;
-        description: string;
-      },
-    ];
+    data: ArtistResult[];
   };
   playlists: {
-    results: [
-      {
-        id: string;
-        title: string;
-        type: string;
-        image: [{ quality: string; url: string }];
-      },
-    ];
+    data: PlaylistResult[];
+  };
+  top_query: {
+    data: TopResult[];
   };
   songs: {
-    results: [
-      {
-        id: string;
-        title: string;
-        singers: string;
-        image: [{ quality: string; url: string }];
-      },
-    ];
-  };
-  topQuery: {
-    results: [
-      {
-        id: string;
-        title: string;
-        image: [{ quality: string; url: string }];
-        type: string;
-      },
-    ];
+    data: SongRequest[];
   };
 }
 
 export interface TopResult {
   id: string;
-  title: string;
-  image: [{ quality: string; url: string }];
+  name: string;
+  image: Image[];
   type: string;
+  primary_artists?: string;
+  subtitle?: string;
+  album?: string;
 }
 
 export interface SongResult {
   id: string;
-  title: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  image: Image[];
+  album: string;
+  primary_artists: string;
   singers: string;
-  image: [{ quality: string; url: string }];
 }
 export interface AlbumResult {
   id: string;
-  title: string;
-  image: [{ quality: string; url: string }];
-  artist: string;
+  name: string;
+  subtitle: string;
+  type: string;
+  image: Image[];
+  year: number;
 }
 export interface PlaylistResult {
   id: string;
-  title: string;
+  name: string;
+  subtitle: string;
   type: string;
-  image: [{ quality: string; url: string }];
+  image: Image[];
 }
 export interface ArtistResult {
   id: string;
-  title: string;
-  image: [{ quality: string; url: string }];
+  name: string;
+  subtitle: string;
+  image: string;
   type: string;
   description: string;
 }
@@ -162,16 +126,12 @@ export interface Message {
 }
 
 export interface Playlist {
-  _id: string;
-  id?: string;
-  name?: string;
+  id: string;
+  name: string;
   subtitle?: string;
   type?: string;
-  headerDesc?: string;
-  url?: string;
   image?: string;
   language?: string;
-  explicit?: boolean;
   listCount?: number;
   listType?: string;
   userId?: string;
@@ -185,7 +145,7 @@ export interface Playlist {
   share?: number;
   videoCount?: number;
   artists?: Artist[];
-  songs?: PlaylistSongs[] | any;
+  songs: Song[];
 }
 
 export interface PlaylistSongs {
@@ -268,11 +228,7 @@ export interface AudioPreferenceType {
   quality: qualites;
 }
 
-export enum qualites {
-  low = "low",
-  medium = "medium",
-  high = "high",
-}
+export type qualites = "low" | "medium" | "high";
 
 export interface Chart {
   id: string;

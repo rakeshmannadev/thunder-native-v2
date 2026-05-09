@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
@@ -37,9 +38,9 @@ const SongResultCard = ({
       _id: result.id,
       userName: currentUser?.name,
       userId: currentUser?._id,
-      title: result.title,
+      title: result.name,
       albumId: "",
-      imageUrl: result.image[result.image.length - 1].url,
+      imageUrl: result.image[result.image.length - 1].link,
     };
     if (isJoined && isBroadcasting && currentRoom && currentUser) {
       sendSongRequest(currentUser._id, currentRoom._id, song);
@@ -57,7 +58,7 @@ const SongResultCard = ({
         flexDirection: "row",
         alignItems: "center",
       }}
-      onPressIn={() => router.push(`../../song/${result.id}`)}
+      onPress={() => router.push(`../../song/${result.id}`)}
     >
       <View className="flex-1 flex-row w-full gap-4 items-center">
         {isLoading ? (
@@ -65,7 +66,7 @@ const SongResultCard = ({
         ) : (
           <Image
             source={{
-              uri: `${result.image[result.image.length - 1].url}`,
+              uri: resolveImage(result.image[result.image.length - 1].link),
             }}
             className="aspect-square w-24 rounded-xl"
           />
@@ -84,7 +85,7 @@ const SongResultCard = ({
                 maxWidth: "85%",
               }}
             >
-              {result.title}
+              {result.name}
             </Text>
           )}
           {isLoading ? (
