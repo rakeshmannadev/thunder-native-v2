@@ -1,3 +1,4 @@
+import PlayButton from "@/components/PlayButton";
 import { ThemedText } from "@/components/ThemedText";
 import PlaylistCard from "@/components/playlist/PlaylistCard";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
@@ -6,11 +7,11 @@ import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getPlaylistById } from "@/services/songService";
-import { Playlist, Song } from "@/types";
+import { Playlist } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Play, Shuffle } from "lucide-react-native";
+import { Shuffle } from "lucide-react-native";
 import React from "react";
 import {
   Dimensions,
@@ -76,7 +77,9 @@ const PlaylistScreen = () => {
     };
   });
 
-  const playlistImage = currentPlaylist?.image ? resolveImage(currentPlaylist.image) : null;
+  const playlistImage = currentPlaylist?.image
+    ? resolveImage(currentPlaylist.image)
+    : null;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -87,7 +90,12 @@ const PlaylistScreen = () => {
         {playlistImage ? (
           <Image source={{ uri: playlistImage }} style={styles.headerImage} />
         ) : (
-          <View style={[styles.headerImage, { backgroundColor: colors.secondaryBackground }]} />
+          <View
+            style={[
+              styles.headerImage,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          />
         )}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.5)", colors.background]}
@@ -96,12 +104,9 @@ const PlaylistScreen = () => {
       </Animated.View>
 
       {/* Header Bar (Back Button) */}
-      <View style={[styles.headerBar, { top: top + 10 }]}>
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <ArrowLeft color="white" size={24} />
+      <View style={[styles.headerBar, { top: top + 8, left: 8 }]}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          {/* <ArrowLeft color="white" size={24} /> */}
         </Pressable>
       </View>
 
@@ -117,26 +122,30 @@ const PlaylistScreen = () => {
         <View style={styles.content}>
           <Animated.View entering={FadeInDown.delay(200).duration(600)}>
             <ThemedText style={styles.title}>
-              {currentPlaylist?.name ?? (playlistLoading ? "Loading..." : "Playlist")}
+              {currentPlaylist?.name ??
+                (playlistLoading ? "Loading..." : "Playlist")}
             </ThemedText>
-            
+
             <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
-              {playlistLoading ? "Finding tracks..." : `${songs.length} Songs • ${currentPlaylist?.subtitle || "Thunder Playlist"}`}
+              {playlistLoading
+                ? "Finding tracks..."
+                : `${songs.length} Songs • ${currentPlaylist?.subtitle || "Thunder Playlist"}`}
             </ThemedText>
 
             {/* Action Buttons */}
             <View style={styles.actionRow}>
-              <Pressable
-                onPress={handlePlay}
-                style={[styles.playButton, { backgroundColor: colors.primary }]}
-              >
-                <Play color="white" size={24} fill="white" />
-                <ThemedText style={styles.playButtonText}>Play</ThemedText>
-              </Pressable>
+              <PlayButton
+                handlePlay={handlePlay}
+                title="Play"
+                color={colors.primary}
+              />
 
               <Pressable
                 onPress={handleShufflePlay}
-                style={[styles.shuffleButton, { backgroundColor: colors.secondaryBackground }]}
+                style={[
+                  styles.shuffleButton,
+                  { backgroundColor: colors.secondaryBackground },
+                ]}
               >
                 <Shuffle color={colors.text} size={22} />
               </Pressable>
@@ -161,7 +170,9 @@ const PlaylistScreen = () => {
                 keyExtractor={(item, index) => `${id}-${item.id}-${index}`}
                 scrollEnabled={false}
                 renderItem={({ item, index }) => (
-                  <Animated.View entering={FadeInDown.delay(300 + index * 50).duration(400)}>
+                  <Animated.View
+                    entering={FadeInDown.delay(300 + index * 50).duration(400)}
+                  >
                     <PlaylistCard isLoading={false} song={item} />
                   </Animated.View>
                 )}
@@ -217,6 +228,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.3)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+    lineHeight: 45,
   },
   subtitle: {
     fontSize: 16,

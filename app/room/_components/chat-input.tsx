@@ -5,15 +5,15 @@ import useToastMessage from "@/hooks/useToastMessage";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
-import { SendHorizonalIcon, SmileIcon } from "lucide-react-native";
+import { Send, Smile } from "lucide-react-native";
 import React, { useState } from "react";
-import { TouchableOpacity, useColorScheme, View } from "react-native";
+import { TouchableOpacity, useColorScheme, View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ChatInput = () => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  const { top, bottom } = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
   const { showToast } = useToastMessage();
 
   const { sendMessage } = useSocketStore();
@@ -24,70 +24,78 @@ const ChatInput = () => {
 
   const handleSendMessage = () => {
     if (!currentUser || !currentRoom) return;
-    if (!message) return showToast("Please enter some message to send");
+    if (!message.trim()) return showToast("Please enter some message to send");
 
     sendMessage(message, currentUser?._id, currentRoom?.roomId);
     setMessage("");
   };
 
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: 8,
-        alignItems: "center",
-        width: "100%",
-        height: 60,
-        backgroundColor: colors.background,
-        paddingHorizontal: screenPadding.horizontal,
-        borderColor: colors.borderColor,
-        borderTopWidth: 1,
-      }}
-    >
-      <TouchableOpacity
-        style={{
-          padding: 8,
-          borderRadius: 9999,
-          backgroundColor: colors.component,
-        }}
-      >
-        <SmileIcon size={24} color={colors.icon} />
-      </TouchableOpacity>
+    <View style={[styles.container, { paddingBottom: bottom > 0 ? bottom : 16 }]}>
+      <View style={[styles.innerContainer, { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)' }]}>
+        <TouchableOpacity style={styles.actionBtn}>
+          <Smile size={22} color={colors.textMuted} />
+        </TouchableOpacity>
 
-      <Input
-        variant="rounded"
-        size="xl"
-        style={{
-          flex: 1,
-          backgroundColor: colors.component,
-          borderRadius: borderRadius.lg,
-          paddingBlock: 4,
-          outline: "none",
-          borderWidth: 0,
-          shadowColor: colors.text,
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.1,
-          shadowRadius: 3,
-        }}
-      >
-        <InputField
-          value={message}
-          onChangeText={setMessage}
-          placeholder="Say something..."
-        />
-      </Input>
-      <TouchableOpacity
-        style={{
-          padding: 8,
-          borderRadius: 9999,
-          backgroundColor: colors.primary,
-        }}
-        onPress={handleSendMessage}
-      >
-        <SendHorizonalIcon size={24} />
-      </TouchableOpacity>
+        <Input style={styles.inputWrapper}>
+          <InputField
+            value={message}
+            onChangeText={setMessage}
+            placeholder="Type a message..."
+            style={{ color: colors.text, fontSize: 15 }}
+            placeholderTextColor={colors.textMuted}
+          />
+        </Input>
+
+        <TouchableOpacity
+          style={[styles.sendBtn, { backgroundColor: message.trim() ? colors.primary : 'rgba(255, 255, 255, 0.1)' }]}
+          onPress={handleSendMessage}
+          disabled={!message.trim()}
+        >
+          <Send size={20} color={message.trim() ? 'white' : colors.textMuted} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: screenPadding.horizontal,
+    paddingTop: 12,
+  },
+  innerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 8,
+    borderRadius: 28,
+    borderWidth: 1,
+  },
+  actionBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputWrapper: {
+    flex: 1,
+    height: 40,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+  },
+  sendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  }
+});
 
 export default ChatInput;

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import Animated, {
   Easing,
   cancelAnimation,
@@ -15,7 +15,7 @@ export type MovingTextProps = {
   style: any;
 };
 
-export const MovingText = ({
+export const MovingText = React.memo(({
   text,
   animationThreshold,
   style,
@@ -66,4 +66,6 @@ export const MovingText = ({
       {text}
     </Animated.Text>
   );
-};
+}, (prevProps, nextProps) => {
+  return prevProps.text === nextProps.text && prevProps.animationThreshold === nextProps.animationThreshold;
+});

@@ -3,6 +3,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import useUserStore from "@/store/useUserStore";
+import { Song } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
@@ -14,7 +16,6 @@ import {
   Plus,
   Settings2,
 } from "lucide-react-native";
-import { useEffect } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -37,21 +38,10 @@ const LibraryScreen = () => {
   const colorSchema = useColorScheme();
   const { top, bottom } = useSafeAreaInsets();
   const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
+  const queryClient = useQueryClient();
+  const { currentUser, playlists } = useUserStore();
 
-  const {
-    currentUser,
-    fetchPlaylists,
-    getFavoriteSongs,
-    favoriteSongs,
-    playlists,
-  } = useUserStore();
-
-  useEffect(() => {
-    if (currentUser) {
-      fetchPlaylists();
-      getFavoriteSongs();
-    }
-  }, [currentUser]);
+  const favoriteSongs = queryClient.getQueryData(["favorites"]) as Song[];
 
   if (!currentUser) return <EmptyLibrary />;
 
@@ -224,7 +214,6 @@ const LibraryScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 20,
   },
   header: {
     flexDirection: "row",
@@ -237,6 +226,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "800",
     letterSpacing: -0.5,
+    lineHeight: 35,
   },
   headerSubtitle: {
     fontSize: 14,

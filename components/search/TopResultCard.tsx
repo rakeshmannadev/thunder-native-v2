@@ -6,16 +6,16 @@ import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { SongRequest, TopResult } from "@/types";
 import { router } from "expo-router";
-import { ChevronRight, MonitorUpIcon } from "lucide-react-native";
+import { ChevronRight, Radio } from "lucide-react-native";
 import React from "react";
 import {
   Image,
-  Text,
+  StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import { Skeleton, SkeletonText } from "../ui/skeleton";
+import { ThemedText } from "@/components/ThemedText";
 
 const TopResultCard = ({
   result,
@@ -47,77 +47,115 @@ const TopResultCard = ({
       sendSongRequest(currentUser._id, currentRoom._id, song);
     }
   };
+
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
-      style={{
-        marginBottom: 8,
-        backgroundColor: colors.component,
-        borderRadius: borderRadius.md,
-        padding: 16,
-        flexDirection: "row",
-        alignItems: "center",
-      }}
+      activeOpacity={0.8}
+      style={[styles.container, { backgroundColor: colors.secondaryBackground }]}
       onPress={() => router.push(`../../${result.type}/${result.id}`)}
     >
-      <View className="flex-1 flex-row w-full gap-4 items-center">
-        {isLoading ? (
-          <Skeleton className="w-16 h-20 rounded-xl" />
-        ) : (
-          <Image
-            source={{
-              uri: resolveImage(result.image[result.image.length - 1].link),
-            }}
-            className="aspect-square w-24 rounded-xl"
-          />
-        )}
-        <View className="flex-col gap-2 items-start h-full ">
-          {isLoading ? (
-            <SkeletonText className="w-20 h-4" />
-          ) : (
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 14,
-                color: colors.text,
-                letterSpacing: 0.5,
-                fontWeight: 700,
-                maxWidth: "85%",
-              }}
-            >
-              {result.name}
-            </Text>
-          )}
-          {isLoading ? (
-            <SkeletonText className="w-16 h-4" />
-          ) : (
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 12,
-                color: colors.textMuted,
-                letterSpacing: 0.5,
-                fontWeight: 500,
-              }}
-            >
-              {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
-            </Text>
-          )}
+      <View style={styles.imageContainer}>
+        <Image
+          source={{
+            uri: resolveImage(result.image[result.image.length - 1].link),
+          }}
+          style={styles.image}
+        />
+        <View style={[styles.typeBadge, { backgroundColor: colors.primary }]}>
+          <ThemedText style={styles.typeText}>
+            {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
+          </ThemedText>
         </View>
       </View>
-      <View className="flex-row items-center gap-4">
-        {isBroadcasting && (
-          <MonitorUpIcon
-            onPressIn={handleSendSongRequest}
-            color={colors.icon}
-            title="Sent music requst"
-          />
-        )}
 
-        <ChevronRight color={colors.icon} />
+      <View style={styles.content}>
+        <ThemedText style={styles.name} numberOfLines={1}>
+          {result.name}
+        </ThemedText>
+        <ThemedText style={[styles.description, { color: colors.textMuted }]} numberOfLines={1}>
+          {result.description || `Top ${result.type} match`}
+        </ThemedText>
+      </View>
+
+      <View style={styles.actions}>
+        {isBroadcasting && (
+          <TouchableOpacity 
+            onPress={handleSendSongRequest}
+            style={[styles.actionBtn, { backgroundColor: colors.background }]}
+          >
+            <Radio size={18} color={colors.primary} />
+          </TouchableOpacity>
+        )}
+        <ChevronRight size={20} color={colors.textMuted} />
       </View>
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  imageContainer: {
+    position: "relative",
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 14,
+  },
+  typeBadge: {
+    position: "absolute",
+    bottom: -6,
+    right: -6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "rgba(0,0,0,0.1)",
+  },
+  typeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "white",
+    textTransform: "uppercase",
+  },
+  content: {
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: "center",
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  description: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  actionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+});
 
 export default TopResultCard;

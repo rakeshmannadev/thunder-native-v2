@@ -20,9 +20,7 @@ const ChatSection = ({ messages }: { messages: Message[] }) => {
     <View
       style={{
         flex: 1,
-        paddingTop: top,
-        backgroundColor: colors.background,
-        paddingHorizontal: screenPadding.horizontal,
+        paddingTop: 8,
       }}
     >
       <FlatList

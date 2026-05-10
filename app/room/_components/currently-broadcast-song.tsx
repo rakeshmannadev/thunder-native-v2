@@ -2,7 +2,8 @@ import { MovingText } from "@/components/songs/useMovingText";
 import { ThemedText } from "@/components/ThemedText";
 import { Button, ButtonIcon } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
-import { borderRadius, screenPadding } from "@/constants/tokens";
+import { screenPadding } from "@/constants/tokens";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import usePlayerStore from "@/store/usePlayerStore";
 import useSocketStore from "@/store/useSocketStore";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
@@ -32,81 +33,112 @@ const CurrentlyBroadcastSong = () => {
     <View
       style={{
         paddingHorizontal: screenPadding.horizontal,
-        paddingTop: top,
-        paddingBottom: 2,
+        paddingBottom: 8,
       }}
     >
       <TouchableOpacity
         style={{
-          borderRadius: borderRadius.lg,
-          backgroundColor: colors.secondaryBackground,
+          borderRadius: 20,
+          backgroundColor: "rgba(255, 255, 255, 0.05)",
           padding: 16,
+          borderWidth: 1,
+          borderColor: "rgba(255, 255, 255, 0.1)",
         }}
         activeOpacity={0.8}
         onPress={() => setExpanded(!expanded)}
       >
         {isBroadcasting && currentSong ? (
-          <View className="flex flex-row items-center justify-between gap-4">
-            <View
-              className="flex flex-col gap-1 overflow-hidden"
-              style={{ maxWidth: expanded ? "55%" : "70%" }}
-            >
-              <Text
-                style={{ color: colors.accent }}
-                className="text-lg font-normal leading-normal"
-                numberOfLines={1}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 16,
+            }}
+          >
+            <View style={{ flex: 1, gap: 4 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
               >
-                Broadcasting by: {currentJockey?.name}
-              </Text>
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: colors.primary,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: colors.primary,
+                    fontSize: 13,
+                    fontWeight: "800",
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                  }}
+                  numberOfLines={1}
+                >
+                  {currentJockey?.name} is LIVE
+                </Text>
+              </View>
+
               <MovingText
-                text={currentSong?.title}
+                text={currentSong?.name}
                 animationThreshold={25}
-                style={{ fontSize: 16, color: colors.text, lineHeight: 24 }}
+                style={{
+                  fontSize: 18,
+                  color: colors.text,
+                  fontWeight: "800",
+                  letterSpacing: -0.5,
+                }}
+              />
+
+              <MovingText
+                animationThreshold={25}
+                text={currentSong.artist_map.primary_artists
+                  .map((artist) => artist.name)
+                  .join(", ")}
+                style={{
+                  fontSize: 14,
+                  color: colors.textMuted,
+                  fontWeight: "600",
+                }}
               />
 
               {expanded && (
-                <MovingText
-                  animationThreshold={25}
-                  text={`Artist:${currentSong.artists.primary
-                    .map((artist) => artist.name)
-                    .join(", ")}`}
-                  style={{
-                    fontSize: 14,
-                    color: colors.textMuted,
-                    lineHeight: 20,
-                  }}
-                />
-              )}
-              {expanded && (
-                <ThemedText type="default" style={{ fontSize: 14 }}>
-                  Year:{currentSong.releaseYear}
-                </ThemedText>
+                <View style={{ marginTop: 8, gap: 4 }}>
+                  <ThemedText style={{ fontSize: 13, color: colors.textMuted }}>
+                    Released: {currentSong.release_date}
+                  </ThemedText>
+                </View>
               )}
             </View>
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 12,
-                alignItems: "flex-start",
-              }}
-            >
+
+            <View style={{ alignItems: "center", gap: 8 }}>
               <Image
                 alt="album_art"
                 style={{
-                  width: expanded ? 120 : 40,
-                  aspectRatio: 1,
-                  borderRadius: borderRadius.md,
+                  width: expanded ? 100 : 56,
+                  height: expanded ? 100 : 56,
+                  borderRadius: 12,
+                  backgroundColor: colors.secondaryBackground,
                 }}
                 source={{
-                  uri: currentSong.imageUrl,
+                  uri: resolveImage(
+                    currentSong.image[currentSong.image.length - 1].link
+                  ),
                 }}
               />
               <Button
                 onPress={() => setExpanded(!expanded)}
                 size="sm"
                 variant="link"
+                style={{ height: 24 }}
               >
-                <ButtonIcon as={expanded ? ChevronUp : ChevronDown} size="xl" />
+                <ButtonIcon
+                  as={expanded ? ChevronUp : ChevronDown}
+                  color={colors.textMuted}
+                />
               </Button>
             </View>
           </View>

@@ -1,9 +1,9 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import AlbumCard from "@/components/AlbumCard";
+import PlayButton from "@/components/PlayButton";
 import PlaylistCard from "@/components/PlaylistCard";
 import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { ThemedText } from "@/components/ThemedText";
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
@@ -14,7 +14,7 @@ import { Artist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Play, Radio, Shuffle } from "lucide-react-native";
+import { Radio, Shuffle } from "lucide-react-native";
 import React from "react";
 import {
   Dimensions,
@@ -106,16 +106,16 @@ const ArtistPage = () => {
             ]}
           />
         )}
-        <Animated.View style={StyleSheet.absoluteFillObject}>
+        <Animated.View style={StyleSheet.absoluteFill}>
           <View
             style={[
-              StyleSheet.absoluteFillObject,
+              StyleSheet.absoluteFill,
               { backgroundColor: "rgba(0,0,0,0.2)" },
             ]}
           />
           <View
             style={[
-              StyleSheet.absoluteFillObject,
+              StyleSheet.absoluteFill,
               {
                 backgroundColor: "transparent",
                 borderBottomWidth: 100,
@@ -128,10 +128,11 @@ const ArtistPage = () => {
       </Animated.View>
 
       {/* Navigation Bar */}
-      <View style={[styles.navBar, { top: top + 10 }]}>
-        <Pressable onPress={() => router.back()} style={styles.navButton}>
-          <ArrowLeft color="white" size={24} />
-        </Pressable>
+      <View style={[styles.navBar, { top: top + 8, left: 8 }]}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.navButton}
+        ></Pressable>
       </View>
 
       <Animated.ScrollView
@@ -160,14 +161,11 @@ const ArtistPage = () => {
 
             {/* Action Bar */}
             <View style={styles.actionRow}>
-              <Button
-                size="xl"
-                onPress={handlePlay}
-                style={[styles.playButton, { backgroundColor: colors.primary }]}
-              >
-                <ButtonIcon as={Play} color="white" size="lg" fill="white" />
-                <ButtonText style={styles.playButtonText}>Play</ButtonText>
-              </Button>
+              <PlayButton
+                handlePlay={handlePlay}
+                title="Play"
+                color={colors.primary}
+              />
 
               <Pressable
                 onPress={handleShufflePlay}
@@ -339,6 +337,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.5)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 10,
+    lineHeight: 36,
   },
   subtitle: {
     fontSize: 16,

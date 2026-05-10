@@ -17,32 +17,30 @@ import React from "react";
 import {
   ActivityIndicator,
   FlatList,
-  ListRenderItem,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import {
   SafeAreaView,
-  useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { ThemedText } from "@/components/ThemedText";
 
 type ResultItem = {
   id?: string | number;
   [key: string]: any;
 };
 
-type Section = {
+type SectionData = {
   key: string;
   title: string;
   data: ResultItem[];
-  // A React component that takes { result, isLoading }
   component: React.ComponentType<{ result: any; isLoading: boolean }>;
 };
 
-const index = () => {
+const SearchScreen = () => {
   const colorSchema = useColorScheme();
   const { searchQuery } = useMusicStore();
   const debouncedValue = useDebounceSearch(searchQuery, 1000);
@@ -55,129 +53,113 @@ const index = () => {
   });
 
   const searchedSongs: SearchedSong = searchedSongRes?.song;
-
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
-  const { top } = useSafeAreaInsets();
-
-  if (searchLoading)
+  if (searchLoading) {
     return (
       <View
-        style={{ backgroundColor: colors.background }}
-        className="flex flex-1 justify-center items-center"
+        style={[styles.loadingContainer, { backgroundColor: colors.background }]}
       >
-        <ActivityIndicator
-          size={"large"}
-          color={colors.primary}
-          animating={searchLoading}
-        />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
-  // Show default screen when no search has been made
-  if (!searchLoading && !searchedSongs) return <DefaultScreen />;
-  if (
-    !searchLoading &&
-    searchedSongs &&
-    Object.keys(searchedSongs).length === 0
-  )
-    return <NotFound />;
-  if (!searchedSongs) return null;
+  }
 
-  const sections: Section[] = [
+  if (!debouncedValue && !searchedSongs) return <DefaultScreen />;
+  
+  if (searchedSongs && Object.keys(searchedSongs).length === 0) return <NotFound />;
+  
+  if (!searchedSongs) return <DefaultScreen />;
+
+  const sections: SectionData[] = [
     {
       key: "top",
-      title: "Top result",
-      data: searchedSongs.top_query.data,
+      title: "Top Result",
+      data: searchedSongs.top_query?.data || [],
       component: TopResultCard,
     },
     {
       key: "songs",
       title: "Songs",
-      data: searchedSongs.songs.data,
+      data: searchedSongs.songs?.data || [],
       component: SongResultCard,
     },
     {
       key: "albums",
       title: "Albums",
-      data: searchedSongs.albums.data,
+      data: searchedSongs.albums?.data || [],
       component: AlbumResultCard,
     },
     {
       key: "playlists",
       title: "Playlists",
-      data: searchedSongs.playlists.data,
+      data: searchedSongs.playlists?.data || [],
       component: PlaylistResultCard,
     },
     {
       key: "artists",
       title: "Artists",
-      data: searchedSongs.artists.data,
+      data: searchedSongs.artists?.data || [],
       component: ArtistResultCard,
     },
-  ];
-
-  const renderSection: ListRenderItem<Section> = ({ item }) => {
-    const CardComponent = item.component;
-    return (
-      <View style={[styles.sectionContainer, { marginTop: top + 40 }]}>
-        <Text
-          numberOfLines={1}
-          style={{
-            fontSize: 16,
-            color: colors.textMuted,
-            letterSpacing: 0.5,
-            fontWeight: 700,
-            marginBottom: 8,
-          }}
-        >
-          {item.title}
-        </Text>
-
-        <FlatList
-          data={item.data}
-          keyExtractor={(res, index) =>
-            res.id ? res.id.toString() : index.toString()
-          }
-          renderItem={({ item: result }) => (
-            <CardComponent result={result} isLoading={searchLoading} />
-          )}
-          scrollEnabled={false}
-        />
-      </View>
-    );
-  };
+  ].filter(section => section.data.length > 0);
 
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor:
-          Colors[colorSchema === "light" ? "light" : "dark"].background,
-        paddingHorizontal: screenPadding.horizontal,
-      }}
-    >
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <RecentSearches />
-        <FlatList
-          data={sections}
-          keyExtractor={(item) => item.key}
-          renderItem={renderSection}
-          scrollEnabled={false}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 60 }}
-        />
 
-        {/* Not found screen */}
-        {/* {!searchLoading && !searchedSongs && <NotFound />} */}
+        {sections.map((section, index) => (
+          <Animated.View 
+            key={section.key}
+            entering={FadeInDown.delay(index * 100).duration(600)}
+            style={styles.sectionContainer}
+          >
+            <ThemedText style={styles.sectionTitle}>{section.title}</ThemedText>
+            <View style={styles.sectionList}>
+              {section.data.map((item, idx) => (
+                <section.component 
+                  key={item.id || `${section.key}-${idx}`} 
+                  result={item} 
+                  isLoading={false} 
+                />
+              ))}
+            </View>
+          </Animated.View>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default index;
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scrollContent: {
+    paddingHorizontal: screenPadding.horizontal,
+    paddingBottom: 100,
+  },
   sectionContainer: {
-    marginBottom: 4,
-    gap: 4,
+    marginTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 16,
+    letterSpacing: -0.5,
+  },
+  sectionList: {
+    gap: 12,
   },
 });
+
+export default SearchScreen;

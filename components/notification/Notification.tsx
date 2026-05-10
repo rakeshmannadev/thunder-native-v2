@@ -1,55 +1,104 @@
 import { Requests } from "@/types";
-import { CheckIcon, XIcon } from "lucide-react-native";
+import { Check, X, Bell } from "lucide-react-native";
 import React from "react";
-import { Text } from "react-native";
+import { StyleSheet, TouchableOpacity, useColorScheme, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { Avatar, AvatarFallbackText } from "../ui/avatar";
-import { Button, ButtonIcon } from "../ui/button";
-import { Card } from "../ui/card";
-import { HStack } from "../ui/hstack";
-import { VStack } from "../ui/vstack";
+import { Colors } from "@/constants/Colors";
+import Animated, { FadeInRight } from "react-native-reanimated";
 
-const Notification = ({ request }: { request: Requests }) => {
+const Notification = ({ request, index }: { request: Requests; index: number }) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
-    <Card size="sm" variant="outline" className="rounded-2xl mb-2 ">
-      <HStack style={{ justifyContent: "space-between" }}>
-        <HStack space="lg" style={{ alignItems: "center" }}>
-          <Avatar size="lg">
-            <AvatarFallbackText>
-              {request.user.userName.charAt(0) +
-                request.user.userName.charAt(1)}
+    <Animated.View entering={FadeInRight.duration(400).delay(index * 100)}>
+      <View style={[styles.card, { backgroundColor: colors.secondaryBackground + '40', borderColor: colors.borderColor }]}>
+        <View style={styles.content}>
+          <Avatar size="lg" style={styles.avatar}>
+            <AvatarFallbackText style={styles.avatarText}>
+              {request.user.userName.substring(0, 2).toUpperCase()}
             </AvatarFallbackText>
-            {/* <AvatarImage source={{ uri: request.user. }} /> */}
           </Avatar>
-          <VStack>
-            <Text className="text-lg dark:text-zinc-200 font-bold truncate">
+          
+          <View style={styles.textContainer}>
+            <ThemedText style={styles.userName} numberOfLines={1}>
               {request.user.userName}
-            </Text>
-            <ThemedText type="defaultSemiBold" className="truncate">
-              {request.room.roomName}
             </ThemedText>
-          </VStack>
-        </HStack>
+            <ThemedText style={[styles.roomName, { color: colors.textMuted }]} numberOfLines={1}>
+              Requested to join <ThemedText style={{ color: colors.primary, fontWeight: '700' }}>{request.room.roomName}</ThemedText>
+            </ThemedText>
+          </View>
+        </View>
 
-        <HStack space="md" className="h-full" style={{ alignItems: "center" }}>
-          <Button
-            variant="outline"
-            size="md"
-            className="rounded-xl bg-gray-200/10 data-[]:active:bg-hover-background "
+        <View style={styles.actions}>
+          <TouchableOpacity 
+            activeOpacity={0.7}
+            style={[styles.actionButton, { backgroundColor: '#22c55e20' }]}
           >
-            <ButtonIcon size="xl" as={CheckIcon} color="green" />
-          </Button>
-          <Button
-            variant="outline"
-            size="md"
-            className="rounded-xl  bg-gray-200/10 data-[]:active:bg-hover-background  "
+            <Check size={20} color="#22c55e" strokeWidth={3} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            activeOpacity={0.7}
+            style={[styles.actionButton, { backgroundColor: '#ef444420' }]}
           >
-            <ButtonIcon size="xl" as={XIcon} color="red" />
-          </Button>
-        </HStack>
-      </HStack>
-    </Card>
+            <X size={20} color="#ef4444" strokeWidth={3} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    borderRadius: 24,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    gap: 12,
+  },
+  avatar: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  avatarText: {
+    fontWeight: '800',
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+  },
+  roomName: {
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
 export default Notification;

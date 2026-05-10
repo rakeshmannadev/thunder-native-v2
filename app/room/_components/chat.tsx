@@ -1,53 +1,80 @@
 import { Colors } from "@/constants/Colors";
-import { borderRadius } from "@/constants/tokens";
 import useUserStore from "@/store/useUserStore";
 import { Message } from "@/types";
 import React from "react";
-import { Image, Text, useColorScheme, View } from "react-native";
+import { Image, Text, useColorScheme, View, StyleSheet } from "react-native";
 
 const Chat = ({ message }: { message: Message }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
   const { currentUser } = useUserStore();
+  
+  const isMe = message.senderId._id === currentUser?._id;
 
   return (
-    <View
-      className="flex items-end  min-w-full justify-start  gap-3 mb-4"
-      style={{
-        flexDirection:
-          message.senderId._id === currentUser?._id ? "row-reverse" : "row",
-      }}
-    >
+    <View style={[styles.container, { flexDirection: isMe ? "row-reverse" : "row" }]}>
       <Image
         source={{ uri: message.senderId.image }}
-        style={{ width: 40, aspectRatio: 1 }}
-        className="bg-center bg-no-repeat  bg-cover rounded-full w-10 shrink-0"
-        alt="user-image"
+        style={styles.avatar}
       />
-      <View className="flex w-fit flex-col gap-1 items-start ">
-        <Text
-          className="text-[13px] font-normal leading-normal max-w-[360px]"
-          style={{ color: colors.textMuted }}
-        >
+      <View style={[styles.bubbleWrapper, { alignItems: isMe ? 'flex-end' : 'flex-start' }]}>
+        <Text style={[styles.senderName, { color: colors.textMuted }]}>
           {message.senderId.name}
         </Text>
-        <Text
-          className="text-base font-normal leading-normal flex max-w-[360px]  px-4 py-3 "
-          style={{
-            color: colors.text,
-            backgroundColor:
-              message.senderId._id === currentUser?._id
-                ? colors.primary
-                : colors.secondary,
-            borderRadius: borderRadius.lg,
-          }}
+        <View 
+          style={[
+            styles.bubble, 
+            { 
+              backgroundColor: isMe ? colors.primary : 'rgba(255, 255, 255, 0.08)',
+              borderBottomLeftRadius: isMe ? 20 : 4,
+              borderBottomRightRadius: isMe ? 4 : 20,
+            }
+          ]}
         >
-          {message.message}
-        </Text>
+          <Text style={[styles.messageText, { color: isMe ? 'white' : colors.text }]}>
+            {message.message}
+          </Text>
+        </View>
       </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+    marginBottom: 16,
+    width: '100%',
+  },
+  avatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  bubbleWrapper: {
+    flex: 1,
+    gap: 4,
+  },
+  senderName: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  bubble: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    maxWidth: '85%',
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '500',
+  }
+});
 
 export default Chat;

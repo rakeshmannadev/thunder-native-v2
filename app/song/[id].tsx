@@ -1,19 +1,18 @@
 import AlbumItem from "@/components/album/AlbumItem";
+import PlayButton from "@/components/PlayButton";
 import { ThemedText } from "@/components/ThemedText";
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
-import { borderRadius, screenPadding } from "@/constants/tokens";
-import { QUALITY_MAP } from "@/helpers/audioQualityMap";
+import { screenPadding } from "@/constants/tokens";
+import { playSong } from "@/hooks/useTrackPlayerActions";
 import { fetchSongById } from "@/services/songService";
-import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Heart, Play, Radio } from "lucide-react-native";
-import React from "react";
+import { Heart, Radio } from "lucide-react-native";
+import React, { useState } from "react";
 import {
   Dimensions,
   Image,
@@ -30,10 +29,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import {
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-import TrackPlayer from "react-native-track-player";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const HEADER_HEIGHT = 450;
@@ -45,9 +41,9 @@ const SongScreen = () => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
   const scrollY = useSharedValue(0);
+  const [isSubtitleExpanded, setIsSubtitleExpanded] = useState(false);
 
   const { favoriteSongs, addToFavorite } = useUserStore();
-  const { audioPreference } = usePlayerStore();
 
   const { data: songRes, isLoading } = useQuery({
     queryKey: ["song", id],
@@ -67,18 +63,8 @@ const SongScreen = () => {
 
   const handlePlay = async () => {
     if (!song) return;
-    TrackPlayer.reset();
-    await TrackPlayer.add({
-      id: song.id,
-      url:
-        song.download_url.find(
-          (item) => item.quality === QUALITY_MAP[audioPreference.quality]
-        )?.link || song.download_url[0].link,
-      title: song.name,
-      artist: song.artist_map.primary_artists[0].name,
-      artwork: song.image[song.image.length - 1].link,
-    });
-    TrackPlayer.play();
+    await playSong(song);
+    router.push("/player");
   };
 
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -108,7 +94,12 @@ const SongScreen = () => {
         {songImage ? (
           <Image source={{ uri: songImage }} style={styles.headerImage} />
         ) : (
-          <View style={[styles.headerImage, { backgroundColor: colors.secondaryBackground }]} />
+          <View
+            style={[
+              styles.headerImage,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          />
         )}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.5)", colors.background]}
@@ -117,13 +108,13 @@ const SongScreen = () => {
       </Animated.View>
 
       {/* Navigation Bar */}
-      <View style={[styles.navBar, { top: top + 10 }]}>
-        <Pressable
-          onPress={() => router.back()}
+      <View style={[styles.navBar, { top: top + 8, left: 8 }]}>
+        <View
+          // onPress={() => router.back()}
           style={styles.navButton}
         >
-          <ArrowLeft color="white" size={24} />
-        </Pressable>
+          {/* <ArrowLeft color="white" size={24} /> */}
+        </View>
       </View>
 
       <Animated.ScrollView
@@ -140,36 +131,57 @@ const SongScreen = () => {
             <ThemedText style={styles.title}>
               {song?.name ?? (isLoading ? "Loading Song..." : "Song")}
             </ThemedText>
-            
-            <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
-              {isLoading ? "Finding details..." : `${song?.subtitle || ""} • ${song?.album || ""}`}
-            </ThemedText>
+
+            <View>
+              <ThemedText
+                numberOfLines={isSubtitleExpanded ? undefined : 2}
+                style={[styles.subtitle, { color: colors.textMuted }]}
+              >
+                {isLoading
+                  ? "Finding details..."
+                  : `${song?.subtitle || ""} • ${song?.album || ""}`}
+              </ThemedText>
+              {!isLoading && (song?.subtitle || song?.album) && (
+                <Pressable
+                  onPress={() => setIsSubtitleExpanded(!isSubtitleExpanded)}
+                >
+                  <ThemedText
+                    style={[styles.readMoreText, { color: colors.primary }]}
+                  >
+                    {isSubtitleExpanded ? "Show less" : "Read more"}
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
 
             {/* Action Bar */}
             <View style={styles.actionRow}>
-              <Button
-                size="xl"
-                onPress={handlePlay}
-                style={[styles.playButton, { backgroundColor: colors.primary }]}
-              >
-                <ButtonIcon as={Play} color="white" size="lg" fill="white" />
-                <ButtonText style={styles.playButtonText}>Play Now</ButtonText>
-              </Button>
+              <PlayButton
+                handlePlay={handlePlay}
+                title="Play"
+                color={colors.primary}
+              />
 
               <Pressable
                 onPress={handleAddToFavorite}
-                style={[styles.actionButton, { backgroundColor: colors.secondaryBackground }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.secondaryBackground },
+                ]}
               >
-                <Heart 
-                  color={isAlreadyfavorite ? "#10b981" : colors.text} 
-                  size={24} 
-                  fill={isAlreadyfavorite ? "#10b981" : "none"} 
+                <Heart
+                  color={isAlreadyfavorite ? "#10b981" : colors.text}
+                  size={24}
+                  fill={isAlreadyfavorite ? "#10b981" : "none"}
                 />
               </Pressable>
 
               <Pressable
                 onPress={() => null}
-                style={[styles.actionButton, { backgroundColor: colors.secondaryBackground }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.secondaryBackground },
+                ]}
               >
                 <Radio color={colors.text} size={24} />
               </Pressable>
@@ -189,7 +201,11 @@ const SongScreen = () => {
             ) : (
               song && (
                 <Animated.View entering={FadeInDown.delay(400).duration(500)}>
-                  <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Single Track</ThemedText>
+                  <ThemedText
+                    style={[styles.sectionTitle, { color: colors.text }]}
+                  >
+                    Single Track
+                  </ThemedText>
                   <AlbumItem song={song} isLoading={false} />
                 </Animated.View>
               )
@@ -244,12 +260,18 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.4)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
+    lineHeight: 36,
   },
   subtitle: {
     fontSize: 16,
     fontWeight: "600",
     marginTop: 8,
+  },
+  readMoreText: {
+    fontSize: 14,
+    fontWeight: "700",
     marginBottom: 32,
+    marginTop: 4,
   },
   actionRow: {
     flexDirection: "row",

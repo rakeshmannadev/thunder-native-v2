@@ -60,9 +60,8 @@ export default function TabLayout() {
                 <LibraryIcon size={28} color={color} />
               ),
             headerTitle: "Library",
-            headerShown: true,
+            headerShown: false,
             headerTransparent: true,
-            headerTitleStyle: { marginLeft: 10 },
           }}
         />
         <Tabs.Screen

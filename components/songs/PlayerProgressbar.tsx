@@ -1,16 +1,21 @@
-import { colors, fontSize } from "@/constants/tokens";
+import { Colors } from "@/constants/Colors";
 import { formatSecondsToMinutes } from "@/helpers/miscellaneous";
 
-import usePlayerStore from "@/store/usePlayerStore";
 import { defaultStyles, utilsStyles } from "@/styles";
-import { StyleSheet, Text, View, ViewProps } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+  ViewProps,
+} from "react-native";
 import { Slider } from "react-native-awesome-slider";
-import { useSharedValue, useDerivedValue } from "react-native-reanimated";
+import { useDerivedValue, useSharedValue } from "react-native-reanimated";
 import TrackPlayer, { useProgress } from "react-native-track-player";
 
 export const PlayerProgressBar = ({ style }: ViewProps) => {
-  const { currentSong } = usePlayerStore();
-
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const { duration, position } = useProgress(250);
 
@@ -18,14 +23,14 @@ export const PlayerProgressBar = ({ style }: ViewProps) => {
   const min = useSharedValue(0);
   const max = useSharedValue(1);
 
-  // Derives progress on the UI thread whenever position/duration update
-  // useDerivedValue is the correct Reanimated API — never write .value during render
   const progress = useDerivedValue(() =>
     !isSliding.value && duration > 0 ? position / duration : 0
   );
 
   const trackElapsedTime = formatSecondsToMinutes(position);
-  const trackRemainingTime = formatSecondsToMinutes(Math.max(duration - position, 0));
+  const trackRemainingTime = formatSecondsToMinutes(
+    Math.max(duration - position, 0)
+  );
 
   return (
     <View style={style}>
@@ -37,27 +42,26 @@ export const PlayerProgressBar = ({ style }: ViewProps) => {
         thumbWidth={15}
         renderBubble={() => null}
         theme={{
-          minimumTrackTintColor: colors.minimumTrackTintColor,
-          maximumTrackTintColor: colors.maximumTrackTintColor,
+          minimumTrackTintColor: colors.primary,
+          maximumTrackTintColor: colors.borderColor,
         }}
         onSlidingStart={() => (isSliding.value = true)}
         onValueChange={async (value) => {
           await TrackPlayer.seekTo(value * duration);
         }}
         onSlidingComplete={async (value) => {
-          // if the user is not sliding, we should not update the position
           if (!isSliding.value) return;
-
           isSliding.value = false;
-
           await TrackPlayer.seekTo(value * duration);
         }}
       />
 
       <View style={styles.timeRow}>
-        <Text style={styles.timeText}>{trackElapsedTime}</Text>
+        <Text style={[styles.timeText, { color: colors.text }]}>
+          {trackElapsedTime}
+        </Text>
 
-        <Text style={styles.timeText}>
+        <Text style={[styles.timeText, { color: colors.text }]}>
           {"-"} {trackRemainingTime}
         </Text>
       </View>
@@ -74,9 +78,8 @@ const styles = StyleSheet.create({
   },
   timeText: {
     ...defaultStyles.text,
-    color: colors.text,
     opacity: 0.75,
-    fontSize: fontSize.xs,
+    fontSize: 12,
     letterSpacing: 0.7,
     fontWeight: "500",
   },

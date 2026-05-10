@@ -4,14 +4,15 @@ import { useRouter } from "expo-router";
 import React from "react";
 import {
   Image,
-  Text,
+  StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import { Card } from "../ui/card";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
-import { VStack } from "../ui/vstack";
+import { LinearGradient } from "expo-linear-gradient";
+import { ThemedText } from "../ThemedText";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 type TopAlbumsCardProps = {
   album: TopAlbums;
@@ -23,6 +24,7 @@ const TopAlbumsCard = React.memo(
     const router = useRouter();
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
     const handlePress = () => {
       if (album?.id) {
         router.push({
@@ -37,72 +39,93 @@ const TopAlbumsCard = React.memo(
       album?.image?.[1]?.link ||
       album?.image?.[0]?.link;
 
-    // Extract artists from artistMap.primaryArtists or artists
     const artists =
       album?.artist_map?.artists?.map((a) => a.name).join(", ") ||
       "Unknown Artist";
 
+    if (isLoading) {
+      return (
+        <View style={styles.card}>
+          <Skeleton className="w-full h-36 rounded-2xl mb-3" />
+          <SkeletonText className="w-24 h-4 mb-2" />
+          <SkeletonText className="w-16 h-3" />
+        </View>
+      );
+    }
+
     return (
-      <TouchableOpacity onPress={handlePress}>
-        <Card
-          size="sm"
-          variant="ghost"
-          className="p-2 rounded-lg !max-w-xs m-0"
+      <Animated.View entering={FadeInDown.duration(600)}>
+        <TouchableOpacity 
+          activeOpacity={0.8} 
+          onPress={handlePress}
+          style={styles.card}
         >
-          <View>
-            {isLoading ? (
-              <Skeleton className="max-w-36 max-h-36 rounded-md aspect-[263/240]" />
-            ) : (
-              <Image
-                source={{
-                  uri: imageUrl,
-                }}
-                className="mb-1 w-36 rounded-md aspect-[263/240]"
-                alt={album?.name || "Album"}
-              />
-            )}
+          <View style={styles.imageWrapper}>
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.image}
+              alt={album?.name || "Album"}
+            />
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.3)", "rgba(0,0,0,0.6)"]}
+              style={styles.gradient}
+            />
           </View>
 
-          <VStack className="truncate w-32 ">
-            <View className="w-full h-6 truncate">
-              {isLoading ? (
-                <SkeletonText className="w-20 h-4" />
-              ) : (
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    fontSize: 14,
-                    color: colors.text,
-                    letterSpacing: 0.5,
-                    fontWeight: "700",
-                  }}
-                >
-                  {album?.name}
-                </Text>
-              )}
-            </View>
-            <View className="w-full h-6">
-              {isLoading ? (
-                <SkeletonText className="w-16 h-4" />
-              ) : (
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    fontSize: 12,
-                    color: colors.textMuted,
-                    letterSpacing: 0.5,
-                    fontWeight: "500",
-                  }}
-                >
-                  {artists}
-                </Text>
-              )}
-            </View>
-          </VStack>
-        </Card>
-      </TouchableOpacity>
+          <View style={styles.infoContainer}>
+            <ThemedText style={styles.albumName} numberOfLines={1}>
+              {album?.name}
+            </ThemedText>
+            <ThemedText style={[styles.artistName, { color: colors.textMuted }]} numberOfLines={1}>
+              {artists}
+            </ThemedText>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 );
+
+const styles = StyleSheet.create({
+  card: {
+    width: 144,
+    marginRight: 16,
+    marginBottom: 10,
+  },
+  imageWrapper: {
+    width: 144,
+    height: 144,
+    borderRadius: 24,
+    overflow: "hidden",
+    backgroundColor: "rgba(0,0,0,0.05)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  gradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  infoContainer: {
+    marginTop: 12,
+    paddingHorizontal: 4,
+  },
+  albumName: {
+    fontSize: 15,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+    marginBottom: 4,
+  },
+  artistName: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+});
 
 export default TopAlbumsCard;

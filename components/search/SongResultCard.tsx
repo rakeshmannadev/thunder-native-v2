@@ -1,21 +1,20 @@
 import { Colors } from "@/constants/Colors";
-import { borderRadius } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { SongRequest, SongResult } from "@/types";
 import { router } from "expo-router";
-import { MonitorUpIcon, MoreVerticalIcon } from "lucide-react-native";
+import { MoreVertical, Radio } from "lucide-react-native";
 import React from "react";
 import {
   Image,
-  Text,
+  StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import { Skeleton, SkeletonText } from "../ui/skeleton";
+import { ThemedText } from "@/components/ThemedText";
 
 const SongResultCard = ({
   result,
@@ -25,10 +24,10 @@ const SongResultCard = ({
   isLoading: boolean;
 }) => {
   const colorSchema = useColorScheme();
+  const colors = Colors[colorSchema === "light" ? "light" : "dark"];
   const { isJoined, isBroadcasting, sendSongRequest } = useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom } = useRoomStore();
-  const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
   const handleSendSongRequest = (e: any) => {
     e.stopPropagation();
@@ -49,74 +48,82 @@ const SongResultCard = ({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
-      style={{
-        marginBottom: 8,
-        backgroundColor: colors.component,
-        borderRadius: borderRadius.md,
-        padding: 16,
-        flexDirection: "row",
-        alignItems: "center",
-      }}
+      activeOpacity={0.8}
+      style={styles.container}
       onPress={() => router.push(`../../song/${result.id}`)}
     >
-      <View className="flex-1 flex-row w-full gap-4 items-center">
-        {isLoading ? (
-          <Skeleton className="w-16 h-20 rounded-xl" />
-        ) : (
-          <Image
-            source={{
-              uri: resolveImage(result.image[result.image.length - 1].link),
-            }}
-            className="aspect-square w-24 rounded-xl"
-          />
-        )}
-        <View className="flex-col gap-2 items-start  h-full w-9/12">
-          {isLoading ? (
-            <SkeletonText className="w-20 h-4" />
-          ) : (
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 14,
-                color: colors.text,
-                letterSpacing: 0.5,
-                fontWeight: 700,
-                maxWidth: "85%",
-              }}
-            >
-              {result.name}
-            </Text>
-          )}
-          {isLoading ? (
-            <SkeletonText className="w-16 h-4" />
-          ) : (
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 12,
-                color: colors.textMuted,
-                letterSpacing: 0.5,
-                fontWeight: 500,
-              }}
-            >
-              {result.singers}
-            </Text>
-          )}
-        </View>
+      <Image
+        source={{
+          uri: resolveImage(result.image[result.image.length - 1].link),
+        }}
+        style={styles.image}
+      />
+      <View style={styles.content}>
+        <ThemedText style={styles.name} numberOfLines={1}>
+          {result.name}
+        </ThemedText>
+        <ThemedText style={[styles.description, { color: colors.textMuted }]} numberOfLines={1}>
+          {result.singers}
+        </ThemedText>
       </View>
-      <View className="flex-row items-center gap-4">
+
+      <View style={styles.actions}>
         {isBroadcasting && (
-          <MonitorUpIcon
-            onPressIn={handleSendSongRequest}
-            color={colors.icon}
-            title="Sent music requst"
-          />
+          <TouchableOpacity 
+            onPress={handleSendSongRequest}
+            style={[styles.actionBtn, { backgroundColor: colors.secondaryBackground }]}
+          >
+            <Radio size={16} color={colors.primary} />
+          </TouchableOpacity>
         )}
-        <MoreVerticalIcon onPress={() => null} size={20} color={colors.icon} />
+        <TouchableOpacity style={styles.moreBtn}>
+          <MoreVertical size={18} color={colors.textMuted} />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  image: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+  },
+  content: {
+    flex: 1,
+    marginLeft: 14,
+    justifyContent: "center",
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  description: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  actionBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  moreBtn: {
+    padding: 4,
+  },
+});
 
 export default SongResultCard;

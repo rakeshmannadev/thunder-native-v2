@@ -7,8 +7,8 @@ import { MovingText } from "@/components/songs/useMovingText";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
+import { showToast } from "@/hooks/useToastMessage";
 import { addToFavorites, getFavoriteSongs } from "@/services/userServices";
-import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 import { Song } from "@/types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -22,7 +22,7 @@ import {
   MoreVertical,
   Share2,
 } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -60,34 +60,36 @@ const PlayerScreen = () => {
   const queryClient = useQueryClient();
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
-
-  const { favoriteSongs, currentUser } = useUserStore();
   const currentSong = useActiveTrack();
-  const { top, bottom } = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const menuItems: MenuItem[] = currentSong
-    ? [
-        {
-          key: "go_to_album",
-          label: "Go to album",
-          icon: "album",
-          data: currentSong.album_id,
-        },
-        {
-          key: "go_to_artist",
-          label: "Go to artist",
-          icon: "artist",
-          data: currentSong?.artist_map?.primary_artists?.[0]?.id,
-        },
-        {
-          key: "save_to_playlist",
-          label: "Save to playlist",
-          icon: "playlist",
-          data: currentSong.id,
-        },
-      ]
-    : [];
+  const menuItems: MenuItem[] = useMemo(
+    () =>
+      currentSong
+        ? [
+            {
+              key: "go_to_album",
+              label: "Go to album",
+              icon: "album",
+              data: currentSong.album_id,
+            },
+            {
+              key: "go_to_artist",
+              label: "Go to artist",
+              icon: "artist",
+              data: currentSong?.artist_map?.primary_artists?.[0]?.id,
+            },
+            {
+              key: "save_to_playlist",
+              label: "Save to playlist",
+              icon: "playlist",
+              data: currentSong.id,
+            },
+          ]
+        : [],
+    [currentSong]
+  );
 
   const { mutate: addToFavoriteMutaion } = useMutation({
     mutationFn: (song: Song) =>
@@ -101,10 +103,14 @@ const PlayerScreen = () => {
         queryKey: ["favorites"],
         queryFn: getFavoriteSongs,
       });
+      showToast("Song added to favorites");
+    },
+    onError: (error: any) => {
+      showToast(error?.message || "Failed to add song to favorites");
     },
   });
 
-  const handleAddToFavorite = async () => {
+  const handleAddToFavorite = useCallback(async () => {
     if (!currentSong) return;
     addToFavoriteMutaion({
       id: currentSong.id,
@@ -118,9 +124,9 @@ const PlayerScreen = () => {
       artist_map: currentSong.artist_map.primary_artists!,
       release_date: currentSong.release_date,
     });
-  };
+  }, [currentSong, addToFavoriteMutaion]);
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     if (!currentSong) return;
     try {
       await Share.share({
@@ -131,7 +137,7 @@ const PlayerScreen = () => {
     } catch (error) {
       console.error("Error sharing:", error);
     }
-  };
+  }, [currentSong]);
 
   // ── Animations ───────────────────────────────────────
   const artworkScale = useSharedValue(0.9);
@@ -223,19 +229,19 @@ const PlayerScreen = () => {
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.overlay}>
               {/* Header */}
-              <View style={[styles.header, { paddingTop: top + 10 }]}>
+              <View style={[styles.header]}>
                 <TouchableOpacity
                   onPress={() => router.back()}
                   style={styles.iconBtn}
                 >
-                  <ChevronDown color="white" size={28} />
+                  <ChevronDown color={colors.text} size={28} />
                 </TouchableOpacity>
                 <View style={styles.dragHandle} />
                 <TouchableOpacity
                   onPress={() => setMenuVisible(true)}
                   style={styles.iconBtn}
                 >
-                  <MoreVertical color="white" size={24} />
+                  <MoreVertical color={colors.text} size={24} />
                 </TouchableOpacity>
               </View>
 
@@ -259,15 +265,12 @@ const PlayerScreen = () => {
                   <View style={styles.titleContainer}>
                     <MovingText
                       text={currentSong.title ?? ""}
-                      style={styles.songTitle}
+                      style={[styles.songTitle, { color: colors.text }]}
                       animationThreshold={24}
                     />
                     <MovingText
                       text={currentSong.artist ?? ""}
-                      style={[
-                        styles.songArtist,
-                        { color: "rgba(255,255,255,0.6)" },
-                      ]}
+                      style={[styles.songArtist, { color: colors.textMuted }]}
                       animationThreshold={30}
                     />
                   </View>
@@ -282,7 +285,7 @@ const PlayerScreen = () => {
                     >
                       <Heart
                         size={22}
-                        color="white"
+                        color={isFavorite ? "white" : colors.text}
                         fill={isFavorite ? "white" : "none"}
                       />
                     </TouchableOpacity>
@@ -291,7 +294,7 @@ const PlayerScreen = () => {
                       onPress={handleShare}
                       style={styles.circularActionBtn}
                     >
-                      <Share2 size={22} color="white" />
+                      <Share2 size={22} color={colors.text} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -305,10 +308,17 @@ const PlayerScreen = () => {
                 <View style={styles.footer}>
                   <TouchableOpacity
                     onPress={() => queueSheetRef.current?.present()}
-                    style={styles.queueBtn}
+                    style={[
+                      styles.queueBtn,
+                      { backgroundColor: colors.secondaryBackground },
+                    ]}
                   >
-                    <ListMusic color="white" size={24} />
-                    <ThemedText style={styles.queueText}>Up Next</ThemedText>
+                    <ListMusic color={colors.text} size={24} />
+                    <ThemedText
+                      style={[styles.queueText, { color: colors.text }]}
+                    >
+                      Up Next
+                    </ThemedText>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -332,7 +342,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     overflow: "hidden",
-    backgroundColor: "#000",
   },
   overlay: {
     flex: 1,
@@ -348,7 +357,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(128,128,128,0.3)",
   },
   iconBtn: {
     width: 44,
@@ -390,7 +399,6 @@ const styles = StyleSheet.create({
   songTitle: {
     fontSize: 28,
     fontWeight: "800",
-    color: "white",
     letterSpacing: -0.5,
   },
   songArtist: {
@@ -409,7 +417,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(128,128,128,0.1)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -431,7 +439,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   queueText: {
-    color: "white",
     fontSize: 14,
     fontWeight: "700",
   },

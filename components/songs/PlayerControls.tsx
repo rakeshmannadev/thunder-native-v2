@@ -1,9 +1,15 @@
-import { colors } from "@/constants/tokens";
+import { Colors } from "@/constants/Colors";
 import { useTrackPlayerRepeatMode } from "@/hooks/usePlayerRepeatMode";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ComponentProps } from "react";
-import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+  ViewStyle,
+} from "react-native";
 import TrackPlayer, {
   RepeatMode,
   useIsPlaying,
@@ -19,10 +25,13 @@ type PlayerButtonProps = {
   handlePress?: () => void;
   isShuffle?: boolean;
   loopMode?: "off" | "all" | "one";
+  color?: string;
 };
 
 export const PlayerControls = ({ style }: PlayerControlsProps) => {
   const { setShuffle, isShuffle } = usePlayerStore();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const handleShuffle = () => {
     setShuffle(!isShuffle);
@@ -42,15 +51,24 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
           handlePress={handleShuffle}
           iconSize={30}
           isShuffle={isShuffle}
+          color={colors.text}
         />
 
-        <SkipToPreviousButton iconSize={30} handlePress={handlePlayPrevious} />
+        <SkipToPreviousButton
+          iconSize={30}
+          handlePress={handlePlayPrevious}
+          color={colors.text}
+        />
 
-        <PlayPauseButton iconSize={60} />
+        <PlayPauseButton iconSize={60} color={colors.text} />
 
-        <SkipToNextButton iconSize={30} handlePress={handlePlayNext} />
+        <SkipToNextButton
+          iconSize={30}
+          handlePress={handlePlayNext}
+          color={colors.text}
+        />
 
-        <PlayerRepeatToggle size={30} />
+        <PlayerRepeatToggle size={30} color={colors.text} />
       </View>
     </View>
   );
@@ -59,8 +77,11 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
 export const PlayPauseButton = ({
   style,
   iconSize = 48,
+  color,
 }: PlayerButtonProps) => {
   const { playing } = useIsPlaying();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const handlePress = () => {
     if (playing) {
@@ -76,7 +97,7 @@ export const PlayPauseButton = ({
         <Ionicons
           name={playing ? "pause-circle" : "play-circle"}
           size={iconSize}
-          color={colors.text}
+          color={color ?? colors.text}
         />
       </TouchableOpacity>
     </View>
@@ -87,7 +108,11 @@ export const SkipToNextButton = ({
   iconSize = 30,
   handlePress,
   style,
+  color,
 }: PlayerButtonProps) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -97,7 +122,7 @@ export const SkipToNextButton = ({
       <MaterialCommunityIcons
         name="skip-next"
         size={iconSize}
-        color={colors.text}
+        color={color ?? colors.text}
       />
     </TouchableOpacity>
   );
@@ -106,7 +131,11 @@ export const SkipToPreviousButton = ({
   iconSize = 30,
   handlePress,
   style,
+  color,
 }: PlayerButtonProps) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -116,7 +145,7 @@ export const SkipToPreviousButton = ({
       <MaterialCommunityIcons
         name="skip-previous"
         size={iconSize}
-        color={colors.text}
+        color={color ?? colors.text}
       />
     </TouchableOpacity>
   );
@@ -130,8 +159,10 @@ const repeatOrder = [
   RepeatMode.Queue,
 ] as const;
 
-export const PlayerRepeatToggle = ({ ...iconProps }: IconProps) => {
+export const PlayerRepeatToggle = ({ color, ...iconProps }: IconProps) => {
   const { repeatMode, changeRepeatMode } = useTrackPlayerRepeatMode();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const toggleRepeatMode = () => {
     if (repeatMode == null) return;
@@ -153,7 +184,7 @@ export const PlayerRepeatToggle = ({ ...iconProps }: IconProps) => {
     <MaterialCommunityIcons
       name={icon}
       onPress={toggleRepeatMode}
-      color={colors.icon}
+      color={color ?? colors.text}
       {...iconProps}
     />
   );
@@ -162,13 +193,17 @@ export const ShuffleButton = ({
   iconSize = 48,
   handlePress,
   isShuffle,
+  color,
 }: PlayerButtonProps) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       <MaterialCommunityIcons
         name={isShuffle ? "shuffle-variant" : "shuffle-disabled"}
         size={iconSize}
-        color={colors.text}
+        color={color ?? colors.text}
       />
     </TouchableOpacity>
   );

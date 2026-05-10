@@ -1,6 +1,6 @@
 import AlbumItem from "@/components/album/AlbumItem";
+import PlayButton from "@/components/PlayButton";
 import { ThemedText } from "@/components/ThemedText";
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
@@ -12,7 +12,7 @@ import { Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Play, Shuffle } from "lucide-react-native";
+import { Shuffle } from "lucide-react-native";
 import React from "react";
 import {
   Dimensions,
@@ -134,14 +134,11 @@ const LibraryContentScreen = () => {
             </ThemedText>
 
             <View style={styles.actionRow}>
-              <Button
-                size="xl"
-                onPress={handlePlay}
-                style={[styles.playButton, { backgroundColor: colors.primary }]}
-              >
-                <ButtonIcon as={Play} color="white" size="lg" />
-                <ButtonText style={styles.playButtonText}>Play All</ButtonText>
-              </Button>
+              <PlayButton
+                handlePlay={handlePlay}
+                title="Play All"
+                color={colors.primary}
+              />
 
               <Pressable
                 onPress={handleShufflePlay}

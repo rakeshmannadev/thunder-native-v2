@@ -34,7 +34,7 @@ const index = () => {
   ]);
 
   const LazySceneRender = ({ route }: any) => {
-    if (route.key === "joined") return <JoinedRoomsTab />;
+    if (route.key === "joined") return <JoinedRoomsTab setIndex={setIndex} />;
     if (route.key === "public") return <PublicRoomsTab />;
     return null;
   };

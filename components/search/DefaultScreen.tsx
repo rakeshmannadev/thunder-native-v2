@@ -1,36 +1,185 @@
 import { ThemedText } from "@/components/ThemedText";
-import { VStack } from "@/components/ui/vstack";
 import { Colors } from "@/constants/Colors";
-import { SearchIcon } from "lucide-react-native";
+import { Disc, Mic, Music, Search } from "lucide-react-native";
 import React from "react";
-import { useColorScheme, View } from "react-native";
+import { Dimensions, StyleSheet, useColorScheme, View } from "react-native";
+import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
+
+const { width } = Dimensions.get("window");
 
 const DefaultScreen = () => {
-  const colorSchema = useColorScheme();
-  return (
-    <VStack
-      style={{
-        backgroundColor:
-          Colors[colorSchema === "light" ? "light" : "dark"].background,
-      }}
-      space="lg"
-      className="flex-1 relative items-center p-5"
-    >
-      <View className="filter drop-shadow-glow rounded-s-full rounded-t-full rounded-br-3xl ">
-        <SearchIcon
-          size={60}
-          color={colorSchema === "light" ? "black" : "white"}
-        />
-      </View>
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-      <VStack space="md" className=" flex-1 items-center justify-center">
-        <ThemedText type="title">Search now</ThemedText>
-        <ThemedText type="defaultSemiBold" className="text-center">
-          Type something to search from millions of songs, albums & artists.
-        </ThemedText>
-      </VStack>
-    </VStack>
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.content}>
+        {/* Animated Illustration Section */}
+        <Animated.View
+          entering={ZoomIn.duration(800)}
+          style={styles.illustrationContainer}
+        >
+          {/* Background Glow */}
+          <View
+            style={[styles.glow, { backgroundColor: colors.primary + "15" }]}
+          />
+
+          {/* Layered Floating Icons */}
+          <Animated.View
+            entering={FadeInDown.delay(400).duration(1000)}
+            style={[
+              styles.floatingIcon,
+              styles.musicIcon,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          >
+            <Music size={24} color={colors.primary} />
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInDown.delay(600).duration(1000)}
+            style={[
+              styles.floatingIcon,
+              styles.discIcon,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          >
+            <Disc size={24} color={colors.primary} />
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInDown.delay(800).duration(1000)}
+            style={[
+              styles.floatingIcon,
+              styles.micIcon,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          >
+            <Mic size={24} color={colors.primary} />
+          </Animated.View>
+
+          {/* Main Search Icon */}
+          <View
+            style={[
+              styles.mainIconCircle,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          >
+            <Search size={56} color={colors.primary} />
+          </View>
+        </Animated.View>
+
+        {/* Text Content Section */}
+        <Animated.View
+          entering={FadeInDown.delay(300).duration(800)}
+          style={styles.textContainer}
+        >
+          <ThemedText style={styles.title}>Search the Universe</ThemedText>
+          <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
+            Explore millions of tracks, albums, and artists. Your next favorite
+            song is just a search away.
+          </ThemedText>
+        </Animated.View>
+
+        {/* Dynamic Decoration Lines */}
+        {/* <Animated.View
+          entering={FadeIn.delay(1000).duration(1500)}
+          style={styles.decorationLine}
+        /> */}
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  content: {
+    width: width * 0.85,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  illustrationContainer: {
+    width: 200,
+    height: 200,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 48,
+  },
+  glow: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    transform: [{ scale: 1.8 }],
+  },
+  mainIconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 2,
+    zIndex: 2,
+  },
+  floatingIcon: {
+    position: "absolute",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    zIndex: 3,
+  },
+  musicIcon: {
+    top: 0,
+    right: 0,
+  },
+  discIcon: {
+    bottom: 20,
+    left: -10,
+  },
+  micIcon: {
+    top: 20,
+    left: 10,
+  },
+  textContainer: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginTop: 40,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    marginBottom: 16,
+    textAlign: "center",
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 24,
+    fontWeight: "500",
+  },
+  decorationLine: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    marginTop: 40,
+  },
+});
 
 export default DefaultScreen;

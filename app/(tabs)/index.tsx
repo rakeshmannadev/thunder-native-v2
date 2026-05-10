@@ -24,6 +24,7 @@ import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { Featured, Song, TopAlbums, TopArtists } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { ArrowRight, Bell, Settings } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import {
@@ -165,6 +166,7 @@ export default function HomeScreen() {
               styles.iconButton,
               { backgroundColor: colors.secondaryBackground },
             ]}
+            onPress={() => router.push("/notification")}
           >
             <Bell size={20} color={colors.text} />
           </TouchableOpacity>
@@ -173,6 +175,7 @@ export default function HomeScreen() {
               styles.iconButton,
               { backgroundColor: colors.secondaryBackground },
             ]}
+            onPress={() => router.push("/settings")}
           >
             <Settings size={20} color={colors.text} />
           </TouchableOpacity>

@@ -1,18 +1,17 @@
 import { Colors } from "@/constants/Colors";
-import { borderRadius } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import { AlbumResult } from "@/types";
 import { router } from "expo-router";
-import { ChevronRightIcon } from "lucide-react-native";
+import { ChevronRight } from "lucide-react-native";
 import React from "react";
 import {
   Image,
-  Text,
+  StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import { Skeleton, SkeletonText } from "../ui/skeleton";
+import { ThemedText } from "@/components/ThemedText";
 
 const AlbumResultCard = ({
   result,
@@ -23,67 +22,57 @@ const AlbumResultCard = ({
 }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+  
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
-      style={{
-        marginBottom: 8,
-        backgroundColor: colors.component,
-        borderRadius: borderRadius.md,
-        padding: 16,
-        flexDirection: "row",
-        alignItems: "center",
-      }}
+      activeOpacity={0.8}
+      style={styles.container}
       onPress={() => router.push(`../../album/${result.id}`)}
     >
-      <View className="flex-1 flex-row w-full gap-4 items-center">
-        {isLoading ? (
-          <Skeleton className="w-16 h-20 rounded-xl" />
-        ) : (
-          <Image
-            source={{
-              uri: resolveImage(result.image[result.image.length - 1].link),
-            }}
-            className="aspect-square w-24 rounded-xl"
-          />
-        )}
-        <View className="flex-col gap-2 items-start  h-full w-9/12">
-          {isLoading ? (
-            <SkeletonText className="w-20 h-4" />
-          ) : (
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 14,
-                color: colors.text,
-                letterSpacing: 0.5,
-                fontWeight: 700,
-                maxWidth: "85%",
-              }}
-            >
-              {result.name}
-            </Text>
-          )}
-          {isLoading ? (
-            <SkeletonText className="w-16 h-4" />
-          ) : (
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 12,
-                color: colors.textMuted,
-                letterSpacing: 0.5,
-                fontWeight: 500,
-              }}
-            >
-              {result.subtitle}
-            </Text>
-          )}
-        </View>
+      <Image
+        source={{
+          uri: resolveImage(result.image[result.image.length - 1].link),
+        }}
+        style={styles.image}
+      />
+      <View style={styles.content}>
+        <ThemedText style={styles.name} numberOfLines={1}>
+          {result.name}
+        </ThemedText>
+        <ThemedText style={[styles.description, { color: colors.textMuted }]} numberOfLines={1}>
+          {result.subtitle || "Album"}
+        </ThemedText>
       </View>
-      <ChevronRightIcon onPress={() => null} size={20} color={colors.icon} />
+      <ChevronRight size={18} color={colors.textMuted} />
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  image: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+  },
+  content: {
+    flex: 1,
+    marginLeft: 14,
+    justifyContent: "center",
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  description: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+});
 
 export default AlbumResultCard;

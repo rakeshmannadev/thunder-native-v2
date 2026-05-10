@@ -1,16 +1,17 @@
-import { ThemedText } from "@/components/ThemedText";
 import MenuModal, { MenuItem } from "@/components/MenuModal";
+import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import {
-  borderRadius,
-  colors as constantColors,
-  fontSize,
-  screenPadding,
-} from "@/constants/tokens";
 import usePlayerStore from "@/store/usePlayerStore";
-import { defaultStyles } from "@/styles";
-import { FontAwesome } from "@expo/vector-icons";
-import { ChevronRight } from "lucide-react-native";
+import {
+  ChevronRight,
+  Download,
+  Headphones,
+  Moon,
+  Music,
+  Palette,
+  Settings,
+  Sun,
+} from "lucide-react-native";
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -19,15 +20,15 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const index = () => {
+const SettingsScreen = () => {
   const colorScheme = useColorScheme();
   const { top } = useSafeAreaInsets();
-
   const { audioPreference } = usePlayerStore();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
@@ -41,130 +42,156 @@ const index = () => {
     setMenuVisible(true);
   };
 
-  return (
-    <SafeAreaView
+  const SettingItem = ({
+    icon: Icon,
+    label,
+    value,
+    onPress,
+    iconBg,
+  }: {
+    icon: any;
+    label: string;
+    value: string;
+    onPress: () => void;
+    iconBg?: string;
+  }) => (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
       style={[
-        styles.safeArea,
-        {
-          backgroundColor: colors.background,
-        },
+        styles.settingItem,
+        { backgroundColor: colors.secondaryBackground + "40" },
       ]}
     >
-      <ScrollView style={[styles.scrollContent, { paddingTop: top + 60 }]}>
-        <View style={styles.scrollContent}>
-          {/* Appearance section */}
-          <View style={styles.sectionContainer}>
-            <ThemedText type="subtitle">Appreance</ThemedText>
-            <TouchableOpacity
-              onPress={() =>
-                openMenu(
-                  [
-                    { key: "light", label: "Light", icon: "sun" },
-                    { key: "dark", label: "Dark", icon: "moon" },
-                  ],
-                  "Appearance"
-                )
-              }
-              className="w-full flex flex-row justify-between items-center p-4"
-              style={{
-                backgroundColor: colors.component,
-                borderRadius: borderRadius.md,
-              }}
-            >
-              <View className="flex flex-row items-center gap-4">
-                <FontAwesome
-                  name={colorScheme === "dark" ? "moon-o" : "sun-o"}
-                  color={colors.icon}
-                  size={20}
-                  className="p-2 rounded-xl"
-                  style={{ backgroundColor: colors.secondaryBackground }}
-                />
-                <ThemedText type="defaultSemiBold">
-                  {colorScheme &&
-                    colorScheme?.charAt(0).toUpperCase() +
-                      colorScheme?.slice(1)}
-                </ThemedText>
-              </View>
-
-              <ChevronRight color={colors.icon} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Playback section */}
-          <View style={styles.sectionContainer}>
-            <ThemedText type="subtitle" darkColor={colors.textMuted}>
-              Playback
-            </ThemedText>
-            {/* Audio preference */}
-            <TouchableOpacity
-              style={{
-                backgroundColor: colors.component,
-                borderRadius: borderRadius.md,
-              }}
-              onPress={() =>
-                openMenu(
-                  [
-                    { key: "download_first", label: "Download first", icon: "download" },
-                    { key: "streaming", label: "Streaming", icon: "mug" },
-                  ],
-                  "Audio Preference"
-                )
-              }
-              className="w-full flex flex-row justify-between items-center rounded-3xl p-4"
-            >
-              <View className="flex flex-row items-center gap-4">
-                <FontAwesome
-                  name="cog"
-                  color={colors.icon}
-                  size={20}
-                  className="p-2 rounded-xl"
-                  style={{ backgroundColor: colors.secondaryBackground }}
-                />
-                <ThemedText type="defaultSemiBold">
-                  {audioPreference.downloadFirst
-                    ? "Downlode First"
-                    : "Streaming"}{" "}
-                </ThemedText>
-              </View>
-
-              <ChevronRight color={colors.icon} />
-            </TouchableOpacity>
-            {/* Audio quality */}
-            <TouchableOpacity
-              style={{
-                backgroundColor: colors.component,
-                borderRadius: borderRadius.md,
-              }}
-              onPress={() =>
-                openMenu(
-                  [
-                    { key: "low", label: "Low" },
-                    { key: "medium", label: "Medium" },
-                    { key: "high", label: "High" },
-                  ],
-                  "Audio Quality"
-                )
-              }
-              className="w-full flex flex-row justify-between items-center rounded-3xl p-4"
-            >
-              <View className="flex flex-row items-center gap-4">
-                <FontAwesome
-                  name="headphones"
-                  color={colors.icon}
-                  size={20}
-                  className="p-2 rounded-xl"
-                  style={{ backgroundColor: colors.secondaryBackground }}
-                />
-                <ThemedText type="defaultSemiBold">
-                  {audioPreference.quality.charAt(0).toUpperCase() +
-                    audioPreference.quality.slice(1)}
-                </ThemedText>
-              </View>
-
-              <ChevronRight color={colors.icon} />
-            </TouchableOpacity>
-          </View>
+      <View style={styles.settingItemLeft}>
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: iconBg || colors.primary + "20" },
+          ]}
+        >
+          <Icon size={20} color={iconBg ? "white" : colors.primary} />
         </View>
+        <View>
+          <ThemedText style={styles.settingLabel}>{label}</ThemedText>
+          <ThemedText
+            style={[styles.settingValue, { color: colors.textMuted }]}
+          >
+            {value}
+          </ThemedText>
+        </View>
+      </View>
+      <ChevronRight size={20} color={colors.textMuted} />
+    </TouchableOpacity>
+  );
+
+  const SectionHeader = ({
+    title,
+    icon: Icon,
+  }: {
+    title: string;
+    icon: any;
+  }) => (
+    <View style={styles.sectionHeader}>
+      <Icon size={18} color={colors.primary} />
+      <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
+    </View>
+  );
+
+  return (
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: top + 20 }]}
+      >
+        <Animated.View entering={FadeInDown.duration(600).delay(100)}>
+          <ThemedText style={styles.pageTitle}>Settings</ThemedText>
+        </Animated.View>
+
+        {/* Appearance section */}
+        <Animated.View
+          entering={FadeInDown.duration(600).delay(200)}
+          style={styles.section}
+        >
+          <SectionHeader title="Appearance" icon={Palette} />
+          <SettingItem
+            icon={colorScheme === "dark" ? Moon : Sun}
+            label="Theme"
+            value={colorScheme === "dark" ? "Dark Mode" : "Light Mode"}
+            onPress={() =>
+              openMenu(
+                [
+                  { key: "light", label: "Light", icon: "sun" },
+                  { key: "dark", label: "Dark", icon: "moon" },
+                ],
+                "Appearance"
+              )
+            }
+          />
+        </Animated.View>
+
+        {/* Playback section */}
+        <Animated.View
+          entering={FadeInDown.duration(600).delay(300)}
+          style={styles.section}
+        >
+          <SectionHeader title="Playback" icon={Music} />
+          <SettingItem
+            icon={Download}
+            label="Audio Preference"
+            value={
+              audioPreference.downloadFirst ? "Download First" : "Streaming"
+            }
+            onPress={() =>
+              openMenu(
+                [
+                  {
+                    key: "download_first",
+                    label: "Download first",
+                    icon: "download",
+                  },
+                  { key: "streaming", label: "Streaming", icon: "mug" },
+                ],
+                "Audio Preference"
+              )
+            }
+          />
+          <SettingItem
+            icon={Headphones}
+            label="Audio Quality"
+            value={
+              audioPreference.quality.charAt(0).toUpperCase() +
+              audioPreference.quality.slice(1)
+            }
+            onPress={() =>
+              openMenu(
+                [
+                  { key: "low", label: "Low" },
+                  { key: "medium", label: "Medium" },
+                  { key: "high", label: "High" },
+                ],
+                "Audio Quality"
+              )
+            }
+          />
+        </Animated.View>
+
+        {/* About Section */}
+        <Animated.View
+          entering={FadeInDown.duration(600).delay(400)}
+          style={styles.section}
+        >
+          <SectionHeader title="System" icon={Settings} />
+          <SettingItem
+            icon={Settings}
+            label="Version"
+            value="2.0.0 (Thunder Native)"
+            onPress={() => {}}
+            iconBg="#6366f1"
+          />
+        </Animated.View>
       </ScrollView>
 
       <MenuModal
@@ -177,62 +204,67 @@ const index = () => {
   );
 };
 
-export default index;
-
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: constantColors.background,
   },
   scrollContent: {
-    paddingHorizontal: screenPadding.horizontal,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
   },
-  sectionContainer: {
-    gap: 15,
-    marginBottom: 20,
+  pageTitle: {
+    fontSize: 34,
+    fontWeight: "800",
+    marginBottom: 32,
+    letterSpacing: -1,
+    lineHeight: 38,
   },
-  artworkContainer: {
-    width: 150,
-    height: 150,
-    borderRadius: 12,
-    overflow: "hidden",
-    elevation: 6,
+  section: {
+    marginBottom: 32,
   },
-  artwork: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 12,
-  },
-  infoContainer: {
-    flex: 1,
-    justifyContent: "space-between",
-    paddingVertical: 4,
-  },
-  title: {
-    ...defaultStyles.text,
-    fontSize: 22,
-    fontWeight: "700",
-  },
-  artist: {
-    ...defaultStyles.text,
-    fontSize: fontSize.base,
-    opacity: 0.8,
-    marginVertical: 6,
-  },
-  songCount: {
-    ...defaultStyles.text,
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  controls: {
+  sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    marginTop: 10,
+    gap: 10,
+    marginBottom: 16,
+    paddingLeft: 4,
   },
-  iconButton: {
-    padding: 6,
-    borderRadius: 50,
-    backgroundColor: "rgba(255,255,255,0.08)",
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1.5,
+    opacity: 0.6,
+  },
+  settingItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    borderRadius: 24,
+    marginBottom: 12,
+  },
+  settingItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  settingValue: {
+    fontSize: 13,
+    fontWeight: "600",
   },
 });
+
+export default SettingsScreen;

@@ -2,7 +2,7 @@ import { CATEGORIES } from "@/constants/categories";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import usePlayerStore from "@/store/usePlayerStore";
-import { useState } from "react";
+import React from "react";
 import {
   ScrollView,
   Text,
@@ -14,8 +14,8 @@ import {
 const Categories = () => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  const [categories, setCategories] = useState(CATEGORIES);
-  const { setSelectedCategory } = usePlayerStore();
+  const { selectedCategory, setSelectedCategory } = usePlayerStore();
+
   return (
     <View style={{ paddingHorizontal: screenPadding.horizontal }}>
       <ScrollView
@@ -25,25 +25,19 @@ const Categories = () => {
           paddingBottom: 16,
         }}
       >
-        {categories &&
-          categories.map((category, index) => (
+        {CATEGORIES.map((category, index) => {
+          const isActive = selectedCategory === category.name.toLowerCase();
+          return (
             <TouchableOpacity
               key={index}
               className="mr-2"
               onPress={() => {
-                setCategories(
-                  categories.map((c) =>
-                    c.id === category.id
-                      ? { ...c, active: !c.active }
-                      : { ...c, active: false }
-                  )
-                );
                 setSelectedCategory(category.name.toLowerCase());
               }}
             >
               <View
                 style={{
-                  backgroundColor: category.active
+                  backgroundColor: isActive
                     ? colors.primary
                     : colors.component,
                   borderColor: colors.borderColor,
@@ -58,7 +52,8 @@ const Categories = () => {
                 </Text>
               </View>
             </TouchableOpacity>
-          ))}
+          );
+        })}
       </ScrollView>
     </View>
   );

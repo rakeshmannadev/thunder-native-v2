@@ -75,49 +75,57 @@ const ChatHeader = ({ room }: { room: Room }) => {
   return (
     <View
       style={{
-        backgroundColor: colors.background,
         paddingHorizontal: screenPadding.horizontal,
-        paddingTop: 10,
+        paddingVertical: 12,
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
-        borderColor: colors.borderColor,
+        justifyContent: "space-between",
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255, 255, 255, 0.05)',
       }}
-      className="border-b pb-2"
     >
-      <View className="flex-row items-center gap-3">
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={28} color={colors.text} />
-        </TouchableOpacity>
-        {/* Room image section */}
-        <Image
-          source={{ uri: room.image }}
-          style={{
-            width: 40,
-            borderRadius: borderRadius.lg,
-            aspectRatio: 1,
-          }}
-        />
-      </View>
-
-      {/* Room name section */}
-      <View style={{ alignItems: "center", flex: 1, paddingHorizontal: 8 }}>
-        <Text
-          style={{
-            fontSize: fontSize.base,
-            fontWeight: "bold",
-            color: colors.text,
-            marginBottom: 4,
-          }}
-          numberOfLines={1}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <TouchableOpacity 
+          onPress={() => router.back()}
+          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center' }}
         >
-          {room.roomName}
-        </Text>
+          <ChevronLeft size={24} color={colors.text} />
+        </TouchableOpacity>
+        
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Image
+            source={{ uri: room.image }}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              borderWidth: 2,
+              borderColor: colors.primary,
+            }}
+          />
+          <View>
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: "900",
+                color: colors.text,
+                letterSpacing: -0.3,
+              }}
+              numberOfLines={1}
+            >
+              {room.roomName}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#1DB954' }} />
+              <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: '700' }}>Live Broadcast</Text>
+            </View>
+          </View>
+        </View>
       </View>
 
       <TouchableOpacity
-        className=" rounded-full p-2"
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center' }}
         onPress={() => setMenuVisible(true)}
       >
         <MoreHorizontal size={20} color={colors.text} />

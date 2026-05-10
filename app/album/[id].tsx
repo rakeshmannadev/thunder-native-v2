@@ -1,10 +1,10 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import MenuModal from "@/components/MenuModal";
+import PlayButton from "@/components/PlayButton";
 import { ThemedText } from "@/components/ThemedText";
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
-import { borderRadius, screenPadding } from "@/constants/tokens";
+import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getAlbumById } from "@/services/songService";
@@ -14,7 +14,7 @@ import { Album, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Heart, MoreVertical, Play, Shuffle } from "lucide-react-native";
+import { Heart, MoreVertical, Shuffle } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Dimensions,
@@ -102,7 +102,9 @@ const AlbumScreen = () => {
   });
 
   const [menuVisible, setMenuVisible] = useState(false);
-  const albumImage = currentAlbum?.image ? resolveImage(currentAlbum.image[currentAlbum.image.length - 1]?.link) : null;
+  const albumImage = currentAlbum?.image
+    ? resolveImage(currentAlbum.image[currentAlbum.image.length - 1]?.link)
+    : null;
 
   if (!currentAlbum && !isAlbumFetching) return null;
 
@@ -115,7 +117,12 @@ const AlbumScreen = () => {
         {albumImage ? (
           <Image source={{ uri: albumImage }} style={styles.headerImage} />
         ) : (
-          <View style={[styles.headerImage, { backgroundColor: colors.secondaryBackground }]} />
+          <View
+            style={[
+              styles.headerImage,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          />
         )}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.5)", colors.background]}
@@ -124,13 +131,10 @@ const AlbumScreen = () => {
       </Animated.View>
 
       {/* Navigation Bar */}
-      <View style={[styles.navBar, { top: top + 10 }]}>
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.navButton}
-        >
-          <ArrowLeft color="white" size={24} />
-        </Pressable>
+      <View style={[styles.navBar, { top: top + 8, left: 8 }]}>
+        <View style={styles.navButton}>
+          {/* <ArrowLeft color="white" size={24} /> */}
+        </View>
         <Pressable
           onPress={() => setMenuVisible(true)}
           style={styles.navButton}
@@ -151,39 +155,45 @@ const AlbumScreen = () => {
         <View style={styles.content}>
           <Animated.View entering={FadeInDown.delay(200).duration(600)}>
             <ThemedText style={styles.title}>
-              {currentAlbum?.name ?? (isAlbumFetching ? "Loading Album..." : "Album")}
+              {currentAlbum?.name ??
+                (isAlbumFetching ? "Loading Album..." : "Album")}
             </ThemedText>
-            
+
             <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
-              {isAlbumFetching ? "Finding tracks..." : `${currentAlbum?.songs.length} Songs • ${currentAlbum?.subtitle || ""}`}
+              {isAlbumFetching
+                ? "Finding tracks..."
+                : `${currentAlbum?.songs.length} Songs • ${currentAlbum?.subtitle || ""}`}
             </ThemedText>
 
             {/* Action Bar */}
             <View style={styles.actionRow}>
-              <Button
-                size="xl"
-                onPress={handlePlay}
-                style={[styles.playButton, { backgroundColor: colors.primary }]}
-              >
-                <ButtonIcon as={Play} color="white" size="lg" fill="white" />
-                <ButtonText style={styles.playButtonText}>Play</ButtonText>
-              </Button>
+              <PlayButton
+                handlePlay={handlePlay}
+                title="Play All"
+                color={colors.primary}
+              />
 
               <Pressable
                 onPress={handleShufflePlay}
-                style={[styles.actionButton, { backgroundColor: colors.secondaryBackground }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.secondaryBackground },
+                ]}
               >
                 <Shuffle color={colors.text} size={22} />
               </Pressable>
 
               <Pressable
                 onPress={handleAddAlbumToFavorite}
-                style={[styles.actionButton, { backgroundColor: colors.secondaryBackground }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.secondaryBackground },
+                ]}
               >
-                <Heart 
-                  color={isAddedToPlaylist ? "#10b981" : colors.text} 
-                  size={22} 
-                  fill={isAddedToPlaylist ? "#10b981" : "none"} 
+                <Heart
+                  color={isAddedToPlaylist ? "#10b981" : colors.text}
+                  size={22}
+                  fill={isAddedToPlaylist ? "#10b981" : "none"}
                 />
               </Pressable>
             </View>
@@ -207,7 +217,9 @@ const AlbumScreen = () => {
                 keyExtractor={(item) => item.id}
                 scrollEnabled={false}
                 renderItem={({ item, index }) => (
-                  <Animated.View entering={FadeInDown.delay(300 + index * 50).duration(400)}>
+                  <Animated.View
+                    entering={FadeInDown.delay(300 + index * 50).duration(400)}
+                  >
                     <AlbumItem isLoading={false} song={item} />
                   </Animated.View>
                 )}
@@ -288,6 +300,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.4)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
+    lineHeight: 34,
   },
   subtitle: {
     fontSize: 16,

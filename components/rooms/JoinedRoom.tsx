@@ -1,14 +1,19 @@
 import { ThemedText } from "@/components/ThemedText";
-import { Card } from "@/components/ui/card";
 import { Colors } from "@/constants/Colors";
-import { borderRadius } from "@/constants/tokens";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { Room } from "@/types";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import React from "react";
-import { Alert, Image, Text, useColorScheme, View } from "react-native";
+import {
+  Alert,
+  Image,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 
 const JoinedRoom = ({ room }: { room: Room }) => {
   const colorScheme = useColorScheme();
@@ -49,38 +54,117 @@ const JoinedRoom = ({ room }: { room: Room }) => {
   };
 
   return (
-    <Card
-      variant="outline"
-      className="min-w-full p-2 rounded-2xl mb-3 "
-      style={{ backgroundColor: colors.component }}
-      onTouchEnd={handleVisitRoom}
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={handleVisitRoom}
+      style={{
+        backgroundColor: colors.secondaryBackground,
+        borderRadius: 24,
+        padding: 12,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.05)",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 2,
+      }}
     >
-      <View className="flex-row w-full px-2 items-center justify-between">
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 16,
+            flex: 1,
+          }}
+        >
           <Image
             source={{ uri: room.image }}
             style={{
-              width: 60,
-              borderRadius: borderRadius.md,
-              aspectRatio: 1,
+              width: 64,
+              height: 64,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.1)",
             }}
           />
-          <View>
-            <ThemedText type="subtitle">{room.roomName}</ThemedText>
-            <Text style={{ color: colors.textMuted }}>
-              {room.visability.charAt(0).toUpperCase() +
-                room.visability.slice(1)}
-            </Text>
-            <Text style={{ color: colors.textMuted }}>
-              {room.participants.length} Listeners
-            </Text>
+          <View style={{ flex: 1 }}>
+            <ThemedText
+              style={{ fontSize: 18, fontWeight: "800", marginBottom: 2 }}
+            >
+              {room.roomName}
+            </ThemedText>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              <View
+                style={{
+                  backgroundColor:
+                    room.visability === "public"
+                      ? "rgba(29, 185, 84, 0.1)"
+                      : "rgba(255, 255, 255, 0.05)",
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                  borderRadius: 6,
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      room.visability === "public"
+                        ? "#1DB954"
+                        : colors.textMuted,
+                    fontSize: 11,
+                    fontWeight: "800",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {room.visability}
+                </Text>
+              </View>
+              <View
+                style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: colors.textMuted,
+                  opacity: 0.5,
+                }}
+              />
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: 13,
+                  fontWeight: "600",
+                }}
+              >
+                {room.participants.length} Listeners
+              </Text>
+            </View>
           </View>
         </View>
-        <View>
-          <ChevronRight size={24} color={colors.text} />
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: "rgba(255,255,255,0.03)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <ChevronRight size={20} color={colors.textMuted} />
         </View>
       </View>
-    </Card>
+    </TouchableOpacity>
   );
 };
 
