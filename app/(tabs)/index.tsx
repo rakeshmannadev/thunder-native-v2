@@ -61,7 +61,7 @@ export default function HomeScreen() {
     refetch: refetchTrending,
   } = useQuery({
     queryKey: ["trending"],
-    queryFn: getTrendingSongs,
+    queryFn: () => getTrendingSongs({ page: 1, limit: 10 }),
   });
   const {
     data: featuredRes,
@@ -69,7 +69,7 @@ export default function HomeScreen() {
     refetch: refetchFeatured,
   } = useQuery({
     queryKey: ["featured"],
-    queryFn: getFeaturedSongs,
+    queryFn: () => getFeaturedSongs({ page: 1, limit: 10 }),
   });
   const {
     data: topArtistsRes,
@@ -77,7 +77,7 @@ export default function HomeScreen() {
     refetch: refetchTopArtists,
   } = useQuery({
     queryKey: ["topArtists"],
-    queryFn: getTopArtists,
+    queryFn: () => getTopArtists({ limit: 10, page: 1 }),
   });
   const {
     data: topAlbumsRes,
@@ -85,7 +85,7 @@ export default function HomeScreen() {
     refetch: refetchTopAlbums,
   } = useQuery({
     queryKey: ["topAlbums"],
-    queryFn: getTopAlbums,
+    queryFn: () => getTopAlbums({ limit: 10, page: 1 }),
   });
   const {
     data: chartsRes,
@@ -93,7 +93,7 @@ export default function HomeScreen() {
     refetch: refetchCharts,
   } = useQuery({
     queryKey: ["charts"],
-    queryFn: getCharts,
+    queryFn: () => getCharts({ page: 1, limit: 10 }),
     enabled: selectedCategory === "charts",
   });
   const {
@@ -102,7 +102,7 @@ export default function HomeScreen() {
     refetch: refetchShows,
   } = useQuery({
     queryKey: ["shows"],
-    queryFn: getShows,
+    queryFn: () => getShows({ page: 1, limit: 10 }),
     enabled: selectedCategory === "shows",
   });
 
@@ -112,12 +112,12 @@ export default function HomeScreen() {
     enabled: !!currentUser,
   });
 
-  const trending = trendingRes?.data?.songs || [];
-  const featured = featuredRes?.data?.collection?.data || [];
-  const topArtists = topArtistsRes?.data?.collection || [];
-  const topAlbums = topAlbumsRes?.data?.collection?.data || [];
-  const charts = chartsRes?.data?.collection || [];
-  const shows = showsRes?.data?.collection?.data || [];
+  const trending = trendingRes || [];
+  const featured = featuredRes || [];
+  const topArtists = topArtistsRes || [];
+  const topAlbums = topAlbumsRes || [];
+  const charts = chartsRes || [];
+  const shows = showsRes || [];
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -215,6 +215,7 @@ export default function HomeScreen() {
         />
       ),
       isLoading: featuredLoading,
+      route: "/featured",
     },
     {
       title: "Trending Now",
@@ -223,6 +224,7 @@ export default function HomeScreen() {
         <SongCard key={item?.id ?? index} song={item} isLoading={false} />
       ),
       isLoading: trendingLoading,
+      route: "/trending",
     },
     {
       title: "Top Artists",
@@ -235,6 +237,7 @@ export default function HomeScreen() {
         />
       ),
       isLoading: topArtistsLoading,
+      route: "/artists",
     },
     {
       title: "Popular Albums",
@@ -243,6 +246,7 @@ export default function HomeScreen() {
         <TopAlbumsCard key={item?.id ?? index} album={item} isLoading={false} />
       ),
       isLoading: topAlbumsLoading,
+      route: "/albums",
     },
   ];
 
@@ -319,14 +323,19 @@ export default function HomeScreen() {
                 <ThemedText style={styles.sectionTitle}>
                   {item.title}
                 </ThemedText>
-                <TouchableOpacity style={styles.seeAllBtn}>
-                  <ThemedText
-                    style={[styles.seeAllText, { color: colors.primary }]}
+                {item.route && (
+                  <TouchableOpacity
+                    style={styles.seeAllBtn}
+                    onPress={() => router.push(item.route)}
                   >
-                    See All
-                  </ThemedText>
-                  <ArrowRight size={14} color={colors.primary} />
-                </TouchableOpacity>
+                    <ThemedText
+                      style={[styles.seeAllText, { color: colors.primary }]}
+                    >
+                      See All
+                    </ThemedText>
+                    <ArrowRight size={14} color={colors.primary} />
+                  </TouchableOpacity>
+                )}
               </View>
 
               <FlatList

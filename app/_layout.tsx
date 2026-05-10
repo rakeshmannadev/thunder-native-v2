@@ -1,5 +1,6 @@
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import "@/global.css";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import {
   DarkTheme,
   DefaultTheme,
@@ -10,7 +11,6 @@ import { Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect } from "react";
 import "react-native-reanimated";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import SearchBar from "@/components/search/SearchBar";
 import FloatingPlayer from "@/components/songs/FloatingPlayer";
@@ -104,7 +104,9 @@ export default function RootLayout() {
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const showFloatingPlayer =
-    currentSong && !hideFloatingPlayerScreens.includes(currentSegment);
+    currentSong &&
+    !hideFloatingPlayerScreens.includes(currentSegment) &&
+    !segments.includes("room" as never);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -231,6 +233,38 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="room/[id]"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="featured/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="trending/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="artists/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="albums/index"
                     options={{
                       headerShown: true,
                       headerTitle: "",

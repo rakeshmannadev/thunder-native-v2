@@ -2,9 +2,9 @@ import EmptyLibrary from "@/components/EmptyLibrary";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
+import { getFavoriteSongs, getPlaylists } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
-import { Song } from "@/types";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
@@ -38,10 +38,16 @@ const LibraryScreen = () => {
   const colorSchema = useColorScheme();
   const { top, bottom } = useSafeAreaInsets();
   const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
-  const queryClient = useQueryClient();
-  const { currentUser, playlists } = useUserStore();
+  const { currentUser } = useUserStore();
 
-  const favoriteSongs = queryClient.getQueryData(["favorites"]) as Song[];
+  const { data: favoriteSongs } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: getFavoriteSongs,
+  });
+  const { data: userPlaylists } = useQuery({
+    queryKey: ["user-playlist"],
+    queryFn: () => getPlaylists(),
+  });
 
   if (!currentUser) return <EmptyLibrary />;
 
@@ -59,7 +65,7 @@ const LibraryScreen = () => {
     {
       id: "playlists",
       title: "My Playlists",
-      count: playlists?.length || 0,
+      count: userPlaylists?.length || 0,
       icon: ListMusic,
       color: colors.accent,
       path: "/library_content",
@@ -102,8 +108,8 @@ const LibraryScreen = () => {
             <ThemedText
               style={[styles.headerSubtitle, { color: colors.textMuted }]}
             >
-              {favoriteSongs?.length + (playlists?.length || 0)} items in your
-              collection
+              {favoriteSongs?.length + (userPlaylists?.length || 0)} items in
+              your collection
             </ThemedText>
           </View>
           <TouchableOpacity

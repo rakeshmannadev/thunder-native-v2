@@ -21,7 +21,6 @@ const StandByScreen = () => {
         size={expanded ? 36 : 24}
         color={colors.textMuted}
         className="p-4 rounded-full "
-        style={{ backgroundColor: colors.component }}
       />
       <View>
         <View className="flex flex-col gap-2">

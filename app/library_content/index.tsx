@@ -1,15 +1,16 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import PlayButton from "@/components/PlayButton";
+import PlaylistCard from "@/components/PlaylistCard";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
-import { getFavoriteSongs } from "@/services/userServices";
+import { getFavoriteSongs, getPlaylists } from "@/services/userServices";
 import usePlayerStore from "@/store/usePlayerStore";
-import { Song } from "@/types";
-import { useQuery } from "@tanstack/react-query";
+import { Playlist, Song } from "@/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Shuffle } from "lucide-react-native";
@@ -46,14 +47,25 @@ const LibraryContentScreen = () => {
 
   const { setShuffle } = usePlayerStore();
   const scrollY = useSharedValue(0);
+  const queryClient = useQueryClient();
 
-  const { data: favoriteSongs, isLoading } = useQuery({
+  const { data: favoriteSongs, isLoading: favoritesLoading } = useQuery({
     queryKey: ["favorites"],
     queryFn: getFavoriteSongs,
+    enabled: pagename === "liked",
+  });
+
+  const { data: userPlaylists, isLoading: playlistsLoading } = useQuery({
+    queryKey: ["user-playlist"],
+    queryFn: getPlaylists,
+    enabled: pagename === "playlists",
   });
 
   const songs: Song[] = pagename === "liked" ? favoriteSongs || [] : [];
+  const playlists: Playlist[] =
+    pagename === "playlists" ? userPlaylists || [] : [];
 
+  const isPlaylistMode = pagename === "playlists";
   const handlePlay = () => {
     if (songs.length === 0) return;
     setShuffle(false);
@@ -85,7 +97,11 @@ const LibraryContentScreen = () => {
     ? pagename.charAt(0).toUpperCase() + pagename.slice(1)
     : "Collection";
   const headerImage =
-    songs.length > 0 ? resolveImage(songs[0]?.image?.[0]?.link) : null;
+    songs.length > 0
+      ? resolveImage(songs[0]?.image?.[0]?.link)
+      : playlists.length > 0
+        ? resolveImage(playlists[0]?.imageUrl)
+        : null;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -105,7 +121,7 @@ const LibraryContentScreen = () => {
         )}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.4)", colors.background]}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
       </Animated.View>
 
@@ -130,30 +146,35 @@ const LibraryContentScreen = () => {
           <Animated.View entering={FadeInDown.delay(200).duration(600)}>
             <ThemedText style={styles.title}>{title}</ThemedText>
             <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
-              {songs.length} Songs • Thunder Collection
+              {isPlaylistMode
+                ? `${playlists.length} Playlists`
+                : `${songs.length} Songs`}{" "}
+              • Thunder Collection
             </ThemedText>
 
-            <View style={styles.actionRow}>
-              <PlayButton
-                handlePlay={handlePlay}
-                title="Play All"
-                color={colors.primary}
-              />
+            {!isPlaylistMode && (
+              <View style={styles.actionRow}>
+                <PlayButton
+                  handlePlay={handlePlay}
+                  title="Play All"
+                  color={colors.primary}
+                />
 
-              <Pressable
-                onPress={handleShufflePlay}
-                style={[
-                  styles.shuffleButton,
-                  { backgroundColor: colors.secondaryBackground },
-                ]}
-              >
-                <Shuffle color={colors.text} size={22} />
-              </Pressable>
-            </View>
+                <Pressable
+                  onPress={handleShufflePlay}
+                  style={[
+                    styles.shuffleButton,
+                    { backgroundColor: colors.secondaryBackground },
+                  ]}
+                >
+                  <Shuffle color={colors.text} size={22} />
+                </Pressable>
+              </View>
+            )}
           </Animated.View>
 
           <View style={styles.listContainer}>
-            {isLoading ? (
+            {(isPlaylistMode ? playlistsLoading : favoritesLoading) ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <View key={i} style={styles.skeletonItem}>
                   <Skeleton className="w-14 h-14 rounded-lg" />
@@ -163,6 +184,22 @@ const LibraryContentScreen = () => {
                   </View>
                 </View>
               ))
+            ) : isPlaylistMode ? (
+              <FlatList
+                data={playlists}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                numColumns={2}
+                columnWrapperStyle={styles.columnWrapper}
+                renderItem={({ item: playlist, index }) => (
+                  <Animated.View
+                    entering={FadeInDown.delay(300 + index * 50).duration(400)}
+                    style={{ width: "48%" }}
+                  >
+                    <PlaylistCard playlist={playlist} isLoading={false} />
+                  </Animated.View>
+                )}
+              />
             ) : (
               <FlatList
                 data={songs}
@@ -259,6 +296,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
+    marginBottom: 16,
+  },
+  columnWrapper: {
+    justifyContent: "space-between",
     marginBottom: 16,
   },
 });

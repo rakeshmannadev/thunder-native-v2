@@ -4,8 +4,8 @@ import { Button, ButtonIcon } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
-import usePlayerStore from "@/store/usePlayerStore";
 import useSocketStore from "@/store/useSocketStore";
+import { Room } from "@/types";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -15,19 +15,19 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useActiveTrack } from "react-native-track-player";
 import NoBroadCastScreen from "./no-broadcast-screen";
 import StandByScreen from "./stand-by-screen";
 
-const CurrentlyBroadcastSong = () => {
+const CurrentlyBroadcastSong = ({ currentRoom }: { currentRoom: Room }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  const { top } = useSafeAreaInsets();
+
   const [expanded, setExpanded] = useState(false);
 
   const { isBroadcasting, startBroadcast, currentJockey, isPlayingSong } =
     useSocketStore();
-  const { currentSong } = usePlayerStore();
+  const currentSong = useActiveTrack();
 
   return (
     <View
@@ -83,7 +83,7 @@ const CurrentlyBroadcastSong = () => {
               </View>
 
               <MovingText
-                text={currentSong?.name}
+                text={currentSong?.title || ""}
                 animationThreshold={25}
                 style={{
                   fontSize: 18,
@@ -95,9 +95,7 @@ const CurrentlyBroadcastSong = () => {
 
               <MovingText
                 animationThreshold={25}
-                text={currentSong.artist_map.primary_artists
-                  .map((artist) => artist.name)
-                  .join(", ")}
+                text={currentSong.artist || ""}
                 style={{
                   fontSize: 14,
                   color: colors.textMuted,
@@ -124,9 +122,7 @@ const CurrentlyBroadcastSong = () => {
                   backgroundColor: colors.secondaryBackground,
                 }}
                 source={{
-                  uri: resolveImage(
-                    currentSong.image[currentSong.image.length - 1].link
-                  ),
+                  uri: resolveImage(currentSong.artwork),
                 }}
               />
               <Button
@@ -145,7 +141,11 @@ const CurrentlyBroadcastSong = () => {
         ) : isBroadcasting && !isPlayingSong ? (
           <StandByScreen />
         ) : (
-          <NoBroadCastScreen expanded={expanded} setExpanded={setExpanded} />
+          <NoBroadCastScreen
+            expanded={expanded}
+            setExpanded={setExpanded}
+            currentRoom={currentRoom}
+          />
         )}
       </TouchableOpacity>
     </View>

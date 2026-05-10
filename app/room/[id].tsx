@@ -1,14 +1,17 @@
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import useRoomStore from "@/store/useRoomStore";
+import { getRoomById } from "@/services/roomServices";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
+import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Radio } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -18,11 +21,11 @@ import {
 import Animated, {
   FadeIn,
   FadeInDown,
+  useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
-  useAnimatedStyle,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ChatHeader from "./_components/chat-header";
@@ -63,13 +66,24 @@ const SkeletonBox = ({
   const shimmer = useShimmer();
   return (
     <Animated.View
-      style={[{ width, height, borderRadius, backgroundColor: "rgba(255,255,255,0.12)" }, shimmer, style]}
+      style={[
+        {
+          width,
+          height,
+          borderRadius,
+          backgroundColor: "rgba(255,255,255,0.12)",
+        },
+        shimmer,
+        style,
+      ]}
     />
   );
 };
 
 const RoomSkeleton = ({ colors }: { colors: any }) => (
-  <View style={[styles.skeletonContainer, { backgroundColor: colors.background }]}>
+  <View
+    style={[styles.skeletonContainer, { backgroundColor: colors.background }]}
+  >
     <LinearGradient
       colors={[colors.primary + "40", colors.background]}
       style={StyleSheet.absoluteFill}
@@ -78,7 +92,9 @@ const RoomSkeleton = ({ colors }: { colors: any }) => (
     {/* Header skeleton */}
     <View style={styles.skeletonHeader}>
       <SkeletonBox width={40} height={40} borderRadius={20} />
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+      <View
+        style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}
+      >
         <SkeletonBox width={44} height={44} borderRadius={14} />
         <View style={{ gap: 6 }}>
           <SkeletonBox width={120} height={14} borderRadius={7} />
@@ -89,7 +105,12 @@ const RoomSkeleton = ({ colors }: { colors: any }) => (
     </View>
 
     {/* Broadcast card skeleton */}
-    <View style={[styles.skeletonCard, { marginHorizontal: screenPadding.horizontal, marginVertical: 12 }]}>
+    <View
+      style={[
+        styles.skeletonCard,
+        { marginHorizontal: screenPadding.horizontal, marginVertical: 12 },
+      ]}
+    >
       <View style={{ flex: 1, gap: 10 }}>
         <SkeletonBox width={100} height={10} borderRadius={5} />
         <SkeletonBox width="80%" height={16} borderRadius={8} />
@@ -99,7 +120,12 @@ const RoomSkeleton = ({ colors }: { colors: any }) => (
     </View>
 
     {/* Chat bubbles skeleton */}
-    <View style={[styles.skeletonChat, { marginHorizontal: screenPadding.horizontal }]}>
+    <View
+      style={[
+        styles.skeletonChat,
+        { marginHorizontal: screenPadding.horizontal },
+      ]}
+    >
       {/* Incoming message */}
       <View style={styles.skeletonBubbleRow}>
         <SkeletonBox width={34} height={34} borderRadius={17} />
@@ -109,7 +135,9 @@ const RoomSkeleton = ({ colors }: { colors: any }) => (
         </View>
       </View>
       {/* My message */}
-      <View style={[styles.skeletonBubbleRow, { flexDirection: "row-reverse" }]}>
+      <View
+        style={[styles.skeletonBubbleRow, { flexDirection: "row-reverse" }]}
+      >
         <SkeletonBox width={34} height={34} borderRadius={17} />
         <View style={{ gap: 6, alignItems: "flex-end" }}>
           <SkeletonBox width={40} height={10} borderRadius={5} />
@@ -125,7 +153,9 @@ const RoomSkeleton = ({ colors }: { colors: any }) => (
         </View>
       </View>
       {/* My message */}
-      <View style={[styles.skeletonBubbleRow, { flexDirection: "row-reverse" }]}>
+      <View
+        style={[styles.skeletonBubbleRow, { flexDirection: "row-reverse" }]}
+      >
         <SkeletonBox width={34} height={34} borderRadius={17} />
         <View style={{ gap: 6, alignItems: "flex-end" }}>
           <SkeletonBox width={40} height={10} borderRadius={5} />
@@ -135,9 +165,19 @@ const RoomSkeleton = ({ colors }: { colors: any }) => (
     </View>
 
     {/* Input skeleton */}
-    <View style={[styles.skeletonInput, { marginHorizontal: screenPadding.horizontal }]}>
+    <View
+      style={[
+        styles.skeletonInput,
+        { marginHorizontal: screenPadding.horizontal },
+      ]}
+    >
       <SkeletonBox width={40} height={40} borderRadius={20} />
-      <SkeletonBox width="70%" height={40} borderRadius={20} style={{ flex: 1 }} />
+      <SkeletonBox
+        width="70%"
+        height={40}
+        borderRadius={20}
+        style={{ flex: 1 }}
+      />
       <SkeletonBox width={40} height={40} borderRadius={20} />
     </View>
   </View>
@@ -149,13 +189,14 @@ const RoomScreen = () => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  const { getRoomById, currentRoom, fetchingRoom } = useRoomStore();
   const { currentUser } = useUserStore();
   const { isJoined, joinRoom, socket, connectSocket } = useSocketStore();
 
-  useEffect(() => {
-    getRoomById(id as string);
-  }, [id]);
+  const { data: currentRoom, isPending: fetchingRoom } = useQuery({
+    queryKey: ["room", id],
+    queryFn: () => getRoomById(id),
+    enabled: !!id,
+  });
 
   useEffect(() => {
     if (!socket && currentUser) {
@@ -178,32 +219,41 @@ const RoomScreen = () => {
       <StatusBar barStyle="light-content" />
       <Stack.Screen options={{ headerShown: false }} />
 
-      <LinearGradient
-        colors={[colors.primary + "40", colors.background]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      <Animated.View entering={FadeIn.duration(800)} style={styles.headerWrapper}>
-        <ChatHeader room={currentRoom!} />
-      </Animated.View>
-
-      <Animated.View
-        entering={FadeInDown.delay(200).duration(800)}
-        style={styles.songWrapper}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <CurrentlyBroadcastSong />
-      </Animated.View>
+        <LinearGradient
+          colors={[colors.primary + "40", colors.background]}
+          style={StyleSheet.absoluteFill}
+        />
 
-      <Animated.View
-        entering={FadeInDown.delay(400).duration(800)}
-        style={styles.chatWrapper}
-      >
-        <ChatSection messages={currentRoom!.messages} />
-      </Animated.View>
+        <Animated.View
+          entering={FadeIn.duration(800)}
+          style={styles.headerWrapper}
+        >
+          <ChatHeader room={currentRoom!} />
+        </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(600).duration(800)}>
-        <ChatInput />
-      </Animated.View>
+        <Animated.View
+          entering={FadeInDown.delay(200).duration(800)}
+          style={styles.songWrapper}
+        >
+          <CurrentlyBroadcastSong currentRoom={currentRoom} />
+        </Animated.View>
+
+        <Animated.View
+          entering={FadeInDown.delay(400).duration(800)}
+          style={styles.chatWrapper}
+        >
+          <ChatSection messages={currentRoom!.messages} />
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(600).duration(800)}>
+          <ChatInput currentRoom={currentRoom!} />
+        </Animated.View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

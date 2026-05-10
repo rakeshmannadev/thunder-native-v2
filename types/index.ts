@@ -131,6 +131,7 @@ export interface Playlist {
   subtitle?: string;
   type?: string;
   image?: string;
+  imageUrl?: string;
   language?: string;
   listCount?: number;
   listType?: string;

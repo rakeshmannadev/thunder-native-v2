@@ -21,7 +21,10 @@ const ChartCard = React.memo(({ chart, isLoading }: ChartCardProps) => {
     <Pressable
       onPress={() =>
         // Using playlist route assuming it exists, or fallback to something appropriate
-        router.push({ pathname: "/playlist/[id]", params: { id: chart.url } })
+        router.push({
+          pathname: "/playlist/[id]",
+          params: { id: chart.id, link: chart.url },
+        })
       }
     >
       <Card size="md" variant="ghost" className="p-2 rounded-lg m-0">

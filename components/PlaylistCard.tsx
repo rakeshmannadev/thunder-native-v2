@@ -26,8 +26,8 @@ const PlaylistCard = ({ playlist, isLoading }: SectionGridProps) => {
   if (!playlist) return <NoDataPlaceholder />;
 
   const id = playlist.id || playlist.id;
-  const name = playlist.name || playlist.name;
-  const imageUrl = playlist.image;
+  const name = playlist.name || playlist?.playlistName;
+  const imageUrl = playlist?.image || playlist?.imageUrl;
   const subtitle = playlist.subtitle;
 
   return (
@@ -36,7 +36,7 @@ const PlaylistCard = ({ playlist, isLoading }: SectionGridProps) => {
       onPress={() => {
         router.push({
           pathname: "/playlist/[id]",
-          params: { id: playlist.id },
+          params: { id },
         });
       }}
       style={{

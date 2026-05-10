@@ -5,14 +5,18 @@ import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
+import { showToast } from "@/hooks/useToastMessage";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getPlaylistById } from "@/services/songService";
+import { getPlaylists, savePlaylistToLibrary } from "@/services/userServices";
+import useUserStore from "@/store/useUserStore";
 import { Playlist } from "@/types";
-import { useQuery } from "@tanstack/react-query";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Shuffle } from "lucide-react-native";
-import React from "react";
+import { ArrowLeft, Plus, Shuffle } from "lucide-react-native";
+import React, { useMemo } from "react";
 import {
   Dimensions,
   FlatList,
@@ -36,21 +40,29 @@ const { width } = Dimensions.get("window");
 const HEADER_HEIGHT = 400;
 
 const PlaylistScreen = () => {
-  const { id }: { id: string } = useLocalSearchParams();
+  const { id, link } = useLocalSearchParams();
+
   const router = useRouter();
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
   const { bottom, top } = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+  const { playlists } = useUserStore();
 
   const { data: playlistRes, isLoading: playlistLoading } = useQuery({
     queryKey: ["playlist", id],
-    queryFn: async () => await getPlaylistById(id!),
+    queryFn: async () =>
+      await getPlaylistById({ id: id as string, link: link as string }),
     enabled: !!id,
   });
 
-  const currentPlaylist: Playlist = playlistRes?.data.playlist;
+  const currentPlaylist: Playlist = playlistRes;
   const songs = currentPlaylist?.songs || [];
+
+  const { data: userPlaylists, refetch: refetchUserPlaylists } = useQuery({
+    queryKey: ["user-playlist"],
+    queryFn: () => getPlaylists(),
+  });
 
   const handlePlay = () => {
     if (songs.length === 0) return;
@@ -60,6 +72,28 @@ const PlaylistScreen = () => {
   const handleShufflePlay = () => {
     if (songs.length === 0) return;
     playAlbum(songs, Math.floor(Math.random() * songs.length));
+  };
+
+  const isSaved = useMemo(() => {
+    return playlists.some((p) => p.id === id);
+  }, [playlists, id]);
+
+  const { mutate: savePlaylistMutate, isPending: savePlaylistLoading } =
+    useMutation({
+      mutationKey: ["save-playlist-to-library"],
+      mutationFn: () => savePlaylistToLibrary(playlistRes),
+      onSuccess: () => {
+        showToast("Playlist added to library");
+        refetchUserPlaylists();
+      },
+      onError: (error: any) => {
+        showToast(error.message);
+      },
+    });
+
+  const handleSavePlaylist = async () => {
+    if (!currentPlaylist || isSaved) return;
+    savePlaylistMutate();
   };
 
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -80,6 +114,10 @@ const PlaylistScreen = () => {
   const playlistImage = currentPlaylist?.image
     ? resolveImage(currentPlaylist.image)
     : null;
+
+  const isAlreadySavedInLibrary = useMemo(() => {
+    return userPlaylists?.some((p: Playlist) => p.id === currentPlaylist?.id);
+  }, [userPlaylists, currentPlaylist]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -106,7 +144,7 @@ const PlaylistScreen = () => {
       {/* Header Bar (Back Button) */}
       <View style={[styles.headerBar, { top: top + 8, left: 8 }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          {/* <ArrowLeft color="white" size={24} /> */}
+          <ArrowLeft color="white" size={24} />
         </Pressable>
       </View>
 
@@ -149,6 +187,34 @@ const PlaylistScreen = () => {
               >
                 <Shuffle color={colors.text} size={22} />
               </Pressable>
+
+              {isAlreadySavedInLibrary ? (
+                <View
+                  style={[
+                    styles.shuffleButton,
+                    { backgroundColor: colors.secondaryBackground },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name="check-all"
+                    color={colors.primary}
+                    size={22}
+                  />
+                </View>
+              ) : (
+                <Pressable
+                  onPress={handleSavePlaylist}
+                  style={[
+                    styles.shuffleButton,
+                    { backgroundColor: colors.secondaryBackground },
+                  ]}
+                >
+                  <Plus
+                    size={22}
+                    color={isSaved ? colors.primary : colors.text}
+                  />
+                </Pressable>
+              )}
             </View>
           </Animated.View>
 

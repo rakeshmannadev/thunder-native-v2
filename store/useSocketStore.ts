@@ -1,13 +1,12 @@
-import { axiosInstance } from "@/lib/axios";
-import { Song, SongRequest, User } from "@/types";
 import { showToast } from "@/hooks/useToastMessage";
+import { fetchSongById } from "@/services/songService";
+import { Song, SongRequest, User } from "@/types";
+import TrackPlayer from "react-native-track-player";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
-import TrackPlayer from "react-native-track-player";
 import usePlayerStore from "./usePlayerStore";
 import useRoomStore from "./useRoomStore";
 import useUserStore from "./useUserStore";
-import { fetchSongById } from "@/services/songService";
 
 interface SocketState {
   socket: Socket | null;
@@ -236,7 +235,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
         case "pause": {
           const { isPlayingSong } = get();
           if (
-            usePlayerStore.getState().currentSong?._id === songId &&
+            usePlayerStore.getState().currentSong?.id === songId &&
             isPlayingSong
           ) {
             set({ isPlayingSong: false });
@@ -293,7 +292,15 @@ const useSocketStore = create<SocketState>((set, get) => ({
     );
 
     socket.on("sync-request", ({ from }) => {
-      const { socket, isBroadcasting, isPlayingSong, currentJockey, requestedUser, roomId, currentStreamingQueue } = get();
+      const {
+        socket,
+        isBroadcasting,
+        isPlayingSong,
+        currentJockey,
+        requestedUser,
+        roomId,
+        currentStreamingQueue,
+      } = get();
       if (!socket) return;
 
       socket.emit("sync-state", {

@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
-import { Artist, Song } from "@/types";
+import { Artist, Playlist, Song } from "@/types";
 
 export const getFavoriteSongs = async () => {
   try {
@@ -63,6 +63,22 @@ export const addSongToPlaylist = async ({
       playListName,
       artists,
       imageUrl,
+    });
+    return response.data.playlist;
+  } catch (error: any) {
+    console.log(error.response.data.message);
+  }
+};
+
+export const savePlaylistToLibrary = async (playlist: Playlist) => {
+  try {
+    const response = await axiosInstance.post("/user/addAlbumToPlaylist", {
+      playListName: playlist.name,
+      artists: [],
+      albumId: null,
+      id: playlist.id,
+      imageUrl: playlist.image,
+      songs: [],
     });
     return response.data.playlist;
   } catch (error: any) {

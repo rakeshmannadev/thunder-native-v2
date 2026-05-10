@@ -9,12 +9,27 @@ export const getAllSongs = async () => {
   }
 };
 
-export const getFeaturedSongs = async () => {
+export const getFeaturedSongs = async ({
+  page = 1,
+  limit = 10,
+}: {
+  page?: number;
+  limit?: number;
+}) => {
+  const options = {
+    method: "GET",
+    url: "/songs/featured",
+    params: {
+      page,
+      limit,
+    },
+  };
   try {
-    const response = await axiosInstance.get(
-      "/songs/collection/featured-playlists?page=10"
-    );
-    return response;
+    const response = await axiosInstance.request(options);
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch featured songs");
+    }
+    return response.data.songs;
   } catch (error: any) {
     throw error;
   }
@@ -56,32 +71,79 @@ export const getMadeForYouAlbums = async () => {
   }
 };
 
-export const getTrendingSongs = async () => {
+export const getTrendingSongs = async ({
+  page = 1,
+  limit = 10,
+}: {
+  page?: number;
+  limit?: number;
+}) => {
+  const options = {
+    method: "GET",
+    url: "/songs/trending",
+    params: {
+      page,
+      limit,
+    },
+  };
   try {
-    const response = await axiosInstance.get("/songs/trending");
-    return response;
+    const response = await axiosInstance.request(options);
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch trending songs");
+    }
+    return response.data.songs;
   } catch (error: any) {
     throw error;
   }
 };
 
-export const getCharts = async () => {
+export const getCharts = async ({
+  limit = 10,
+  page = 1,
+}: {
+  limit?: number;
+  page?: number;
+}) => {
+  const options = {
+    method: "GET",
+    url: "/songs/top-charts",
+    params: {
+      page,
+      limit,
+    },
+  };
   try {
-    const response = await axiosInstance.get(
-      "/songs/collection/charts?page=10"
-    );
-    return response;
+    const response = await axiosInstance.request(options);
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch charts");
+    }
+    return response.data.charts;
   } catch (error: any) {
     throw error;
   }
 };
 
-export const getShows = async () => {
+export const getShows = async ({
+  limit = 10,
+  page = 1,
+}: {
+  limit?: number;
+  page?: number;
+}) => {
+  const options = {
+    method: "GET",
+    url: "/songs/top-shows",
+    params: {
+      page,
+      limit,
+    },
+  };
   try {
-    const response = await axiosInstance.get(
-      "/songs/collection/top-shows?page=10"
-    );
-    return response;
+    const response = await axiosInstance.request(options);
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch shows");
+    }
+    return response.data.shows;
   } catch (error: any) {
     throw error;
   }
@@ -96,32 +158,80 @@ export const searchSongQuery = async (query: string) => {
   }
 };
 
-export const getTopArtists = async () => {
+export const getTopArtists = async ({
+  limit = 10,
+  page = 1,
+}: {
+  limit?: number;
+  page?: number;
+}) => {
+  const options = {
+    method: "GET",
+    url: "/songs/top-artists",
+    params: {
+      page,
+      limit,
+    },
+  };
   try {
-    const response = await axiosInstance.get(
-      "/songs/collection/top-artists?page=10"
-    );
-    return response;
+    const response = await axiosInstance.request(options);
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch top artists");
+    }
+    return response.data.artists;
   } catch (error: any) {
     throw error;
   }
 };
 
-export const getTopAlbums = async () => {
+export const getTopAlbums = async ({
+  limit = 10,
+  page = 1,
+}: {
+  limit?: number;
+  page?: number;
+}) => {
+  const options = {
+    method: "GET",
+    url: "/songs/popular-albums",
+    params: {
+      page,
+      limit,
+    },
+  };
   try {
-    const response = await axiosInstance.get(
-      "/songs/collection/top-albums?page=10"
-    );
-    return response;
+    const response = await axiosInstance.request(options);
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch top albums");
+    }
+    return response.data.albums;
   } catch (error: any) {
     throw error;
   }
 };
 
-export const getPlaylistById = async (id: string) => {
+export const getPlaylistById = async ({
+  id,
+  link,
+}: {
+  id: string;
+  link: string;
+}) => {
+  const options = {
+    method: "GET",
+    url: `/playlists/`,
+    params: {
+      id,
+      link,
+    },
+  };
   try {
-    const response = await axiosInstance.get(`/playlists/${id}`);
-    return response;
+    const response = await axiosInstance.request(options);
+
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch playlist");
+    }
+    return response.data.playlist;
   } catch (error: any) {
     throw error;
   }

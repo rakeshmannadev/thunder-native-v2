@@ -1,9 +1,9 @@
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
-import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
+import { Room } from "@/types";
 import {
   ChevronDown,
   ChevronUp,
@@ -16,14 +16,15 @@ import { Text, useColorScheme, View } from "react-native";
 const NoBroadCastScreen = ({
   expanded,
   setExpanded,
+  currentRoom,
 }: {
   expanded: boolean;
   setExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  currentRoom: Room;
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  const { currentRoom } = useRoomStore();
   const { currentUser } = useUserStore();
   const { startBroadcast } = useSocketStore();
 
