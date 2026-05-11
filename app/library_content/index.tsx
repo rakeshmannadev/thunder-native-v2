@@ -1,4 +1,5 @@
 import AlbumItem from "@/components/album/AlbumItem";
+import EmptyContent from "@/components/EmptyContent";
 import PlayButton from "@/components/PlayButton";
 import PlaylistCard from "@/components/PlaylistCard";
 import { ThemedText } from "@/components/ThemedText";
@@ -13,7 +14,7 @@ import { Playlist, Song } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Shuffle } from "lucide-react-native";
+import { Heart, ListMusic, Shuffle } from "lucide-react-native";
 import React from "react";
 import {
   Dimensions,
@@ -66,6 +67,11 @@ const LibraryContentScreen = () => {
     pagename === "playlists" ? userPlaylists || [] : [];
 
   const isPlaylistMode = pagename === "playlists";
+  const isLoading = isPlaylistMode ? playlistsLoading : favoritesLoading;
+  const isEmpty =
+    !isLoading &&
+    (isPlaylistMode ? playlists.length === 0 : songs.length === 0);
+
   const handlePlay = () => {
     if (songs.length === 0) return;
     setShuffle(false);
@@ -108,70 +114,79 @@ const LibraryContentScreen = () => {
       <StatusBar barStyle="light-content" />
 
       {/* Background/Header Image */}
-      <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
-        {headerImage ? (
-          <Image source={{ uri: headerImage }} style={styles.headerImage} />
-        ) : (
-          <View
-            style={[
-              styles.headerImage,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
+      {!isEmpty && (
+        <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
+          {headerImage ? (
+            <Image source={{ uri: headerImage }} style={styles.headerImage} />
+          ) : (
+            <View
+              style={[
+                styles.headerImage,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+            />
+          )}
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.4)", colors.background]}
+            style={StyleSheet.absoluteFill}
           />
-        )}
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.4)", colors.background]}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
+        </Animated.View>
+      )}
 
       {/* Back Button */}
-      <Pressable
-        onPress={() => router.back()}
-        style={[styles.backButton, { top: top + 10, left: 8 }]}
+      <View
+        style={[
+          styles.backButton,
+          { top: top + 8, left: 8 },
+          isEmpty && { backgroundColor: colors.secondaryBackground },
+        ]}
       >
-        {/* <ArrowLeft color="white" size={24} /> */}
-      </Pressable>
+        {/* <ChevronLeft color={isEmpty ? colors.text : "white"} size={24} /> */}
+      </View>
 
       <Animated.ScrollView
         onScroll={onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={{
-          paddingTop: HEADER_HEIGHT - 60,
+          paddingTop: isEmpty ? top + 60 : HEADER_HEIGHT - 60,
           paddingBottom: bottom + 100,
         }}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          <Animated.View entering={FadeInDown.delay(200).duration(600)}>
-            <ThemedText style={styles.title}>{title}</ThemedText>
-            <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
-              {isPlaylistMode
-                ? `${playlists.length} Playlists`
-                : `${songs.length} Songs`}{" "}
-              • Thunder Collection
-            </ThemedText>
+          {!isEmpty && (
+            <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+              <ThemedText style={styles.title}>{title}</ThemedText>
+              <ThemedText
+                style={[styles.subtitle, { color: colors.textMuted }]}
+              >
+                {isPlaylistMode
+                  ? `${playlists.length} Playlists`
+                  : `${songs.length} Songs`}{" "}
+                • Thunder Collection
+              </ThemedText>
 
-            {!isPlaylistMode && (
-              <View style={styles.actionRow}>
-                <PlayButton
-                  handlePlay={handlePlay}
-                  title="Play All"
-                  color={colors.primary}
-                />
+              {!isPlaylistMode && (
+                <View style={styles.actionRow}>
+                  <PlayButton
+                    handlePlay={handlePlay}
+                    title="Play All"
+                    color={colors.primary}
+                  />
 
-                <Pressable
-                  onPress={handleShufflePlay}
-                  style={[
-                    styles.shuffleButton,
-                    { backgroundColor: colors.secondaryBackground },
-                  ]}
-                >
-                  <Shuffle color={colors.text} size={22} />
-                </Pressable>
-              </View>
-            )}
-          </Animated.View>
+                  <Pressable
+                    onPress={handleShufflePlay}
+                    style={[
+                      styles.shuffleButton,
+                      { backgroundColor: colors.secondaryBackground },
+                    ]}
+                  >
+                    <Shuffle color={colors.text} size={22} />
+                  </Pressable>
+                </View>
+              )}
+            </Animated.View>
+          )}
 
           <View style={styles.listContainer}>
             {(isPlaylistMode ? playlistsLoading : favoritesLoading) ? (
@@ -185,22 +200,34 @@ const LibraryContentScreen = () => {
                 </View>
               ))
             ) : isPlaylistMode ? (
-              <FlatList
-                data={playlists}
-                keyExtractor={(item) => item.id}
-                scrollEnabled={false}
-                numColumns={2}
-                columnWrapperStyle={styles.columnWrapper}
-                renderItem={({ item: playlist, index }) => (
-                  <Animated.View
-                    entering={FadeInDown.delay(300 + index * 50).duration(400)}
-                    style={{ width: "48%" }}
-                  >
-                    <PlaylistCard playlist={playlist} isLoading={false} />
-                  </Animated.View>
-                )}
-              />
-            ) : (
+              playlists.length > 0 ? (
+                <FlatList
+                  data={playlists}
+                  keyExtractor={(item) => item.id}
+                  scrollEnabled={false}
+                  numColumns={2}
+                  columnWrapperStyle={styles.columnWrapper}
+                  renderItem={({ item: playlist, index }) => (
+                    <Animated.View
+                      entering={FadeInDown.delay(300 + index * 50).duration(
+                        400
+                      )}
+                      style={{ width: "48%" }}
+                    >
+                      <PlaylistCard playlist={playlist} isLoading={false} />
+                    </Animated.View>
+                  )}
+                />
+              ) : (
+                <EmptyContent
+                  title="No Playlists Yet"
+                  description="Start creating your own playlists to keep your favorite tracks organized."
+                  icon={ListMusic}
+                  buttonText="Explore Music"
+                  onPress={() => router.push("/")}
+                />
+              )
+            ) : songs.length > 0 ? (
               <FlatList
                 data={songs}
                 keyExtractor={(item) => item.id}
@@ -212,6 +239,14 @@ const LibraryContentScreen = () => {
                     <AlbumItem song={song} isLoading={false} />
                   </Animated.View>
                 )}
+              />
+            ) : (
+              <EmptyContent
+                title="Your Heart is Empty"
+                description="Songs you like will appear here. Find your favorite music and give it a heart!"
+                icon={Heart}
+                buttonText="Find Music"
+                onPress={() => router.push("/")}
               />
             )}
           </View>

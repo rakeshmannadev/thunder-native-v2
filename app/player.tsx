@@ -98,15 +98,33 @@ const PlayerScreen = () => {
         imageUrl: currentSong?.artwork,
         artists: currentSong?.artist_map.primary_artists,
       }),
-    onSuccess: async () => {
-      await queryClient.fetchQuery({
-        queryKey: ["favorites"],
-        queryFn: getFavoriteSongs,
+    onMutate: async (song: Song) => {
+      await queryClient.cancelQueries({ queryKey: ["favorites"] });
+      const previousFavorites = queryClient.getQueryData<Song[]>(["favorites"]);
+
+      queryClient.setQueryData<Song[]>(["favorites"], (old) => {
+        if (!old) return [song];
+        const isAlreadyFav = old.some((s) => s.id === song.id);
+        if (isAlreadyFav) {
+          return old.filter((s) => s.id !== song.id);
+        } else {
+          return [...old, song];
+        }
       });
-      showToast("Song added to favorites");
+
+      return { previousFavorites };
     },
-    onError: (error: any) => {
-      showToast(error?.message || "Failed to add song to favorites");
+    onSuccess: () => {
+      showToast("Favorites updated");
+    },
+    onError: (error: any, song, context) => {
+      if (context?.previousFavorites) {
+        queryClient.setQueryData(["favorites"], context.previousFavorites);
+      }
+      showToast(error?.message || "Failed to update favorites");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
     },
   });
 
@@ -163,13 +181,9 @@ const PlayerScreen = () => {
     })
     .onEnd((e) => {
       if (e.velocityY > 1000 || translateY.value > DISMISS_THRESHOLD) {
-        translateY.value = withTiming(
-          SCREEN_HEIGHT,
-          { duration: 200, easing: Easing.out(Easing.quad) },
-          () => {
-            runOnJS(router.back)();
-          }
-        );
+        // Trigger back immediately instead of waiting for callback
+        // The native modal transition will handle the exit smoothly
+        runOnJS(router.back)();
       } else {
         translateY.value = withSpring(0, EXPAND_SPRING);
       }

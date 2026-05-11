@@ -2,9 +2,10 @@ import usePlayerStore from "@/store/usePlayerStore";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
-import { Song } from "@/types";
+import { Playlist, Song } from "@/types";
 import { useRouter } from "expo-router";
 import { Appearance } from "react-native";
+import useSongOperations from "./useSongOperations";
 import { showToast } from "./useToastMessage";
 import { addSongToQueue, playNext } from "./useTrackPlayerActions";
 
@@ -16,11 +17,11 @@ const useMenuActions = () => {
     useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom, leaveJoinedRoom } = useRoomStore();
+  const { addToPlaylistMutation } = useSongOperations();
 
   const handleMenuActions = async (action: string, params?: number | any) => {
     switch (action) {
       case "go_to_artist":
-        console.log("artistId: ", params);
         router.push({ pathname: "/artist/[id]", params: { id: params } });
         break;
       case "go_to_album":
@@ -32,6 +33,23 @@ const useMenuActions = () => {
 
         addSongToQueue(song);
         showToast("Song added to queue");
+        break;
+      case "add_to_playlist":
+        const {
+          song: selectedSong,
+          playlist: selectedPlaylist,
+        }: { song: Song; playlist: Playlist } = params;
+
+        if (!selectedSong || !selectedPlaylist) return;
+
+        addToPlaylistMutation.mutate({
+          id: selectedPlaylist._id,
+          song: selectedSong,
+          playlistName: selectedPlaylist.playlistName!,
+          imageUrl: selectedPlaylist.imageUrl!,
+          artists: selectedSong.artist_map.primary_artists,
+        });
+
         break;
       case "play_next":
         if (!params) return;

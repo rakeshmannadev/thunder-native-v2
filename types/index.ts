@@ -126,8 +126,10 @@ export interface Message {
 }
 
 export interface Playlist {
+  _id: string;
   id: string;
   name: string;
+  playlistName?: string;
   subtitle?: string;
   type?: string;
   image?: string;

@@ -1,4 +1,5 @@
 import EmptyLibrary from "@/components/EmptyLibrary";
+import CreatePlaylistModal from "@/components/playlist/CreatePlaylistModal";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
@@ -24,6 +25,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import React, { useState } from "react";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import {
   SafeAreaView,
@@ -39,6 +41,7 @@ const LibraryScreen = () => {
   const { top, bottom } = useSafeAreaInsets();
   const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
   const { currentUser } = useUserStore();
+  const [createModalVisible, setCreateModalVisible] = useState(false);
 
   const { data: favoriteSongs } = useQuery({
     queryKey: ["favorites"],
@@ -112,14 +115,27 @@ const LibraryScreen = () => {
               your collection
             </ThemedText>
           </View>
-          <TouchableOpacity
-            style={[
-              styles.iconButton,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-          >
-            <Settings2 size={22} color={colors.text} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+              onPress={() => {
+                setCreateModalVisible(true);
+              }}
+            >
+              <Plus size={22} color={colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+            >
+              <Settings2 size={22} color={colors.text} />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         <View style={styles.content}>
@@ -200,19 +216,10 @@ const LibraryScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <Animated.View
-        entering={FadeInDown.delay(800).springify()}
-        style={[styles.fabContainer, { bottom: bottom + 20 }]}
-      >
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={[styles.fab, { backgroundColor: colors.accent }]}
-        >
-          <Plus size={24} color="white" strokeWidth={2.5} />
-          <ThemedText style={styles.fabText}>Create Playlist</ThemedText>
-        </TouchableOpacity>
-      </Animated.View>
+      <CreatePlaylistModal
+        visible={createModalVisible}
+        onClose={() => setCreateModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -245,6 +252,10 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 12,
   },
   content: {
     paddingHorizontal: screenPadding.horizontal,
@@ -313,31 +324,6 @@ const styles = StyleSheet.create({
   gridCount: {
     fontSize: 12,
     fontWeight: "600",
-  },
-  fabContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    paddingHorizontal: screenPadding.horizontal,
-  },
-  fab: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  fabText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-    marginLeft: 8,
   },
 });
 

@@ -2,8 +2,11 @@ import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
 import { QUALITY_MAP } from "@/helpers/audioQualityMap";
+import { getPlaylists } from "@/services/userServices";
 import usePlayerStore from "@/store/usePlayerStore";
-import { Song } from "@/types";
+import useUserStore from "@/store/useUserStore";
+import { Playlist, Song } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -31,8 +34,16 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
   const { audioPreference } = usePlayerStore();
 
   const isActive = currentSong?.id == song.id;
-
   const [menuVisible, setMenuVisible] = useState(false);
+  const currentUser = useUserStore((state) => state.currentUser);
+
+  // query
+
+  const { data: playlists } = useQuery({
+    queryKey: ["user-playlist"],
+    queryFn: () => getPlaylists(),
+    enabled: !!currentUser,
+  });
 
   const playTrack = async (song: Song) => {
     await TrackPlayer.load({
@@ -64,10 +75,20 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
           data: [song],
         },
         {
-          key: "add_to_playlist",
+          key: "playlists",
           label: "Add to Playlist",
           icon: "playlist",
           data: song,
+          submenu:
+            playlists &&
+            playlists?.map((playlist: Playlist) => ({
+              key: "add_to_playlist",
+              label: playlist.playlistName,
+              imageUrl: playlist.imageUrl,
+
+              icon: "playlist",
+              data: { song, playlist },
+            })),
         },
         {
           key: "go_to_artist",
@@ -175,7 +196,9 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         items={menuItems}
-        title="Song Options"
+        imageUrl={song.image[song.image.length - 1].link}
+        title={song.name}
+        description={song.subtitle}
       />
     </TouchableOpacity>
   );

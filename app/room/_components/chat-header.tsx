@@ -53,7 +53,6 @@ const ChatHeader = ({ room }: { room: Room }) => {
       key: "request_song",
       label: "Request a song",
       icon: "requests",
-      submenu: true,
     },
     {
       key: "end_session",

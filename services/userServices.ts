@@ -44,21 +44,21 @@ export const addToFavorites = async ({
 };
 
 export const addSongToPlaylist = async ({
-  playlistId,
+  id,
   song,
   playListName,
   artists,
   imageUrl,
 }: {
   song: Song;
-  playlistId: string | null;
+  id: string | null;
   playListName: string;
   artists: Artist[];
   imageUrl?: string;
 }) => {
   try {
     const response = await axiosInstance.post("/user/addSongToPlaylist", {
-      id: playlistId,
+      id,
       song,
       playListName,
       artists,
@@ -83,5 +83,23 @@ export const savePlaylistToLibrary = async (playlist: Playlist) => {
     return response.data.playlist;
   } catch (error: any) {
     console.log(error.response.data.message);
+  }
+};
+export const createPlaylist = async ({
+  name,
+  image,
+}: {
+  name: string;
+  image?: string;
+}) => {
+  try {
+    const response = await axiosInstance.post("/user/createPlaylist", {
+      playListName: name,
+      imageUrl: image || "",
+    });
+    return response.data.playlist;
+  } catch (error: any) {
+    console.log(error.response.data.message);
+    throw error;
   }
 };

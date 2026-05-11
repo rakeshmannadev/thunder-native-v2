@@ -39,7 +39,6 @@ const hideFloatingPlayerScreens = [
   "menu",
   "settings",
   "create_room",
-  "library",
 ];
 
 const withoutTabBarScreens = [
