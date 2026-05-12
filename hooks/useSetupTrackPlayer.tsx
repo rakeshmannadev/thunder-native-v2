@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import TrackPlayer, {
+  AppKilledPlaybackBehavior,
   Capability,
   RatingType,
   RepeatMode,
-  AppKilledPlaybackBehavior,
 } from "react-native-track-player";
 
 const setupPlayer = async () => {
@@ -20,9 +20,18 @@ const setupPlayer = async () => {
       Capability.SkipToPrevious,
       Capability.Stop,
       Capability.SeekTo,
+      Capability.Skip,
     ],
-
     notificationCapabilities: [
+      Capability.Play,
+      Capability.Pause,
+      Capability.SkipToNext,
+      Capability.SkipToPrevious,
+      Capability.SeekTo,
+      Capability.Skip,
+    ],
+    // @ts-ignore
+    compactCapabilities: [
       Capability.Play,
       Capability.Pause,
       Capability.SkipToNext,
@@ -32,6 +41,7 @@ const setupPlayer = async () => {
     android: {
       appKilledPlaybackBehavior:
         AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+      alwaysPauseOnInterruption: true,
     },
   });
 

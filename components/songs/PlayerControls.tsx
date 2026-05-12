@@ -2,7 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { useTrackPlayerRepeatMode } from "@/hooks/usePlayerRepeatMode";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { ComponentProps } from "react";
+import React, { ComponentProps, useCallback } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -28,21 +28,22 @@ type PlayerButtonProps = {
   color?: string;
 };
 
-export const PlayerControls = ({ style }: PlayerControlsProps) => {
+export const PlayerControls = React.memo(({ style }: PlayerControlsProps) => {
   const { setShuffle, isShuffle } = usePlayerStore();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  const handleShuffle = () => {
+  const handleShuffle = useCallback(() => {
     setShuffle(!isShuffle);
-  };
+  }, [isShuffle, setShuffle]);
 
-  const handlePlayNext = async () => {
+  const handlePlayNext = useCallback(async () => {
     await TrackPlayer.skipToNext();
-  };
-  const handlePlayPrevious = async () => {
+  }, []);
+
+  const handlePlayPrevious = useCallback(async () => {
     await TrackPlayer.skipToPrevious();
-  };
+  }, []);
 
   return (
     <View style={[styles.container, style]}>
@@ -72,9 +73,10 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
       </View>
     </View>
   );
-};
+});
 
-export const PlayPauseButton = ({
+
+export const PlayPauseButton = React.memo(({
   style,
   iconSize = 48,
   color,
@@ -102,9 +104,9 @@ export const PlayPauseButton = ({
       </TouchableOpacity>
     </View>
   );
-};
+});
 
-export const SkipToNextButton = ({
+export const SkipToNextButton = React.memo(({
   iconSize = 30,
   handlePress,
   style,
@@ -126,8 +128,8 @@ export const SkipToNextButton = ({
       />
     </TouchableOpacity>
   );
-};
-export const SkipToPreviousButton = ({
+});
+export const SkipToPreviousButton = React.memo(({
   iconSize = 30,
   handlePress,
   style,
@@ -149,7 +151,7 @@ export const SkipToPreviousButton = ({
       />
     </TouchableOpacity>
   );
-};
+});
 
 type IconProps = Omit<ComponentProps<typeof MaterialCommunityIcons>, "name">;
 

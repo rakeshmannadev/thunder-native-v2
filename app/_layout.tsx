@@ -25,29 +25,8 @@ import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   SafeAreaProvider,
-  useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import TrackPlayer, { useActiveTrack } from "react-native-track-player";
-
-// Screens on which the floating mini-player bar should NOT be shown
-const hideFloatingPlayerScreens = [
-  "profile",
-  "player",
-  "auth",
-  "Signup",
-  "Login",
-  "menu",
-  "settings",
-  "create_room",
-];
-
-const withoutTabBarScreens = [
-  "library_content",
-  "search",
-  "notification",
-  "[id]",
-  "create-room",
-];
+import TrackPlayer from "react-native-track-player";
 
 SplashScreen.preventAutoHideAsync();
 TrackPlayer.registerPlaybackService(() => playbackService);
@@ -57,12 +36,6 @@ const queryClient = new QueryClient();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
-  const currentSong = useActiveTrack();
-
-  const { bottom } = useSafeAreaInsets();
-  const bottomOffset = bottom + 8;
-
-  const currentSegment = segments[segments.length - 1];
 
   const { getCurrentUser } = useUserStore();
   const { disconnectSocket, socket } = useSocketStore();
@@ -101,11 +74,6 @@ export default function RootLayout() {
   }
 
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
-  const showFloatingPlayer =
-    currentSong &&
-    !hideFloatingPlayerScreens.includes(currentSegment) &&
-    !segments.includes("room" as never);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -273,21 +241,8 @@ export default function RootLayout() {
                   <Stack.Screen name="+not-found" />
                 </Stack>
 
-                {/* Floating mini-player bar — only shown on non-player screens */}
-                {showFloatingPlayer && (
-                  <FloatingPlayer
-                    style={{
-                      position: "absolute",
-                      left: 8,
-                      right: 8,
-                      bottom: withoutTabBarScreens.includes(currentSegment)
-                        ? bottomOffset
-                        : bottom + 58,
-                      borderRadius: 12,
-                      overflow: "hidden",
-                    }}
-                  />
-                )}
+                {/* Floating mini-player bar — manages its own visibility */}
+                <FloatingPlayer segments={segments} />
               </BottomSheetModalProvider>
             </GestureHandlerRootView>
           </ThemeProvider>

@@ -22,7 +22,6 @@ import {
 import { getFavoriteSongs } from "@/services/userServices";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
-import { Featured, Song, TopAlbums, TopArtists } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { ArrowRight, Bell, Settings } from "lucide-react-native";
@@ -149,106 +148,135 @@ export default function HomeScreen() {
     return "Good Evening";
   };
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <View style={styles.headerTop}>
-        <View>
-          <ThemedText style={[styles.greeting, { color: colors.textMuted }]}>
-            {getGreeting()}
-          </ThemedText>
-          <ThemedText style={styles.userName}>
-            {currentUser?.name || "Music Lover"}
-          </ThemedText>
+  const renderHeader = useCallback(
+    () => (
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <View>
+            <ThemedText style={[styles.greeting, { color: colors.textMuted }]}>
+              {getGreeting()}
+            </ThemedText>
+            <ThemedText style={styles.userName}>
+              {currentUser?.name || "Music Lover"}
+            </ThemedText>
+          </View>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+              onPress={() => router.push("/notification")}
+            >
+              <Bell size={20} color={colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+              onPress={() => router.push("/settings")}
+            >
+              <Settings size={20} color={colors.text} />
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity
-            style={[
-              styles.iconButton,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-            onPress={() => router.push("/notification")}
-          >
-            <Bell size={20} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.iconButton,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-            onPress={() => router.push("/settings")}
-          >
-            <Settings size={20} color={colors.text} />
-          </TouchableOpacity>
+
+        <SearchBox />
+
+        <View style={styles.categoriesContainer}>
+          <Categories />
         </View>
       </View>
-
-      <SearchBox />
-
-      <View style={styles.categoriesContainer}>
-        <Categories />
-      </View>
-    </View>
+    ),
+    [colors, currentUser]
   );
 
-  const sections = [
-    {
-      title: "Continue Listening",
-      data: recentlyPlayed,
-      renderItem: (item: Song, index: number) => (
-        <RecentlyPlayedCard
-          key={item?.id ?? index}
-          song={item}
-          isLoading={false}
-        />
-      ),
-      isLoading: false,
-      hideIfEmpty: true,
+  const sections = React.useMemo(
+    () => [
+      {
+        title: "Continue Listening",
+        data: recentlyPlayed,
+        type: "recentlyPlayed",
+        isLoading: false,
+        hideIfEmpty: true,
+      },
+      {
+        title: "Featured For You",
+        data: featured,
+        type: "featured",
+        isLoading: featuredLoading,
+        route: "/featured",
+      },
+      {
+        title: "Trending Now",
+        data: trending,
+        type: "trending",
+        isLoading: trendingLoading,
+        route: "/trending",
+      },
+      {
+        title: "Top Artists",
+        data: topArtists,
+        type: "artists",
+        isLoading: topArtistsLoading,
+        route: "/artists",
+      },
+      {
+        title: "Popular Albums",
+        data: topAlbums,
+        type: "albums",
+        isLoading: topAlbumsLoading,
+        route: "/albums",
+      },
+    ],
+    [
+      recentlyPlayed,
+      featured,
+      featuredLoading,
+      trending,
+      trendingLoading,
+      topArtists,
+      topArtistsLoading,
+      topAlbums,
+      topAlbumsLoading,
+    ]
+  );
+
+  const keyExtractor = useCallback(
+    (item: any, index: number) => {
+      if (selectedCategory === "charts" || selectedCategory === "shows") {
+        return item.id?.toString() || index.toString();
+      }
+      return item.title || index.toString();
     },
-    {
-      title: "Featured For You",
-      data: featured,
-      renderItem: (item: Featured, index: number) => (
-        <FeaturedCard
-          key={item?.id ?? index}
-          featured={item}
-          isLoading={false}
-        />
-      ),
-      isLoading: featuredLoading,
-      route: "/featured",
+    [selectedCategory]
+  );
+
+  const renderItem = useCallback(
+    ({ item, index }: any) => {
+      if (selectedCategory === "charts") {
+        return <ChartCard chart={item} isLoading={chartsLoading} />;
+      }
+      if (selectedCategory === "shows") {
+        return <ShowCard show={item} isLoading={showsLoading} />;
+      }
+
+      if (item.hideIfEmpty && (!item.data || item.data.length === 0))
+        return null;
+
+      return <SectionItem item={item} index={index} colors={colors} />;
     },
-    {
-      title: "Trending Now",
-      data: trending,
-      renderItem: (item: Song, index: number) => (
-        <SongCard key={item?.id ?? index} song={item} isLoading={false} />
-      ),
-      isLoading: trendingLoading,
-      route: "/trending",
-    },
-    {
-      title: "Top Artists",
-      data: topArtists,
-      renderItem: (item: TopArtists, index: number) => (
-        <TopArtistCard
-          key={item?.id ?? index}
-          artist={item}
-          isLoading={false}
-        />
-      ),
-      isLoading: topArtistsLoading,
-      route: "/artists",
-    },
-    {
-      title: "Popular Albums",
-      data: topAlbums,
-      renderItem: (item: TopAlbums, index: number) => (
-        <TopAlbumsCard key={item?.id ?? index} album={item} isLoading={false} />
-      ),
-      isLoading: topAlbumsLoading,
-      route: "/albums",
-    },
-  ];
+    [selectedCategory, chartsLoading, showsLoading, colors]
+  );
+
+  const listData = React.useMemo(() => {
+    if (selectedCategory === "charts")
+      return chartsLoading ? SKELETON_DATA : charts;
+    if (selectedCategory === "shows")
+      return showsLoading ? SKELETON_DATA : shows;
+    return sections;
+  }, [selectedCategory, chartsLoading, charts, showsLoading, shows, sections]);
 
   return (
     <SafeAreaView
@@ -259,22 +287,8 @@ export default function HomeScreen() {
       />
 
       <FlatList
-        data={
-          selectedCategory === "charts"
-            ? chartsLoading
-              ? SKELETON_DATA
-              : charts
-            : selectedCategory === "shows"
-              ? showsLoading
-                ? SKELETON_DATA
-                : shows
-              : sections
-        }
-        keyExtractor={(item, index) =>
-          selectedCategory === "charts" || selectedCategory === "shows"
-            ? item.id?.toString() || index.toString()
-            : item.title
-        }
+        data={listData}
+        keyExtractor={keyExtractor}
         numColumns={
           selectedCategory === "charts" || selectedCategory === "shows" ? 2 : 1
         }
@@ -290,7 +304,7 @@ export default function HomeScreen() {
                 paddingHorizontal: screenPadding.horizontal,
                 gap: 16,
               }
-            : null
+            : undefined
         }
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
@@ -303,64 +317,86 @@ export default function HomeScreen() {
             colors={[colors.primary]}
           />
         }
-        renderItem={({ item, index }) => {
-          if (selectedCategory === "charts") {
-            return <ChartCard chart={item} isLoading={chartsLoading} />;
-          }
-          if (selectedCategory === "shows") {
-            return <ShowCard show={item} isLoading={showsLoading} />;
-          }
-
-          if (item.hideIfEmpty && (!item.data || item.data.length === 0))
-            return null;
-
-          return (
-            <Animated.View
-              entering={FadeInDown.delay(index * 100).duration(600)}
-              style={styles.sectionContainer}
-            >
-              <View style={styles.sectionHeader}>
-                <ThemedText style={styles.sectionTitle}>
-                  {item.title}
-                </ThemedText>
-                {item.route && (
-                  <TouchableOpacity
-                    style={styles.seeAllBtn}
-                    onPress={() => router.push(item.route)}
-                  >
-                    <ThemedText
-                      style={[styles.seeAllText, { color: colors.primary }]}
-                    >
-                      See All
-                    </ThemedText>
-                    <ArrowRight size={14} color={colors.primary} />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={item.isLoading ? SKELETON_DATA : item.data}
-                contentContainerStyle={styles.horizontalListContent}
-                keyExtractor={(_, i) => `${item.title}-${i}`}
-                renderItem={({ item: subItem, index: subIndex }) => (
-                  <View style={styles.cardWrapper}>
-                    {item.isLoading ? (
-                      <SongCardSkeleton />
-                    ) : (
-                      item.renderItem(subItem, subIndex)
-                    )}
-                  </View>
-                )}
-              />
-            </Animated.View>
-          );
-        }}
+        renderItem={renderItem}
       />
     </SafeAreaView>
   );
 }
+
+const SectionItem = React.memo(({ item, index, colors }: any) => {
+  const renderInnerItem = useCallback(
+    ({ item: subItem, index: subIndex }: any) => {
+      if (item.isLoading) {
+        return (
+          <View style={styles.cardWrapper}>
+            <SongCardSkeleton />
+          </View>
+        );
+      }
+
+      let content = null;
+      switch (item.type) {
+        case "recentlyPlayed":
+          content = <RecentlyPlayedCard song={subItem} isLoading={false} />;
+          break;
+        case "featured":
+          content = <FeaturedCard featured={subItem} isLoading={false} />;
+          break;
+        case "trending":
+          content = <SongCard song={subItem} isLoading={false} />;
+          break;
+        case "artists":
+          content = <TopArtistCard artist={subItem} isLoading={false} />;
+          break;
+        case "albums":
+          content = <TopAlbumsCard album={subItem} isLoading={false} />;
+          break;
+      }
+
+      return <View style={styles.cardWrapper}>{content}</View>;
+    },
+    [item.type, item.isLoading]
+  );
+
+  const innerKeyExtractor = useCallback(
+    (_: any, i: number) => `${item.title}-${i}`,
+    [item.title]
+  );
+
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(index * 100).duration(600)}
+      style={styles.sectionContainer}
+    >
+      <View style={styles.sectionHeader}>
+        <ThemedText style={styles.sectionTitle}>{item.title}</ThemedText>
+        {item.route && (
+          <TouchableOpacity
+            style={styles.seeAllBtn}
+            onPress={() => router.push(item.route)}
+          >
+            <ThemedText style={[styles.seeAllText, { color: colors.primary }]}>
+              See All
+            </ThemedText>
+            <ArrowRight size={14} color={colors.primary} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={item.isLoading ? SKELETON_DATA : item.data}
+        contentContainerStyle={styles.horizontalListContent}
+        keyExtractor={innerKeyExtractor}
+        renderItem={renderInnerItem}
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={5}
+      />
+    </Animated.View>
+  );
+});
 
 const styles = StyleSheet.create({
   container: {

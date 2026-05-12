@@ -1,6 +1,7 @@
 import GradientBackground from "@/components/GradientBackground";
 import MenuModal, { MenuItem } from "@/components/MenuModal";
 import QueueSheet from "@/components/QueueSheet";
+import LikeButton from "@/components/songs/LikeButton";
 import { PlayerControls } from "@/components/songs/PlayerControls";
 import { PlayerProgressBar } from "@/components/songs/PlayerProgressbar";
 import { MovingText } from "@/components/songs/useMovingText";
@@ -12,12 +13,11 @@ import { addToFavorites, getFavoriteSongs } from "@/services/userServices";
 import { defaultStyles } from "@/styles";
 import { Song } from "@/types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
   ChevronDown,
-  Heart,
   ListMusic,
   MoreVertical,
   Share2,
@@ -63,6 +63,18 @@ const PlayerScreen = () => {
   const currentSong = useActiveTrack();
   const { bottom } = useSafeAreaInsets();
   const [menuVisible, setMenuVisible] = useState(false);
+  const [queueMounted, setQueueMounted] = useState(false);
+
+  // ── Favorites (reactive subscription instead of inline cache read) ──
+  const { data: favorites = [] } = useQuery<Song[]>({
+    queryKey: ["favorites"],
+    queryFn: getFavoriteSongs,
+    staleTime: 1000 * 60 * 5,
+  });
+  const isFavorite = useMemo(
+    () => favorites?.some((fav) => fav.id === currentSong?.id),
+    [favorites, currentSong?.id]
+  );
 
   const menuItems: MenuItem[] = useMemo(
     () =>
@@ -181,9 +193,15 @@ const PlayerScreen = () => {
     })
     .onEnd((e) => {
       if (e.velocityY > 1000 || translateY.value > DISMISS_THRESHOLD) {
-        // Trigger back immediately instead of waiting for callback
-        // The native modal transition will handle the exit smoothly
-        runOnJS(router.back)();
+        translateY.value = withTiming(
+          SCREEN_HEIGHT,
+          { duration: 250, easing: Easing.out(Easing.quad) },
+          (finished) => {
+            if (finished) {
+              runOnJS(router.back)();
+            }
+          }
+        );
       } else {
         translateY.value = withSpring(0, EXPAND_SPRING);
       }
@@ -223,9 +241,6 @@ const PlayerScreen = () => {
     );
   }
 
-  const favorites = queryClient.getQueryData(["favorites"]) as Song[];
-  const isFavorite = favorites?.some((fav) => fav.id === currentSong.id);
-
   return (
     <View style={{ flex: 1, backgroundColor: "transparent" }}>
       <GestureDetector gesture={panGesture}>
@@ -250,7 +265,6 @@ const PlayerScreen = () => {
                 >
                   <ChevronDown color={colors.text} size={28} />
                 </TouchableOpacity>
-                <View style={styles.dragHandle} />
                 <TouchableOpacity
                   onPress={() => setMenuVisible(true)}
                   style={styles.iconBtn}
@@ -275,35 +289,24 @@ const PlayerScreen = () => {
               <View
                 style={[styles.controlsArea, { paddingBottom: bottom + 20 }]}
               >
-                <View style={styles.songInfo}>
+                <View style={styles.songInfoContainer}>
                   <View style={styles.titleContainer}>
                     <MovingText
                       text={currentSong.title ?? ""}
                       style={[styles.songTitle, { color: colors.text }]}
                       animationThreshold={24}
+                      maskColor={colorSchema === "dark" ? "#000000" : "#f0f0f0"}
                     />
                     <MovingText
                       text={currentSong.artist ?? ""}
                       style={[styles.songArtist, { color: colors.textMuted }]}
                       animationThreshold={30}
+                      maskColor={colorSchema === "dark" ? "#000000" : "#f0f0f0"}
                     />
                   </View>
 
                   <View style={styles.actionRow}>
-                    <TouchableOpacity
-                      onPress={handleAddToFavorite}
-                      style={[
-                        styles.circularActionBtn,
-                        isFavorite && { backgroundColor: "#ff4b2b" },
-                      ]}
-                    >
-                      <Heart
-                        size={22}
-                        color={isFavorite ? "white" : colors.text}
-                        fill={isFavorite ? "white" : "none"}
-                      />
-                    </TouchableOpacity>
-
+                    <LikeButton />
                     <TouchableOpacity
                       onPress={handleShare}
                       style={styles.circularActionBtn}
@@ -321,7 +324,11 @@ const PlayerScreen = () => {
                 {/* Footer Actions */}
                 <View style={styles.footer}>
                   <TouchableOpacity
-                    onPress={() => queueSheetRef.current?.present()}
+                    onPress={() => {
+                      if (!queueMounted) setQueueMounted(true);
+                      // Small delay to ensure mount completes before present
+                      setTimeout(() => queueSheetRef.current?.present(), 50);
+                    }}
                     style={[
                       styles.queueBtn,
                       { backgroundColor: colors.secondaryBackground },
@@ -341,7 +348,7 @@ const PlayerScreen = () => {
         </Animated.View>
       </GestureDetector>
 
-      <QueueSheet ref={queueSheetRef} />
+      {queueMounted && <QueueSheet ref={queueSheetRef} />}
       <MenuModal
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
@@ -367,12 +374,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: "rgba(128,128,128,0.3)",
-  },
   iconBtn: {
     width: 44,
     height: 44,
@@ -387,51 +388,53 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   artworkShadow: {
-    width: SCREEN_WIDTH * 0.78,
-    height: SCREEN_WIDTH * 0.78,
-    borderRadius: 24,
+    width: SCREEN_WIDTH * 0.85,
+    height: SCREEN_WIDTH * 0.85,
+    borderRadius: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.5,
-    shadowRadius: 30,
-    elevation: 15,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
   artworkImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 24,
+    borderRadius: 12,
   },
   controlsArea: {
     marginTop: "auto",
   },
-  songInfo: {
+  songInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 24,
   },
   titleContainer: {
-    marginBottom: 8,
+    flex: 1,
+    paddingRight: 16,
   },
   songTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
     letterSpacing: -0.5,
   },
   songArtist: {
     fontSize: 18,
-    fontWeight: "600",
-    marginTop: 4,
+    fontWeight: "500",
+    marginTop: 2,
   },
   actionRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    width: "100%",
-    justifyContent: "flex-start",
+    gap: 8,
   },
   circularActionBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(128,128,128,0.1)",
+    backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
   },

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   Image,
   StyleSheet,
@@ -6,12 +6,11 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
-  ViewStyle,
 } from "react-native";
 
 import { Colors } from "@/constants/Colors";
+import { unknownTrackUri } from "@/constants/images";
 import { borderRadius, fontSize } from "@/constants/tokens";
-import usePlayerStore from "@/store/usePlayerStore";
 
 import { useRouter } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -23,35 +22,108 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import TrackPlayer, {
-  useActiveTrack,
-  useProgress,
-} from "react-native-track-player";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import TrackPlayer, { useActiveTrack } from "react-native-track-player";
 import { PlayPauseButton, SkipToNextButton } from "./PlayerControls";
 import { MovingText } from "./useMovingText";
 
 const DISMISS_THRESHOLD = 60;
 
-const FloatingPlayer = ({ style }: { style?: ViewStyle }) => {
+// Screens on which the floating mini-player bar should NOT be shown
+const HIDE_ON_SCREENS = [
+  "profile",
+  "player",
+  "auth",
+  "Signup",
+  "Login",
+  "menu",
+  "settings",
+  "create_room",
+];
+
+const WITHOUT_TAB_BAR_SCREENS = [
+  "library_content",
+  "search",
+  "notification",
+  "[id]",
+  "create-room",
+];
+
+type FloatingPlayerProps = {
+  segments: string[];
+};
+
+const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
   const router = useRouter();
-  const { stopPlayer } = usePlayerStore();
   const currentSong = useActiveTrack();
+  const { bottom } = useSafeAreaInsets();
 
-  const unknownTrackImageUri = require("../../assets/images/unknown_track.png");
+  // ── Progress via SharedValue (no JS re-renders) ───────────────────
+  const progressValue = useSharedValue(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { duration, position } = useProgress(250);
-  const progressRatio = duration > 0 ? position / duration : 0;
+  useEffect(() => {
+    if (!currentSong) {
+      progressValue.value = 0;
+      return;
+    }
 
-  // ── Swipe-down-to-dismiss ────────────────────────────────────────
+    const poll = async () => {
+      try {
+        const { position, duration } = await TrackPlayer.getProgress();
+        if (duration > 0) {
+          progressValue.value = position / duration;
+        }
+      } catch {
+        // Player may not be ready yet
+      }
+    };
+
+    // Initial poll
+    poll();
+    intervalRef.current = setInterval(poll, 500);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [currentSong?.id]);
+
+  const progressStyle = useAnimatedStyle(() => ({
+    flex: progressValue.value,
+  }));
+
+  const remainingStyle = useAnimatedStyle(() => ({
+    flex: 1 - progressValue.value,
+  }));
+
+  // ── Visibility logic (self-contained) ─────────────────────────────
+  const currentSegment = segments[segments.length - 1];
+  const isHidden =
+    currentSong === undefined ||
+    HIDE_ON_SCREENS.includes(currentSegment) ||
+    segments.includes("room" as never);
+
+  // ── Positioning ───────────────────────────────────────────────────
+  const bottomOffset = bottom + 8;
+  const isWithoutTabBar = WITHOUT_TAB_BAR_SCREENS.includes(currentSegment);
+  const bottomPosition = isWithoutTabBar ? bottomOffset : bottom + 58;
+
+  // ── Swipe-down-to-dismiss ─────────────────────────────────────────
   const translateY = useSharedValue(0);
   const startY = useSharedValue(0);
 
-  const handleStop = async () => {
+  useEffect(() => {
+    if (currentSong?.id) {
+      // Reset translation when a new song starts playing so it reappears
+      translateY.value = withSpring(0, { damping: 40, stiffness: 200 });
+    }
+  }, [currentSong?.id, translateY]);
+
+  const handleStop = useCallback(async () => {
     await TrackPlayer.reset();
-  };
+  }, []);
 
   const panGesture = Gesture.Pan()
     .activeOffsetY(8)
@@ -76,30 +148,30 @@ const FloatingPlayer = ({ style }: { style?: ViewStyle }) => {
       }
     });
 
-  // Only pan on the outer container — controls handle their own taps
-  const composedGesture = panGesture;
-
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
     opacity: translateY.value > 0 ? Math.max(0, 1 - translateY.value / 150) : 1,
   }));
 
-  if (!currentSong) return null;
+  if (isHidden) return null;
 
   const handlePlayNext = async () => {
     await TrackPlayer.skipToNext();
   };
 
   return (
-    <GestureDetector gesture={composedGesture}>
+    <GestureDetector gesture={panGesture}>
       <Animated.View
         style={[
           {
+            position: "absolute",
+            left: 8,
+            right: 8,
+            bottom: bottomPosition,
             backgroundColor: colors.component,
             borderRadius: borderRadius.md,
             overflow: "hidden",
           },
-          style,
           animatedStyle,
         ]}
       >
@@ -112,7 +184,7 @@ const FloatingPlayer = ({ style }: { style?: ViewStyle }) => {
               style={styles.trackInfoTouchable}
             >
               <Image
-                source={{ uri: currentSong?.artwork ?? unknownTrackImageUri }}
+                source={{ uri: currentSong?.artwork ?? unknownTrackUri }}
                 style={styles.songImage}
               />
               <View style={styles.textContainer}>
@@ -126,6 +198,7 @@ const FloatingPlayer = ({ style }: { style?: ViewStyle }) => {
                   style={[styles.trackArtist, { color: colors.textMuted }]}
                   text={currentSong.artist ?? ""}
                   animationThreshold={25}
+                  maskColor={colors.component}
                 />
               </View>
             </TouchableOpacity>
@@ -142,15 +215,17 @@ const FloatingPlayer = ({ style }: { style?: ViewStyle }) => {
 
           <View style={styles.progressContainer}>
             <Animated.View
-              style={{ backgroundColor: colors.primary, flex: progressRatio }}
+              style={[{ backgroundColor: colors.primary }, progressStyle]}
             />
-            <View style={{ flex: 1 - progressRatio }} />
+            <Animated.View style={remainingStyle} />
           </View>
         </View>
       </Animated.View>
     </GestureDetector>
   );
-};
+});
+
+FloatingPlayer.displayName = "FloatingPlayer";
 
 export default FloatingPlayer;
 

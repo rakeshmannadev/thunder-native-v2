@@ -1,2 +1,4 @@
-export const unknownTrackUri = require("../assets/images/unknown_track.png");
-export const unknownArtistUri = require("../assets/images/unknown_artist.png");
+import unknownArtistUri from "../assets/images/unknown_artist.png";
+import unknownTrackUri from "../assets/images/unknown_track.png";
+
+export { unknownArtistUri, unknownTrackUri };
