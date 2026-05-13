@@ -1,4 +1,4 @@
-import { setAudioPreference } from "@/helpers";
+import { saveAudioPreference } from "@/helpers";
 import { AudioPreferenceType, Song } from "@/types";
 import TrackPlayer from "react-native-track-player";
 import { create } from "zustand";
@@ -41,6 +41,9 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   audioPreference: {
     downloadFirst: true,
     quality: "high",
+    autoplay: false,
+    repeat: "all",
+    shuffle: false,
   },
   selectedCategory: "all",
   setSelectedCategory: (category: string) => {
@@ -189,7 +192,7 @@ const usePlayerStore = create<PlayerStore>((set, get) => ({
   setAudioPreference: async (pref) => {
     const currentPref = get().audioPreference;
     set({ audioPreference: { ...currentPref, ...pref } });
-    await setAudioPreference({ ...currentPref, ...pref });
+    await saveAudioPreference({ ...currentPref, ...pref });
   },
 }));
 

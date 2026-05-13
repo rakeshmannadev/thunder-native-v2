@@ -17,6 +17,7 @@ import {
   Plus,
   Settings2,
 } from "lucide-react-native";
+import React, { useState } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -25,7 +26,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import React, { useState } from "react";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import {
   SafeAreaView,
@@ -67,7 +67,7 @@ const LibraryScreen = () => {
     },
     {
       id: "playlists",
-      title: "My Playlists",
+      title: "Saved",
       count: userPlaylists?.length || 0,
       icon: ListMusic,
       color: colors.accent,
@@ -76,7 +76,7 @@ const LibraryScreen = () => {
     },
     {
       id: "albums",
-      title: "Saved Albums",
+      title: "My Playlists",
       count: 0,
       icon: Disc,
       color: "#8E2DE2",

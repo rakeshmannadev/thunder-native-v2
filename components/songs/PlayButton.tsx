@@ -1,18 +1,22 @@
-import { Song } from "@/types";
-import React from "react";
 import { Colors } from "@/constants/Colors";
+import useSongOperations from "@/hooks/useSongOperations";
 import { playSong } from "@/hooks/useTrackPlayerActions";
-import usePlayerStore from "@/store/usePlayerStore";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
+import { Song } from "@/types";
 import { Pause, Play } from "lucide-react-native";
-import { useColorScheme, StyleSheet, TouchableOpacity, View } from "react-native";
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withSpring, 
-  withTiming,
+import React, { useCallback } from "react";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
 import TrackPlayer, {
   useActiveTrack,
@@ -22,15 +26,18 @@ import TrackPlayer, {
 const PlayButton = ({ song }: { song: Song }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  
+
   const scale = useSharedValue(1);
-  
+
   const { isBroadcasting, playSong: broadcastSong } = useSocketStore();
   const { currentUser, saveRecentlyPlayed } = useUserStore();
   const { currentRoom } = useRoomStore();
 
   const currentActiveTrack = useActiveTrack();
   const { playing: isPlaying } = useIsPlaying();
+
+  const { saveRecentlyPlayedMutation } = useSongOperations();
+
   const isCurrentTrack = currentActiveTrack?.id === song?.id;
 
   const handlePressIn = () => {
@@ -41,7 +48,7 @@ const PlayButton = ({ song }: { song: Song }) => {
     scale.value = withSpring(1, { damping: 12, stiffness: 200 });
   };
 
-  const handleAction = async () => {
+  const handleAction = useCallback(async () => {
     if (!song) return;
 
     if (isCurrentTrack && isPlaying) {
@@ -61,15 +68,25 @@ const PlayButton = ({ song }: { song: Song }) => {
       return;
     }
 
-    const player = await TrackPlayer.getPlaybackState();
-    if (player.state === "paused" && isCurrentTrack) {
+    // If it's the current track but not playing (paused/stopped), resume it
+    if (isCurrentTrack && !isPlaying) {
       await TrackPlayer.play();
       return;
     }
 
-    playSong(song);
-    await saveRecentlyPlayed(song.id);
-  };
+    // Otherwise, play the new song
+    await playSong(song);
+    saveRecentlyPlayedMutation.mutate(song);
+  }, [
+    song,
+    isCurrentTrack,
+    isPlaying,
+    isBroadcasting,
+    currentUser,
+    currentRoom,
+    broadcastSong,
+    saveRecentlyPlayedMutation,
+  ]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -80,8 +97,14 @@ const PlayButton = ({ song }: { song: Song }) => {
   return (
     <View style={styles.container}>
       {/* Premium Dark Outer Ring */}
-      <Animated.View style={[styles.outerRing, { borderColor: colors.accent + '30' }, animatedStyle]} />
-      
+      <Animated.View
+        style={[
+          styles.outerRing,
+          { borderColor: colors.accent + "30" },
+          animatedStyle,
+        ]}
+      />
+
       <TouchableOpacity
         activeOpacity={1}
         onPress={handleAction}
@@ -91,18 +114,34 @@ const PlayButton = ({ song }: { song: Song }) => {
         <Animated.View
           style={[
             styles.fab,
-            { backgroundColor: '#0A0A0A' }, // Deep premium dark background
-            animatedStyle
+            { backgroundColor: "#0A0A0A" }, // Deep premium dark background
+            animatedStyle,
           ]}
         >
           {/* Subtle Accent Glow Overlay */}
-          <View style={[styles.accentOverlay, { backgroundColor: colors.accent + '15' }]} />
-          
+          <View
+            style={[
+              styles.accentOverlay,
+              { backgroundColor: colors.accent + "15" },
+            ]}
+          />
+
           <View style={styles.iconContainer}>
             {isCurrentTrack && isPlaying ? (
-              <Pause fill={colors.accent} size={22} color={colors.accent} strokeWidth={2.5} />
+              <Pause
+                fill={colors.accent}
+                size={22}
+                color={colors.accent}
+                strokeWidth={2.5}
+              />
             ) : (
-              <Play fill={colors.accent} size={22} color={colors.accent} strokeWidth={2.5} style={{ marginLeft: 2 }} />
+              <Play
+                fill={colors.accent}
+                size={22}
+                color={colors.accent}
+                strokeWidth={2.5}
+                style={{ marginLeft: 2 }}
+              />
             )}
           </View>
         </Animated.View>
@@ -117,8 +156,8 @@ const styles = StyleSheet.create({
     bottom: 30,
     right: 25,
     zIndex: 1000,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   outerRing: {
     position: "absolute",
@@ -139,8 +178,8 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)', // High-end rim light
-    overflow: 'hidden',
+    borderColor: "rgba(255,255,255,0.08)", // High-end rim light
+    overflow: "hidden",
   },
   accentOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -148,8 +187,8 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     zIndex: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

@@ -1,9 +1,4 @@
-import {
-  BottomSheetBackdrop,
-  BottomSheetFlatList,
-  BottomSheetModal,
-  type BottomSheetBackdropProps,
-} from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   ListMusic,
@@ -27,6 +22,12 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  SharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TrackPlayer, { Track, useActiveTrack } from "react-native-track-player";
 
@@ -108,214 +109,285 @@ const QueueRow = React.memo(
   }
 );
 
-// ─── QueueSheet ───────────────────────────────────────────────────────────────
+// ─── Queue Components ─────────────────────────────────────────────────────────
 
-const QueueSheet = forwardRef<BottomSheetModal>((_, ref) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  const { bottom } = useSafeAreaInsets();
+const QueueHandle = React.memo(
+  ({
+    animatedIndex,
+    colors,
+  }: {
+    animatedIndex: SharedValue<number>;
+    colors: any;
+  }) => {
+    const animatedIndicatorStyle = useAnimatedStyle(() => ({
+      opacity: interpolate(
+        animatedIndex.value,
+        [0, 0.1],
+        [0, 1],
+        Extrapolation.CLAMP
+      ),
+    }));
 
-  const snapPoints = useMemo(() => ["75%", "95%"], []);
-
-  const [queue, setQueue] = useState<Track[]>([]);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const activeTrack = useActiveTrack();
-
-  useEffect(() => {
-    TrackPlayer.getQueue().then(setQueue);
-  }, []);
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        opacity={0.8}
-      />
-    ),
-    []
-  );
-
-  const renderItem = useCallback(
-    ({ item, index }: ListRenderItemInfo<Track>) => (
-      <QueueRow
-        item={item}
-        index={index}
-        isActive={activeTrack?.id === item.id}
-        onPlay={(i) => TrackPlayer.skip(i)}
-        onMenu={(song) => {
-          setMenuItems([
-            {
-              key: "go_to_album",
-              label: "Go to album",
-              icon: "album",
-              data: song.album,
-            },
-            {
-              key: "go_to_artist",
-              label: "Go to artist",
-              icon: "artist",
-              data: song.artist,
-            },
-            {
-              key: "save_to_playlist",
-              label: "Save to playlist",
-              icon: "playlist",
-              data: song.id,
-            },
-            {
-              key: "remove_from_queue",
-              label: "Remove from queue",
-              icon: "delete",
-              data: index,
-              destructive: true,
-            },
-          ]);
-          setMenuVisible(true);
-        }}
-      />
-    ),
-    [activeTrack]
-  );
-
-  const keyExtractor = useCallback(
-    (item: Track, index: number) => `${item.id}-${index}`,
-    []
-  );
-
-  const ListHeader = useMemo(
-    () => (
-      <View style={styles.listHeader}>
-        <View style={styles.sectionHeader}>
-          <View
-            style={[
-              styles.sectionIconBg,
-              { backgroundColor: colors.accent + "15" },
-            ]}
-          >
-            <ListMusic size={18} color={colors.accent} />
-          </View>
-          <View>
-            <ThemedText style={styles.sectionTitle}>Next Up</ThemedText>
-            <ThemedText
-              style={[styles.sectionSubtitle, { color: colors.textMuted }]}
-            >
-              {queue.length} {queue.length === 1 ? "track" : "tracks"}
-            </ThemedText>
-          </View>
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: colors.borderColor }]}
-        />
-      </View>
-    ),
-    [queue.length, colors]
-  );
-
-  const ListEmpty = useMemo(
-    () => (
-      <View style={styles.emptyContainer}>
-        <View
+    return (
+      <View style={styles.handleContainer}>
+        <Animated.View
           style={[
-            styles.emptyIconBg,
-            { backgroundColor: colors.secondaryBackground },
+            styles.handleIndicator,
+            { backgroundColor: colors.textMuted + "40" },
+            animatedIndicatorStyle,
           ]}
-        >
-          <Music2 size={32} color={colors.accent} />
+        />
+        <View style={styles.handleContent}>
+          <ListMusic color={colors.text} size={20} />
+          <ThemedText style={[styles.handleText, { color: colors.text }]}>
+            Up Next
+          </ThemedText>
         </View>
-        <ThemedText style={styles.emptyTitle}>Queue is empty</ThemedText>
-        <ThemedText style={[styles.emptySubtitle, { color: colors.textMuted }]}>
-          Add some tracks to get started
-        </ThemedText>
       </View>
-    ),
-    [colors]
-  );
+    );
+  }
+);
 
-  const QueueBackground = useCallback(
-    () => (
-      <View
+const QueueBackground = React.memo(
+  ({
+    animatedIndex,
+    colors,
+  }: {
+    animatedIndex: SharedValue<number>;
+    colors: any;
+  }) => {
+    const animatedBgStyle = useAnimatedStyle(() => ({
+      opacity: interpolate(
+        animatedIndex.value,
+        [0, 0.1],
+        [0, 1],
+        Extrapolation.CLAMP
+      ),
+    }));
+
+    return (
+      <Animated.View
         style={[
           styles.backgroundContainer,
           { backgroundColor: colors.background },
+          animatedBgStyle,
         ]}
       >
         <LinearGradient
           colors={[colors.background, colors.secondaryBackground]}
           style={StyleSheet.absoluteFill}
         />
-      </View>
-    ),
-    [colors]
-  );
+      </Animated.View>
+    );
+  }
+);
 
-  return (
-    <>
-      <BottomSheetModal
-        ref={ref}
-        index={1}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-        backdropComponent={renderBackdrop}
-        backgroundComponent={QueueBackground}
-        handleIndicatorStyle={[
-          styles.handle,
-          { backgroundColor: colors.textMuted + "40" },
-        ]}
-        style={styles.sheet}
-      >
-        <View style={styles.header}>
-          <ThemedText style={styles.headerTitle}>Playing Queue</ThemedText>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={[
-                styles.headerBtn,
-                { backgroundColor: colors.secondaryBackground },
-              ]}
-              onPress={() => TrackPlayer.setRepeatMode(1)}
-            >
-              <Shuffle size={18} color={colors.text} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.headerBtn,
-                { backgroundColor: colors.secondaryBackground },
-              ]}
-              onPress={() => {
-                TrackPlayer.reset();
-                setQueue([]);
-              }}
-            >
-              <Trash2 size={18} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
-        </View>
+// ─── QueueSheet ───────────────────────────────────────────────────────────────
 
-        <BottomSheetFlatList
-          data={queue}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          ListHeaderComponent={ListHeader}
-          ListEmptyComponent={ListEmpty}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingBottom: bottom + 40 },
-          ]}
+interface QueueSheetProps {
+  animatedIndex: SharedValue<number>;
+}
+
+const QueueSheetComponent = forwardRef<BottomSheet, QueueSheetProps>(
+  ({ animatedIndex }, ref) => {
+    const colorScheme = useColorScheme();
+    const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+    const { bottom } = useSafeAreaInsets();
+
+    const snapPoints = useMemo(() => [60 + bottom, "100%"], [bottom]);
+
+    const animatedContentStyle = useAnimatedStyle(() => ({
+      opacity: interpolate(
+        animatedIndex.value,
+        [0.1, 0.2],
+        [0, 1],
+        Extrapolation.CLAMP
+      ),
+    }));
+
+    const [queue, setQueue] = useState<Track[]>([]);
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const activeTrack = useActiveTrack();
+
+    useEffect(() => {
+      TrackPlayer.getQueue().then(setQueue);
+    }, []);
+
+    const CustomHandle = useCallback(() => {
+      return <QueueHandle animatedIndex={animatedIndex} colors={colors} />;
+    }, [colors, animatedIndex]);
+
+    const renderItem = useCallback(
+      ({ item, index }: ListRenderItemInfo<Track>) => (
+        <QueueRow
+          item={item}
+          index={index}
+          isActive={activeTrack?.id === item.id}
+          onPlay={(i) => TrackPlayer.skip(i)}
+          onMenu={(song) => {
+            setMenuItems([
+              {
+                key: "go_to_album",
+                label: "Go to album",
+                icon: "album",
+                data: song.album,
+              },
+              {
+                key: "go_to_artist",
+                label: "Go to artist",
+                icon: "artist",
+                data: song.artist,
+              },
+              {
+                key: "save_to_playlist",
+                label: "Save to playlist",
+                icon: "playlist",
+                data: song.id,
+              },
+              {
+                key: "remove_from_queue",
+                label: "Remove from queue",
+                icon: "delete",
+                data: index,
+                destructive: true,
+              },
+            ]);
+            setMenuVisible(true);
+          }}
         />
-      </BottomSheetModal>
+      ),
+      [activeTrack]
+    );
 
-      <MenuModal
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        items={menuItems}
-        title="Queue Options"
-      />
-    </>
-  );
-});
+    const keyExtractor = useCallback(
+      (item: Track, index: number) => `${item.id}-${index}`,
+      []
+    );
+
+    const ListHeader = useMemo(
+      () => (
+        <View style={styles.listHeader}>
+          <View style={styles.sectionHeader}>
+            <View
+              style={[
+                styles.sectionIconBg,
+                { backgroundColor: colors.accent + "15" },
+              ]}
+            >
+              <ListMusic size={18} color={colors.accent} />
+            </View>
+            <View>
+              <ThemedText style={styles.sectionTitle}>Next Up</ThemedText>
+              <ThemedText
+                style={[styles.sectionSubtitle, { color: colors.textMuted }]}
+              >
+                {queue.length} {queue.length === 1 ? "track" : "tracks"}
+              </ThemedText>
+            </View>
+          </View>
+          <View
+            style={[styles.divider, { backgroundColor: colors.borderColor }]}
+          />
+        </View>
+      ),
+      [queue.length, colors]
+    );
+
+    const ListEmpty = useMemo(
+      () => (
+        <View style={styles.emptyContainer}>
+          <View
+            style={[
+              styles.emptyIconBg,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
+          >
+            <Music2 size={32} color={colors.accent} />
+          </View>
+          <ThemedText style={styles.emptyTitle}>Queue is empty</ThemedText>
+          <ThemedText
+            style={[styles.emptySubtitle, { color: colors.textMuted }]}
+          >
+            Add some tracks to get started
+          </ThemedText>
+        </View>
+      ),
+      [colors]
+    );
+
+    const QueueBackgroundComponent = useCallback(() => {
+      return (
+        <QueueBackground animatedIndex={animatedIndex} colors={colors} />
+      );
+    }, [colors, animatedIndex]);
+
+    return (
+      <>
+        <BottomSheet
+          ref={ref}
+          index={0}
+          snapPoints={snapPoints}
+          animatedIndex={animatedIndex}
+          handleComponent={CustomHandle}
+          backgroundComponent={QueueBackgroundComponent}
+          style={styles.sheet}
+        >
+          <Animated.View style={[{ flex: 1 }, animatedContentStyle]}>
+            <View style={styles.header}>
+              <ThemedText style={styles.headerTitle}>Playing Queue</ThemedText>
+              <View style={styles.headerActions}>
+                <TouchableOpacity
+                  style={[
+                    styles.headerBtn,
+                    { backgroundColor: colors.secondaryBackground },
+                  ]}
+                  onPress={() => TrackPlayer.setRepeatMode(1)}
+                >
+                  <Shuffle size={18} color={colors.text} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.headerBtn,
+                    { backgroundColor: colors.secondaryBackground },
+                  ]}
+                  onPress={() => {
+                    TrackPlayer.reset();
+                    setQueue([]);
+                  }}
+                >
+                  <Trash2 size={18} color="#ef4444" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <BottomSheetFlatList
+              data={queue}
+              keyExtractor={keyExtractor}
+              renderItem={renderItem}
+              ListHeaderComponent={ListHeader}
+              ListEmptyComponent={ListEmpty}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.listContent,
+                { paddingBottom: bottom + 40 },
+              ]}
+            />
+          </Animated.View>
+        </BottomSheet>
+
+        <MenuModal
+          visible={menuVisible}
+          onClose={() => setMenuVisible(false)}
+          items={menuItems}
+          title="Queue Options"
+        />
+      </>
+    );
+  }
+);
+
+const QueueSheet = React.memo(QueueSheetComponent);
 
 QueueSheet.displayName = "QueueSheet";
 
@@ -329,11 +401,27 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 32,
     overflow: "hidden",
   },
-  handle: {
-    width: 40,
+  handleContainer: {
+    paddingTop: 12,
+    paddingBottom: 8,
+    alignItems: "center",
+  },
+  handleIndicator: {
+    width: 36,
     height: 4,
     borderRadius: 2,
-    marginTop: 10,
+    marginBottom: 8,
+  },
+  handleContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  handleText: {
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
   header: {
     flexDirection: "row",

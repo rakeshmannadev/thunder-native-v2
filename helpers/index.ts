@@ -1,4 +1,4 @@
-import { AudioPreferenceType, qualites } from "@/types";
+import { AudioPreferenceType } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const formatDuration = (seconds: number) => {
@@ -18,7 +18,10 @@ export const getAudioPreference = async (): Promise<
     }
     return {
       downloadFirst: true,
-      quality: qualites.medium,
+      quality: "high",
+      autoplay: false,
+      repeat: "none",
+      shuffle: false,
     };
   } catch (err: any) {
     console.log(
@@ -27,12 +30,12 @@ export const getAudioPreference = async (): Promise<
     );
   }
 };
-export const setAudioPreference = async (preference: AudioPreferenceType) => {
+export const saveAudioPreference = async (preference: AudioPreferenceType) => {
   try {
     await AsyncStorage.setItem("audio-preference", JSON.stringify(preference));
   } catch (err: any) {
     console.log(
-      "Error while setting audio preference to localstorage: ",
+      "Error while saving audio preference to localstorage: ",
       err.message
     );
   }

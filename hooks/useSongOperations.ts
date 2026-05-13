@@ -1,4 +1,8 @@
-import { addSongToPlaylist, createPlaylist } from "@/services/userServices";
+import {
+  addSongToPlaylist,
+  createPlaylist,
+  saveRecentlyPlayed,
+} from "@/services/userServices";
 import { Song } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { showToast } from "./useToastMessage";
@@ -47,7 +51,21 @@ const useSongOperations = () => {
     },
   });
 
-  return { addToPlaylistMutation, createPlaylistMutation };
+  const saveRecentlyPlayedMutation = useMutation({
+    mutationFn: (song: Song) => saveRecentlyPlayed(song),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recently-played"] });
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+
+  return {
+    addToPlaylistMutation,
+    createPlaylistMutation,
+    saveRecentlyPlayedMutation,
+  };
 };
 
 export default useSongOperations;

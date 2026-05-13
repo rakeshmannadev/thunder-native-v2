@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
+import useSongOperations from "@/hooks/useSongOperations";
 import { playSong } from "@/hooks/useTrackPlayerActions";
 import { Song } from "@/types";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
@@ -31,22 +32,15 @@ const PlaylistCard = ({
   const currentSong = useActiveTrack();
   const isPlaying = useIsPlaying();
 
+  const { saveRecentlyPlayedMutation } = useSongOperations();
+
   const isActive = currentSong?.id == song.id;
 
   const [menuVisible, setMenuVisible] = useState(false);
-  const filteredSong = {
-    _id: song.id,
-    title: song.name,
-    artists: {
-      primary: song.artist_map?.primary_artists,
-    },
-    imageUrl: song.image?.[2]?.link,
-    audioUrl: song.download_url[song.download_url.length - 1].link,
-    duration: song.duration,
-  };
 
   const playTrack = async () => {
-    playSong(filteredSong);
+    await playSong(song);
+    saveRecentlyPlayedMutation.mutate(song);
   };
 
   const menuItems: MenuItem[] = isLoading
@@ -56,13 +50,13 @@ const PlaylistCard = ({
           key: "play_next",
           label: "Play next",
           icon: "play_next",
-          data: filteredSong,
+          data: song,
         },
         {
           key: "add_to_queue",
           label: "Add to Queue",
           icon: "queue",
-          data: [filteredSong],
+          data: [song],
         },
         {
           key: "add_to_playlist",
@@ -176,7 +170,9 @@ const PlaylistCard = ({
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         items={menuItems}
-        title="Song Options"
+        imageUrl={song.image?.[2]?.link}
+        title={song.name}
+        description={song.subtitle}
       />
     </TouchableOpacity>
   );

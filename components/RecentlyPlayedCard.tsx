@@ -1,9 +1,17 @@
 import { Colors } from "@/constants/Colors";
-import { screenPadding } from "@/constants/tokens";
+import { borderRadius, fontSize } from "@/constants/tokens";
+import { playSong } from "@/hooks/useTrackPlayerActions";
 import { Song } from "@/types";
 import { LucidePlayCircle } from "lucide-react-native";
 import React from "react";
-import { Image, Text, useColorScheme, View } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 
 const RecentlyPlayedCard = ({
   song,
@@ -14,54 +22,103 @@ const RecentlyPlayedCard = ({
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
   return (
-    <View
-      style={{ paddingHorizontal: screenPadding.horizontal }}
-      className="flex items-center justify-between  pb-3"
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={async () => await playSong(song)}
+      style={styles.container}
     >
       <View
-        style={{
-          backgroundColor: colors.component,
-          borderColor: colors.borderColor,
-        }}
-        className="flex-shrink-0 w-64  backdrop-blur-sm rounded-2xl p-3 border  flex flex-row items-center gap-4 active:bg-white/5 transition-colors"
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.borderColor,
+          },
+        ]}
       >
         <Image
-          src={song.image[song.image.length - 1].link}
-          width={50}
-          height={50}
-          className="rounded-lg"
+          source={{ uri: song.image[song.image.length - 1].link }}
+          style={styles.artwork}
         />
-        <View className="flex-1 min-w-0">
+        <View style={styles.content}>
           <Text
             numberOfLines={1}
-            style={{ color: colors.text }}
-            className=" text-sm font-bold truncate"
+            style={[styles.title, { color: colors.text }]}
           >
             {song.name}
           </Text>
           <Text
             numberOfLines={1}
-            style={{ color: colors.textMuted }}
-            className="text-text-secondary-dark text-xs truncate"
+            style={[styles.artist, { color: colors.textMuted }]}
           >
-            {song.artists.artist_map.primary_artists
+            {song.artist_map.primary_artists
               .map((artist) => artist.name)
               .join(", ")}
           </Text>
-          <View className="mt-1.5 flex flex-row items-center gap-1.5">
+          <View style={styles.footer}>
             <LucidePlayCircle size={14} color={colors.primary} />
-            <Text
-              style={{ color: colors.primary }}
-              className="text-[9px]  uppercase tracking-widest font-bold"
-            >
-              Resume Listening
+            <Text style={[styles.footerText, { color: colors.primary }]}>
+              RESUME LISTENING
             </Text>
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingBottom: 12,
+  },
+  card: {
+    width: 240,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    // Subtle shadow for premium feel
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  artwork: {
+    width: 50,
+    height: 50,
+    borderRadius: borderRadius.sm,
+    backgroundColor: "rgba(0,0,0,0.05)",
+  },
+  content: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: fontSize.xs + 2,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+  artist: {
+    fontSize: fontSize.xs - 1,
+    fontWeight: "500",
+    marginTop: 1,
+  },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 6,
+    gap: 4,
+  },
+  footerText: {
+    fontSize: 8,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+});
 
 export default RecentlyPlayedCard;

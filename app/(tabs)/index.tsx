@@ -11,6 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import TopArtistCard from "@/components/TopArtist/TopArtistCard";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
+import { getRandomIndex } from "@/helpers/utils";
 import {
   getCharts,
   getFeaturedSongs,
@@ -19,7 +20,7 @@ import {
   getTopArtists,
   getTrendingSongs,
 } from "@/services/songService";
-import { getFavoriteSongs } from "@/services/userServices";
+import { getFavoriteSongs, getRecentlyPlayed } from "@/services/userServices";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
 import { useQuery } from "@tanstack/react-query";
@@ -47,7 +48,7 @@ const SKELETON_DATA = Array.from({ length: 5 }, (_, i) => ({ _skeletonId: i }));
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
-  const { currentUser, recentlyPlayed } = useUserStore();
+  const { currentUser } = useUserStore();
   const { selectedCategory } = usePlayerStore();
   const { top } = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
@@ -60,7 +61,7 @@ export default function HomeScreen() {
     refetch: refetchTrending,
   } = useQuery({
     queryKey: ["trending"],
-    queryFn: () => getTrendingSongs({ page: 1, limit: 10 }),
+    queryFn: () => getTrendingSongs({ page: getRandomIndex(), limit: 10 }),
   });
   const {
     data: featuredRes,
@@ -68,7 +69,7 @@ export default function HomeScreen() {
     refetch: refetchFeatured,
   } = useQuery({
     queryKey: ["featured"],
-    queryFn: () => getFeaturedSongs({ page: 1, limit: 10 }),
+    queryFn: () => getFeaturedSongs({ page: getRandomIndex(), limit: 10 }),
   });
   const {
     data: topArtistsRes,
@@ -76,7 +77,7 @@ export default function HomeScreen() {
     refetch: refetchTopArtists,
   } = useQuery({
     queryKey: ["topArtists"],
-    queryFn: () => getTopArtists({ limit: 10, page: 1 }),
+    queryFn: () => getTopArtists({ limit: 10, page: getRandomIndex() }),
   });
   const {
     data: topAlbumsRes,
@@ -84,7 +85,7 @@ export default function HomeScreen() {
     refetch: refetchTopAlbums,
   } = useQuery({
     queryKey: ["topAlbums"],
-    queryFn: () => getTopAlbums({ limit: 10, page: 1 }),
+    queryFn: () => getTopAlbums({ limit: 10, page: getRandomIndex() }),
   });
   const {
     data: chartsRes,
@@ -92,7 +93,7 @@ export default function HomeScreen() {
     refetch: refetchCharts,
   } = useQuery({
     queryKey: ["charts"],
-    queryFn: () => getCharts({ page: 1, limit: 10 }),
+    queryFn: () => getCharts({ page: getRandomIndex(), limit: 10 }),
     enabled: selectedCategory === "charts",
   });
   const {
@@ -101,13 +102,19 @@ export default function HomeScreen() {
     refetch: refetchShows,
   } = useQuery({
     queryKey: ["shows"],
-    queryFn: () => getShows({ page: 1, limit: 10 }),
+    queryFn: () => getShows({ page: getRandomIndex(), limit: 10 }),
     enabled: selectedCategory === "shows",
   });
 
   useQuery({
     queryKey: ["favorites"],
     queryFn: getFavoriteSongs,
+    enabled: !!currentUser,
+  });
+
+  const { data: recentlyPlayed } = useQuery({
+    queryKey: ["recently-played"],
+    queryFn: getRecentlyPlayed,
     enabled: !!currentUser,
   });
 

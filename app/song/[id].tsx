@@ -103,7 +103,7 @@ const SongScreen = () => {
         )}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.5)", colors.background]}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
       </Animated.View>
 

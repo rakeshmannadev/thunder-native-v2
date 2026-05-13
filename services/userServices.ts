@@ -103,3 +103,23 @@ export const createPlaylist = async ({
     throw error;
   }
 };
+
+export const saveRecentlyPlayed = async (song: Song) => {
+  try {
+    const response = await axiosInstance.post("/user/saveRecentlyPlayed", {
+      song,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log(error.response.data.message);
+  }
+};
+
+export const getRecentlyPlayed = async () => {
+  try {
+    const response = await axiosInstance.get("/user/getRecentlyPlayed");
+    return response.data.songs;
+  } catch (error: any) {
+    console.log(error.response.data.message);
+  }
+};

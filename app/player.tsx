@@ -4,29 +4,19 @@ import QueueSheet from "@/components/QueueSheet";
 import LikeButton from "@/components/songs/LikeButton";
 import { PlayerControls } from "@/components/songs/PlayerControls";
 import { PlayerProgressBar } from "@/components/songs/PlayerProgressbar";
+import ShareButton from "@/components/songs/ShareButton";
 import { MovingText } from "@/components/songs/useMovingText";
-import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { showToast } from "@/hooks/useToastMessage";
-import { addToFavorites, getFavoriteSongs } from "@/services/userServices";
 import { defaultStyles } from "@/styles";
-import { Song } from "@/types";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import BottomSheet from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import {
-  ChevronDown,
-  ListMusic,
-  MoreVertical,
-  Share2,
-} from "lucide-react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, MoreVertical } from "lucide-react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
-  Share,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
@@ -37,7 +27,6 @@ import Animated, {
   Easing,
   Extrapolation,
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -49,32 +38,21 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { useActiveTrack } from "react-native-track-player";
+import { scheduleOnRN } from "react-native-worklets";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 const DISMISS_THRESHOLD = SCREEN_HEIGHT * 0.25;
 const EXPAND_SPRING = { damping: 26, stiffness: 240, mass: 0.8 };
 
-const PlayerScreen = () => {
+const PlayerScreen = React.memo(() => {
   const router = useRouter();
-  const queueSheetRef = useRef<BottomSheetModal>(null);
-  const queryClient = useQueryClient();
+  const queueSheetRef = useRef<BottomSheet>(null);
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
   const currentSong = useActiveTrack();
   const { bottom } = useSafeAreaInsets();
   const [menuVisible, setMenuVisible] = useState(false);
-  const [queueMounted, setQueueMounted] = useState(false);
-
-  // ── Favorites (reactive subscription instead of inline cache read) ──
-  const { data: favorites = [] } = useQuery<Song[]>({
-    queryKey: ["favorites"],
-    queryFn: getFavoriteSongs,
-    staleTime: 1000 * 60 * 5,
-  });
-  const isFavorite = useMemo(
-    () => favorites?.some((fav) => fav.id === currentSong?.id),
-    [favorites, currentSong?.id]
-  );
+  const queueSheetIndex = useSharedValue(0);
 
   const menuItems: MenuItem[] = useMemo(
     () =>
@@ -103,72 +81,6 @@ const PlayerScreen = () => {
     [currentSong]
   );
 
-  const { mutate: addToFavoriteMutaion } = useMutation({
-    mutationFn: (song: Song) =>
-      addToFavorites({
-        song,
-        imageUrl: currentSong?.artwork,
-        artists: currentSong?.artist_map.primary_artists,
-      }),
-    onMutate: async (song: Song) => {
-      await queryClient.cancelQueries({ queryKey: ["favorites"] });
-      const previousFavorites = queryClient.getQueryData<Song[]>(["favorites"]);
-
-      queryClient.setQueryData<Song[]>(["favorites"], (old) => {
-        if (!old) return [song];
-        const isAlreadyFav = old.some((s) => s.id === song.id);
-        if (isAlreadyFav) {
-          return old.filter((s) => s.id !== song.id);
-        } else {
-          return [...old, song];
-        }
-      });
-
-      return { previousFavorites };
-    },
-    onSuccess: () => {
-      showToast("Favorites updated");
-    },
-    onError: (error: any, song, context) => {
-      if (context?.previousFavorites) {
-        queryClient.setQueryData(["favorites"], context.previousFavorites);
-      }
-      showToast(error?.message || "Failed to update favorites");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
-    },
-  });
-
-  const handleAddToFavorite = useCallback(async () => {
-    if (!currentSong) return;
-    addToFavoriteMutaion({
-      id: currentSong.id,
-      name: currentSong.title!,
-      subtitle: currentSong.artist!,
-      image: [{ link: currentSong.artwork!, quality: "960x960" }],
-      download_url: [{ link: currentSong.url!, quality: "320kbps" }],
-      album: currentSong.album!,
-      album_id: currentSong.album_id!,
-      duration: currentSong.duration!,
-      artist_map: currentSong.artist_map.primary_artists!,
-      release_date: currentSong.release_date,
-    });
-  }, [currentSong, addToFavoriteMutaion]);
-
-  const handleShare = useCallback(async () => {
-    if (!currentSong) return;
-    try {
-      await Share.share({
-        title: currentSong.title,
-        message: `Check out ${currentSong.title} by ${currentSong.artist} on Thunder!`,
-        url: currentSong.artwork ?? "",
-      });
-    } catch (error) {
-      console.error("Error sharing:", error);
-    }
-  }, [currentSong]);
-
   // ── Animations ───────────────────────────────────────
   const artworkScale = useSharedValue(0.9);
   const artworkOpacity = useSharedValue(0);
@@ -185,6 +97,7 @@ const PlayerScreen = () => {
   const panGesture = Gesture.Pan()
     .activeOffsetY(10)
     .failOffsetY(-5)
+    .enabled(queueSheetIndex.value <= 0.01) // Only allow dismissal when queue is collapsed
     .onStart(() => {
       startY.value = translateY.value;
     })
@@ -198,7 +111,7 @@ const PlayerScreen = () => {
           { duration: 250, easing: Easing.out(Easing.quad) },
           (finished) => {
             if (finished) {
-              runOnJS(router.back)();
+              scheduleOnRN(router.back);
             }
           }
         );
@@ -223,10 +136,45 @@ const PlayerScreen = () => {
     ),
   }));
 
-  const animatedArtworkStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: artworkScale.value }],
-    opacity: artworkOpacity.value,
-  }));
+  const animatedArtworkStyle = useAnimatedStyle(() => {
+    const scale = interpolate(
+      queueSheetIndex.value,
+      [0, 1],
+      [artworkScale.value, 0.6],
+      Extrapolation.CLAMP
+    );
+    const translationY = interpolate(
+      queueSheetIndex.value,
+      [0, 1],
+      [0, -SCREEN_HEIGHT * 0.12],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      transform: [{ scale }, { translateY: translationY }],
+      opacity: artworkOpacity.value,
+    };
+  });
+
+  const animatedControlsStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      queueSheetIndex.value,
+      [0, 0.4],
+      [1, 0],
+      Extrapolation.CLAMP
+    );
+    const translationY = interpolate(
+      queueSheetIndex.value,
+      [0, 1],
+      [0, 50],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      opacity,
+      transform: [{ translateY: translationY }],
+    };
+  });
 
   if (!currentSong) {
     return (
@@ -256,108 +204,89 @@ const PlayerScreen = () => {
           <GradientBackground imageUrl={currentSong?.artwork} />
 
           <SafeAreaView style={{ flex: 1 }}>
-            <View style={styles.overlay}>
-              {/* Header */}
-              <View style={[styles.header]}>
-                <TouchableOpacity
-                  onPress={() => router.back()}
-                  style={styles.iconBtn}
-                >
-                  <ChevronDown color={colors.text} size={28} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setMenuVisible(true)}
-                  style={styles.iconBtn}
-                >
-                  <MoreVertical color={colors.text} size={24} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Artwork Area */}
-              <View style={styles.artworkArea}>
-                <Animated.View
-                  style={[styles.artworkShadow, animatedArtworkStyle]}
-                >
-                  <Animated.Image
-                    source={{ uri: currentSong.artwork }}
-                    style={styles.artworkImage}
-                  />
-                </Animated.View>
-              </View>
-
-              {/* Controls Area */}
-              <View
-                style={[styles.controlsArea, { paddingBottom: bottom + 20 }]}
-              >
-                <View style={styles.songInfoContainer}>
-                  <View style={styles.titleContainer}>
-                    <MovingText
-                      text={currentSong.title ?? ""}
-                      style={[styles.songTitle, { color: colors.text }]}
-                      animationThreshold={24}
-                      maskColor={colorSchema === "dark" ? "#000000" : "#f0f0f0"}
-                    />
-                    <MovingText
-                      text={currentSong.artist ?? ""}
-                      style={[styles.songArtist, { color: colors.textMuted }]}
-                      animationThreshold={30}
-                      maskColor={colorSchema === "dark" ? "#000000" : "#f0f0f0"}
-                    />
-                  </View>
-
-                  <View style={styles.actionRow}>
-                    <LikeButton />
-                    <TouchableOpacity
-                      onPress={handleShare}
-                      style={styles.circularActionBtn}
-                    >
-                      <Share2 size={22} color={colors.text} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View style={styles.playbackControls}>
-                  <PlayerProgressBar />
-                  <PlayerControls />
-                </View>
-
-                {/* Footer Actions */}
-                <View style={styles.footer}>
+            <GestureDetector gesture={panGesture}>
+              <View style={styles.overlay}>
+                {/* Header */}
+                <View style={[styles.header]}>
                   <TouchableOpacity
-                    onPress={() => {
-                      if (!queueMounted) setQueueMounted(true);
-                      // Small delay to ensure mount completes before present
-                      setTimeout(() => queueSheetRef.current?.present(), 50);
-                    }}
-                    style={[
-                      styles.queueBtn,
-                      { backgroundColor: colors.secondaryBackground },
-                    ]}
+                    onPress={() => router.back()}
+                    style={styles.iconBtn}
                   >
-                    <ListMusic color={colors.text} size={24} />
-                    <ThemedText
-                      style={[styles.queueText, { color: colors.text }]}
-                    >
-                      Up Next
-                    </ThemedText>
+                    <ChevronDown color={colors.text} size={28} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setMenuVisible(true)}
+                    style={styles.iconBtn}
+                  >
+                    <MoreVertical color={colors.text} size={24} />
                   </TouchableOpacity>
                 </View>
+
+                {/* Artwork Area */}
+                <View style={styles.artworkArea}>
+                  <Animated.View
+                    style={[styles.artworkShadow, animatedArtworkStyle]}
+                  >
+                    <Animated.Image
+                      source={{ uri: currentSong.artwork }}
+                      style={styles.artworkImage}
+                    />
+                  </Animated.View>
+                </View>
               </View>
-            </View>
+            </GestureDetector>
+
+            {/* Controls Area */}
+            <Animated.View
+              style={[
+                styles.controlsArea,
+                animatedControlsStyle,
+                { paddingBottom: bottom + 80 },
+              ]}
+            >
+              <View style={styles.songInfoContainer}>
+                <View style={styles.titleContainer}>
+                  <MovingText
+                    text={currentSong.title ?? ""}
+                    style={[styles.songTitle, { color: colors.text }]}
+                    animationThreshold={24}
+                    maskColor={colorSchema === "dark" ? "#000000" : "#f0f0f0"}
+                  />
+                  <MovingText
+                    text={currentSong.artist ?? ""}
+                    style={[styles.songArtist, { color: colors.textMuted }]}
+                    animationThreshold={30}
+                    maskColor={colorSchema === "dark" ? "#000000" : "#f0f0f0"}
+                  />
+                </View>
+
+                <View style={styles.actionRow}>
+                  <LikeButton />
+                  <ShareButton />
+                </View>
+              </View>
+
+              <View style={styles.playbackControls}>
+                <PlayerProgressBar />
+                <PlayerControls />
+              </View>
+            </Animated.View>
           </SafeAreaView>
         </Animated.View>
       </GestureDetector>
 
-      {queueMounted && <QueueSheet ref={queueSheetRef} />}
+      <QueueSheet ref={queueSheetRef} animatedIndex={queueSheetIndex} />
       <MenuModal
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         items={menuItems}
-        title="Playback Options"
+        imageUrl={currentSong?.artwork}
+        title={currentSong?.title}
+        description={currentSong?.artist}
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

@@ -229,6 +229,9 @@ export interface SongRequest {
 export interface AudioPreferenceType {
   downloadFirst: boolean;
   quality: qualites;
+  autoplay: boolean;
+  repeat: "all" | "one" | "none";
+  shuffle: boolean;
 }
 
 export type qualites = "low" | "medium" | "high";

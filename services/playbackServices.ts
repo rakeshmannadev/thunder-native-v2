@@ -4,7 +4,6 @@ import { showToast } from "@/hooks/useToastMessage";
 
 export const playbackService = async () => {
   TrackPlayer.addEventListener(Event.RemotePlay, async () => {
-    showToast("RemotePlay Triggered!");
     try {
       await TrackPlayer.play();
     } catch (e: any) {
@@ -13,7 +12,6 @@ export const playbackService = async () => {
   });
 
   TrackPlayer.addEventListener(Event.RemotePause, async () => {
-    showToast("RemotePause Triggered!");
     try {
       await TrackPlayer.pause();
     } catch (e: any) {
@@ -23,7 +21,6 @@ export const playbackService = async () => {
   });
 
   TrackPlayer.addEventListener(Event.RemotePlayPause, async () => {
-    showToast("RemotePlayPause Triggered!");
     try {
       const state = await TrackPlayer.getPlaybackState();
       if (state.state === State.Playing) {
@@ -37,7 +34,6 @@ export const playbackService = async () => {
   });
 
   TrackPlayer.addEventListener(Event.RemoteStop, async () => {
-    showToast("RemoteStop Triggered!");
     try {
       await TrackPlayer.stop();
     } catch (e: any) {

@@ -30,13 +30,6 @@ const setupPlayer = async () => {
       Capability.SeekTo,
       Capability.Skip,
     ],
-    // @ts-ignore
-    compactCapabilities: [
-      Capability.Play,
-      Capability.Pause,
-      Capability.SkipToNext,
-      Capability.SkipToPrevious,
-    ],
     progressUpdateEventInterval: 2,
     android: {
       appKilledPlaybackBehavior:
