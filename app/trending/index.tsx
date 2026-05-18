@@ -8,7 +8,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, TrendingUp } from "lucide-react-native";
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -224,8 +224,10 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   columnWrapper: {
-    justifyContent: "space-between",
+    flexDirection: "row",
+    justifyContent: "flex-start",
     gap: 16,
+    flexWrap: "wrap",
     marginBottom: 16,
   },
   cardContainer: {

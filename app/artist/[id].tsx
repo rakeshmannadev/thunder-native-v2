@@ -2,8 +2,8 @@ import AlbumItem from "@/components/album/AlbumItem";
 import AlbumCard from "@/components/AlbumCard";
 import PlayButton from "@/components/PlayButton";
 import PlaylistCard from "@/components/PlaylistCard";
-import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import { ThemedText } from "@/components/ThemedText";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
@@ -13,6 +13,7 @@ import usePlayerStore from "@/store/usePlayerStore";
 import { Artist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Radio, Shuffle } from "lucide-react-native";
 import React from "react";
@@ -92,7 +93,9 @@ const ArtistPage = () => {
 
       {/* Immersive Parallax Header */}
       <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
-        {artistImage ? (
+        {isLoading ? (
+          <Skeleton className="w-full h-full bg-background-200" />
+        ) : artistImage ? (
           <Image
             source={{ uri: artistImage }}
             style={styles.headerImage}
@@ -107,22 +110,10 @@ const ArtistPage = () => {
           />
         )}
         <Animated.View style={StyleSheet.absoluteFill}>
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: "rgba(0,0,0,0.2)" },
-            ]}
-          />
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                backgroundColor: "transparent",
-                borderBottomWidth: 100,
-                borderBottomColor: colors.background,
-                opacity: 0.8,
-              },
-            ]}
+          <LinearGradient
+            colors={["rgba(0,0,0,0.15)", "rgba(0,0,0,0.45)", colors.background]}
+            locations={[0, 0.6, 1]}
+            style={StyleSheet.absoluteFill}
           />
         </Animated.View>
       </Animated.View>
@@ -146,46 +137,78 @@ const ArtistPage = () => {
       >
         <View style={styles.content}>
           <Animated.View entering={FadeInDown.delay(200).duration(600)}>
-            <ThemedText style={styles.title}>
-              {currentArtist?.name ??
-                (isLoading ? "Loading Artist..." : "Artist")}
-            </ThemedText>
+            {isLoading ? (
+              <View style={{ gap: 12, marginBottom: 28 }}>
+                <SkeletonText className="w-64 h-12 rounded-xl bg-background-200" />
+                <SkeletonText className="w-48 h-5 rounded-md bg-background-200" />
+              </View>
+            ) : (
+              <>
+                <ThemedText style={styles.title}>
+                  {currentArtist?.name ?? "Artist"}
+                </ThemedText>
 
-            <ThemedText
-              style={[styles.subtitle, { color: "rgba(255,255,255,0.8)" }]}
-            >
-              {isLoading
-                ? "Finding details..."
-                : `${currentArtist?.fan_count || 0} Monthly Listeners • ${currentArtist?.subtitle || ""}`}
-            </ThemedText>
+                <ThemedText
+                  style={[styles.subtitle, { color: "rgba(255,255,255,0.7)" }]}
+                >
+                  {`${
+                    currentArtist?.fan_count
+                      ? new Intl.NumberFormat("en", {
+                          notation: "compact",
+                        }).format(currentArtist.fan_count)
+                      : "0"
+                  } Monthly Listeners • ${currentArtist?.subtitle || "Artist"}`}
+                </ThemedText>
+              </>
+            )}
 
             {/* Action Bar */}
             <View style={styles.actionRow}>
-              <PlayButton
-                handlePlay={handlePlay}
-                title="Play"
-                color={colors.primary}
-              />
+              {isLoading ? (
+                <>
+                  <Skeleton
+                    variant="rounded"
+                    className="flex-1 h-[60px] rounded-full bg-background-200"
+                  />
+                  <Skeleton
+                    variant="circular"
+                    className="w-[60px] h-[60px] rounded-full bg-background-200"
+                  />
+                  <Skeleton
+                    variant="circular"
+                    className="w-[60px] h-[60px] rounded-full bg-background-200"
+                  />
+                </>
+              ) : (
+                <>
+                  <PlayButton
+                    handlePlay={handlePlay}
+                    title="Play"
+                    color={colors.primary}
+                    disabled={isLoading || !currentArtist}
+                  />
 
-              <Pressable
-                onPress={handleShufflePlay}
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: colors.secondaryBackground },
-                ]}
-              >
-                <Shuffle color={colors.text} size={22} />
-              </Pressable>
+                  <Pressable
+                    onPress={handleShufflePlay}
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: colors.secondaryBackground },
+                    ]}
+                  >
+                    <Shuffle color={colors.text} size={22} />
+                  </Pressable>
 
-              <Pressable
-                onPress={() => null}
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: colors.secondaryBackground },
-                ]}
-              >
-                <Radio color={colors.text} size={22} />
-              </Pressable>
+                  <Pressable
+                    onPress={() => null}
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: colors.secondaryBackground },
+                    ]}
+                  >
+                    <Radio color={colors.text} size={22} />
+                  </Pressable>
+                </>
+              )}
             </View>
           </Animated.View>
 
@@ -205,13 +228,9 @@ const ArtistPage = () => {
                 keyExtractor={(item: any, index) =>
                   isLoading ? `skeleton-album-${index}` : item.id.toString()
                 }
-                renderItem={({ item }) =>
-                  isLoading ? (
-                    <SongCardSkeleton />
-                  ) : (
-                    <AlbumCard album={item} isLoading={false} />
-                  )
-                }
+                renderItem={({ item }) => (
+                  <AlbumCard album={item} isLoading={isLoading} />
+                )}
               />
             </Section>
 
@@ -244,7 +263,11 @@ const ArtistPage = () => {
               <View style={styles.verticalList}>
                 {isLoading
                   ? Array.from({ length: 5 }).map((_, i) => (
-                      <SongCardSkeleton key={i} />
+                      <AlbumItem
+                        key={i}
+                        song={undefined as any}
+                        isLoading={true}
+                      />
                     ))
                   : currentArtist?.top_songs?.map((song, index) => (
                       <Animated.View
@@ -330,20 +353,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding.horizontal,
   },
   title: {
-    fontSize: 48,
+    fontSize: 42,
     fontWeight: "900",
     color: "white",
     letterSpacing: -1.5,
-    textShadowColor: "rgba(0, 0, 0, 0.5)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
-    lineHeight: 36,
+    textShadowColor: "rgba(0, 0, 0, 0.6)",
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 12,
+    lineHeight: 48,
   },
   subtitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginTop: 8,
-    marginBottom: 32,
+    fontSize: 14,
+    fontWeight: "600",
+    marginTop: 6,
+    marginBottom: 24,
   },
   actionRow: {
     flexDirection: "row",

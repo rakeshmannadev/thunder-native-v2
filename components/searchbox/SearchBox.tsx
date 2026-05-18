@@ -6,7 +6,7 @@ import React from "react";
 import { useColorScheme, View } from "react-native";
 import { Input, InputField, InputIcon, InputSlot } from "../ui/input";
 
-const SearchBox = () => {
+const SearchBox = React.memo(() => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
@@ -41,6 +41,6 @@ const SearchBox = () => {
       </Input>
     </View>
   );
-};
+});
 
 export default SearchBox;

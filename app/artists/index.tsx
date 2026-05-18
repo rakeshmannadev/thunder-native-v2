@@ -6,7 +6,7 @@ import { TopArtists } from "@/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, User } from "lucide-react-native";
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -62,7 +62,9 @@ const TopArtistsPage = () => {
 
   const renderItem = ({ item, index }: { item: TopArtists; index: number }) => {
     const imageUrl =
-      item?.image?.[2]?.link || item?.image?.[1]?.link || item?.image?.[0]?.link;
+      item?.image?.[2]?.link ||
+      item?.image?.[1]?.link ||
+      item?.image?.[0]?.link;
 
     return (
       <Animated.View
@@ -225,8 +227,10 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   columnWrapper: {
+    flexDirection: "row",
     justifyContent: "flex-start",
     gap: 12,
+    flexWrap: "wrap",
     marginBottom: 20,
   },
   cardContainer: {

@@ -1,9 +1,13 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import useSongOperations from "@/hooks/useSongOperations";
 import { playSong } from "@/hooks/useTrackPlayerActions";
-import { Song } from "@/types";
+import { getPlaylists } from "@/services/userServices";
+import useUserStore from "@/store/useUserStore";
+import { Playlist, Song } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -28,9 +32,16 @@ const PlaylistCard = ({
 }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+  const currentUser = useUserStore((state) => state.currentUser);
 
   const currentSong = useActiveTrack();
   const isPlaying = useIsPlaying();
+
+  const { data: playlists } = useQuery({
+    queryKey: ["user-playlist"],
+    queryFn: () => getPlaylists(),
+    enabled: !!currentUser,
+  });
 
   const { saveRecentlyPlayedMutation } = useSongOperations();
 
@@ -59,16 +70,35 @@ const PlaylistCard = ({
           data: [song],
         },
         {
-          key: "add_to_playlist",
+          key: "playlists",
           label: "Add to Playlist",
           icon: "playlist",
           data: song,
+          submenu:
+            playlists &&
+            playlists?.map((playlist: Playlist) => ({
+              key: "add_to_playlist",
+              label: playlist.playlistName,
+              imageUrl: playlist.imageUrl,
+
+              icon: "playlist",
+              data: { song, playlist },
+            })),
         },
         {
-          key: "go_to_artist",
-          label: "Go to Artist",
+          key: "artists",
+          label: "Go to artist",
           icon: "artist",
-          data: song.artist_map?.primary_artists?.[0].id,
+
+          submenu: song?.artist_map?.primary_artists?.map((artist) => {
+            return {
+              key: "go_to_artist",
+              label: artist.name,
+              icon: "artist",
+              data: artist.id,
+              imageUrl: resolveImage(artist.image),
+            };
+          }),
         },
         {
           key: "go_to_album",

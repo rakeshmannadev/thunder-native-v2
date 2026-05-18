@@ -5,7 +5,6 @@ import FeaturedCard from "@/components/featured/FeaturedCard";
 import RecentlyPlayedCard from "@/components/RecentlyPlayedCard";
 import SearchBox from "@/components/searchbox/SearchBox";
 import ShowCard from "@/components/ShowCard";
-import SongCardSkeleton from "@/components/skeleton/SongCardSkeleton";
 import SongCard from "@/components/SongCard";
 import { ThemedText } from "@/components/ThemedText";
 import TopArtistCard from "@/components/TopArtist/TopArtistCard";
@@ -26,7 +25,7 @@ import useUserStore from "@/store/useUserStore";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { ArrowRight, Bell, Settings } from "lucide-react-native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -52,7 +51,22 @@ export default function HomeScreen() {
   const { selectedCategory } = usePlayerStore();
   const { top } = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
+  // Stabilize random page numbers so they persist across re-renders
+  // but change when user explicitly pulls to refresh
+  const randomPages = useMemo(
+    () => ({
+      trending: getRandomIndex(),
+      featured: getRandomIndex(),
+      topArtists: getRandomIndex(),
+      topAlbums: getRandomIndex(),
+      charts: getRandomIndex(),
+      shows: getRandomIndex(),
+    }),
+    [refreshKey]
+  );
 
   // Queries
   const {
@@ -61,7 +75,8 @@ export default function HomeScreen() {
     refetch: refetchTrending,
   } = useQuery({
     queryKey: ["trending"],
-    queryFn: () => getTrendingSongs({ page: getRandomIndex(), limit: 10 }),
+    queryFn: () => getTrendingSongs({ page: randomPages.trending, limit: 10 }),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
   const {
     data: featuredRes,
@@ -69,7 +84,8 @@ export default function HomeScreen() {
     refetch: refetchFeatured,
   } = useQuery({
     queryKey: ["featured"],
-    queryFn: () => getFeaturedSongs({ page: getRandomIndex(), limit: 10 }),
+    queryFn: () => getFeaturedSongs({ page: randomPages.featured, limit: 10 }),
+    staleTime: 5 * 60 * 1000,
   });
   const {
     data: topArtistsRes,
@@ -77,7 +93,8 @@ export default function HomeScreen() {
     refetch: refetchTopArtists,
   } = useQuery({
     queryKey: ["topArtists"],
-    queryFn: () => getTopArtists({ limit: 10, page: getRandomIndex() }),
+    queryFn: () => getTopArtists({ limit: 10, page: randomPages.topArtists }),
+    staleTime: 5 * 60 * 1000,
   });
   const {
     data: topAlbumsRes,
@@ -85,7 +102,8 @@ export default function HomeScreen() {
     refetch: refetchTopAlbums,
   } = useQuery({
     queryKey: ["topAlbums"],
-    queryFn: () => getTopAlbums({ limit: 10, page: getRandomIndex() }),
+    queryFn: () => getTopAlbums({ limit: 10, page: randomPages.topAlbums }),
+    staleTime: 5 * 60 * 1000,
   });
   const {
     data: chartsRes,
@@ -93,8 +111,9 @@ export default function HomeScreen() {
     refetch: refetchCharts,
   } = useQuery({
     queryKey: ["charts"],
-    queryFn: () => getCharts({ page: getRandomIndex(), limit: 10 }),
+    queryFn: () => getCharts({ page: randomPages.charts, limit: 10 }),
     enabled: selectedCategory === "charts",
+    staleTime: 5 * 60 * 1000,
   });
   const {
     data: showsRes,
@@ -102,8 +121,9 @@ export default function HomeScreen() {
     refetch: refetchShows,
   } = useQuery({
     queryKey: ["shows"],
-    queryFn: () => getShows({ page: getRandomIndex(), limit: 10 }),
+    queryFn: () => getShows({ page: randomPages.shows, limit: 10 }),
     enabled: selectedCategory === "shows",
+    staleTime: 5 * 60 * 1000,
   });
 
   useQuery({
@@ -127,6 +147,8 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    // Bump refreshKey to regenerate random page numbers
+    setRefreshKey((prev) => prev + 1);
     if (selectedCategory === "charts") await refetchCharts();
     else if (selectedCategory === "shows") await refetchShows();
     else {
@@ -148,12 +170,12 @@ export default function HomeScreen() {
     refetchShows,
   ]);
 
-  const getGreeting = () => {
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
     if (hour < 18) return "Good Afternoon";
     return "Good Evening";
-  };
+  }, []);
 
   const renderHeader = useCallback(
     () => (
@@ -161,7 +183,7 @@ export default function HomeScreen() {
         <View style={styles.headerTop}>
           <View>
             <ThemedText style={[styles.greeting, { color: colors.textMuted }]}>
-              {getGreeting()}
+              {greeting}
             </ThemedText>
             <ThemedText style={styles.userName}>
               {currentUser?.name || "Music Lover"}
@@ -313,7 +335,7 @@ export default function HomeScreen() {
               }
             : undefined
         }
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={renderHeader}
         refreshControl={
@@ -333,30 +355,22 @@ export default function HomeScreen() {
 const SectionItem = React.memo(({ item, index, colors }: any) => {
   const renderInnerItem = useCallback(
     ({ item: subItem, index: subIndex }: any) => {
-      if (item.isLoading) {
-        return (
-          <View style={styles.cardWrapper}>
-            <SongCardSkeleton />
-          </View>
-        );
-      }
-
       let content = null;
       switch (item.type) {
         case "recentlyPlayed":
-          content = <RecentlyPlayedCard song={subItem} isLoading={false} />;
+          content = <RecentlyPlayedCard song={subItem} isLoading={item.isLoading} />;
           break;
         case "featured":
-          content = <FeaturedCard featured={subItem} isLoading={false} />;
+          content = <FeaturedCard featured={subItem} isLoading={item.isLoading} />;
           break;
         case "trending":
-          content = <SongCard song={subItem} isLoading={false} />;
+          content = <SongCard song={subItem} isLoading={item.isLoading} />;
           break;
         case "artists":
-          content = <TopArtistCard artist={subItem} isLoading={false} />;
+          content = <TopArtistCard artist={subItem} isLoading={item.isLoading} />;
           break;
         case "albums":
-          content = <TopAlbumsCard album={subItem} isLoading={false} />;
+          content = <TopAlbumsCard album={subItem} isLoading={item.isLoading} />;
           break;
       }
 
@@ -372,7 +386,7 @@ const SectionItem = React.memo(({ item, index, colors }: any) => {
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 100).duration(600)}
+      entering={FadeInDown.duration(400)}
       style={styles.sectionContainer}
     >
       <View style={styles.sectionHeader}>
@@ -406,6 +420,9 @@ const SectionItem = React.memo(({ item, index, colors }: any) => {
 });
 
 const styles = StyleSheet.create({
+  listContent: {
+    paddingBottom: 120,
+  },
   container: {
     flex: 1,
   },

@@ -250,13 +250,13 @@ const PlayerScreen = React.memo(() => {
                     text={currentSong.title ?? ""}
                     style={[styles.songTitle, { color: colors.text }]}
                     animationThreshold={24}
-                    maskColor={colorSchema === "dark" ? "#000000" : "#f0f0f0"}
+                    maskColor={colorSchema === "dark" ? "#121212" : "#f0f0f0"}
                   />
                   <MovingText
                     text={currentSong.artist ?? ""}
                     style={[styles.songArtist, { color: colors.textMuted }]}
                     animationThreshold={30}
-                    maskColor={colorSchema === "dark" ? "#000000" : "#f0f0f0"}
+                    maskColor={colorSchema === "dark" ? "#121212" : "#f0f0f0"}
                   />
                 </View>
 
@@ -333,6 +333,7 @@ const styles = StyleSheet.create({
   },
   controlsArea: {
     marginTop: "auto",
+    paddingHorizontal: screenPadding.horizontal,
   },
   songInfoContainer: {
     flexDirection: "row",

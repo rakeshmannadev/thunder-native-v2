@@ -3,7 +3,7 @@ import { borderRadius, fontSize } from "@/constants/tokens";
 import { playSong } from "@/hooks/useTrackPlayerActions";
 import { Song } from "@/types";
 import { LucidePlayCircle } from "lucide-react-native";
-import React from "react";
+import React, { useCallback } from "react";
 import {
   Image,
   StyleSheet,
@@ -12,8 +12,9 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { Skeleton, SkeletonText } from "./ui/skeleton";
 
-const RecentlyPlayedCard = ({
+const RecentlyPlayedCard = React.memo(({
   song,
   isLoading,
 }: {
@@ -23,10 +24,42 @@ const RecentlyPlayedCard = ({
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
+  const handlePress = useCallback(async () => {
+    if (song) {
+      await playSong(song);
+    }
+  }, [song]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.borderColor,
+            },
+          ]}
+        >
+          <Skeleton variant="rounded" className="w-[50px] h-[50px] rounded-md bg-background-200" />
+          <View style={styles.content}>
+            <SkeletonText className="w-28 h-4 mb-2 bg-background-200" />
+            <SkeletonText className="w-16 h-3 mb-2 bg-background-200" />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
+              <Skeleton variant="circular" className="w-[14px] h-[14px] bg-background-200" />
+              <SkeletonText className="w-24 h-3 bg-background-200" />
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      onPress={async () => await playSong(song)}
+      onPress={handlePress}
       style={styles.container}
     >
       <View
@@ -67,7 +100,7 @@ const RecentlyPlayedCard = ({
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

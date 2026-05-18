@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 
-const Categories = () => {
+const Categories = React.memo(() => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const { selectedCategory, setSelectedCategory } = usePlayerStore();
@@ -57,6 +57,6 @@ const Categories = () => {
       </ScrollView>
     </View>
   );
-};
+});
 
 export default Categories;

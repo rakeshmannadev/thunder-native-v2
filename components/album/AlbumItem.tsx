@@ -2,6 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
 import { QUALITY_MAP } from "@/helpers/audioQualityMap";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import { getPlaylists } from "@/services/userServices";
 import usePlayerStore from "@/store/usePlayerStore";
 import useUserStore from "@/store/useUserStore";
@@ -33,7 +34,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
   const isPlaying = useIsPlaying();
   const { audioPreference } = usePlayerStore();
 
-  const isActive = currentSong?.id == song.id;
+  const isActive = !isLoading && currentSong?.id == song?.id;
   const [menuVisible, setMenuVisible] = useState(false);
   const currentUser = useUserStore((state) => state.currentUser);
 
@@ -46,6 +47,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
   });
 
   const playTrack = async (song: Song) => {
+    if (!song) return;
     await TrackPlayer.load({
       id: song.id,
       title: song.name,
@@ -91,10 +93,19 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
             })),
         },
         {
-          key: "go_to_artist",
-          label: "Go to Artist",
+          key: "artists",
+          label: "Go to artist",
           icon: "artist",
-          data: song.artist_map?.primary_artists?.[0].id,
+
+          submenu: song.artist_map?.primary_artists.map((artist) => {
+            return {
+              key: "go_to_artist",
+              label: artist.name,
+              icon: "artist",
+              data: artist.id,
+              imageUrl: resolveImage(artist.image),
+            };
+          }),
         },
         {
           key: "go_to_album",
@@ -192,14 +203,16 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
         <EllipsisVerticalIcon size={20} color={colors.icon} />
       </Pressable>
 
-      <MenuModal
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        items={menuItems}
-        imageUrl={song.image[song.image.length - 1].link}
-        title={song.name}
-        description={song.subtitle}
-      />
+      {!isLoading && song && (
+        <MenuModal
+          visible={menuVisible}
+          onClose={() => setMenuVisible(false)}
+          items={menuItems}
+          imageUrl={song?.image?.[song.image.length - 1]?.link || ""}
+          title={song?.name || ""}
+          description={song?.subtitle || ""}
+        />
+      )}
     </TouchableOpacity>
   );
 };

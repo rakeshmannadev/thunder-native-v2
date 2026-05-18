@@ -16,7 +16,6 @@ const ChartCard = React.memo(({ chart, isLoading }: ChartCardProps) => {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  console.log("loading: ", isLoading);
   return (
     <Pressable
       onPress={() =>

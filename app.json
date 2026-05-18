@@ -9,12 +9,27 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
+      "associatedDomains": ["applinks:thunder-backend-ye33.onrender.com"],
       "infoPlist": {
         "UIBackgroundModes": ["audio"]
       }
     },
     "android": {
       "softwareKeyboardLayoutMode": "resize",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "thunder-backend-ye33.onrender.com",
+              "pathPrefix": "/api/v1/songs/s"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "permissions": [
         "WAKE_LOCK",
         "FOREGROUND_SERVICE",

@@ -7,16 +7,22 @@ const PlayButton = ({
   color,
   handlePlay,
   title,
+  disabled,
 }: {
   color: string;
   handlePlay: () => void;
   title: string;
+  disabled?: boolean;
 }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={handlePlay}
-      style={[styles.playButton, { backgroundColor: color }]}
+      disabled={disabled}
+      style={[
+        styles.playButton,
+        { backgroundColor: color, opacity: disabled ? 0.5 : 1 },
+      ]}
     >
       <MaterialCommunityIcons name="play" size={24} color="white" />
       <ThemedText style={styles.playButtonText}>{title}</ThemedText>

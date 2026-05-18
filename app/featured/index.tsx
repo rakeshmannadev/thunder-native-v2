@@ -220,8 +220,10 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   columnWrapper: {
-    justifyContent: "space-between",
+    flexDirection: "row",
+    justifyContent: "flex-start",
     gap: 16,
+    flexWrap: "wrap",
     marginBottom: 16,
   },
   cardContainer: {
