@@ -23,9 +23,7 @@ import useUserStore from "@/store/useUserStore";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import {
-  SafeAreaProvider,
-} from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import TrackPlayer from "react-native-track-player";
 
 SplashScreen.preventAutoHideAsync();
@@ -232,6 +230,14 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="albums/index"
+                    options={{
+                      headerShown: true,
+                      headerTitle: "",
+                      headerTransparent: true,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="downloads/index"
                     options={{
                       headerShown: true,
                       headerTitle: "",

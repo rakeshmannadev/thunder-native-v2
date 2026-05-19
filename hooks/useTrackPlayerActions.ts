@@ -1,5 +1,15 @@
+import useDownloadStore from "@/store/useDownloadStore";
 import { Song } from "@/types";
 import TrackPlayer from "react-native-track-player";
+
+const getPlayableUrl = (song: Song) => {
+  const downloadedSongs = useDownloadStore.getState().downloadedSongs;
+  const downloaded = downloadedSongs[song.id];
+  if (downloaded && downloaded.localUri) {
+    return downloaded.localUri;
+  }
+  return song.download_url[song.download_url.length - 1].link;
+};
 
 const playAlbum = async (songs: Song[], index: number) => {
   await TrackPlayer.reset();
@@ -9,7 +19,7 @@ const playAlbum = async (songs: Song[], index: number) => {
       title: song.name,
       artist: song.subtitle || "unknown",
       artwork: song.image[song.image.length - 1].link,
-      url: song.download_url[song.download_url.length - 1].link,
+      url: getPlayableUrl(song),
       album: song.album,
       album_id: song.album_id,
       duration: song.duration,
@@ -30,7 +40,7 @@ const playSong = async (song: Song) => {
     title: song.name,
     artist: song.subtitle,
     artwork: song.image[song.image.length - 1].link,
-    url: song.download_url[song.download_url.length - 1].link,
+    url: getPlayableUrl(song),
     album: song.album,
     album_id: song.album_id,
     duration: song.duration,
@@ -47,7 +57,7 @@ const addSongToQueue = async (song: Song) => {
     title: song.name,
     artist: song.subtitle,
     artwork: song.image[song.image.length - 1].link,
-    url: song.download_url[song.download_url.length - 1].link,
+    url: getPlayableUrl(song),
     album: song.album,
     album_id: song.album_id,
     duration: song.duration,
@@ -65,7 +75,7 @@ const playNext = async (song: Song) => {
         title: song.name,
         artist: song.subtitle,
         artwork: song.image[song.image.length - 1].link,
-        url: song.download_url[song.download_url.length - 1].link,
+        url: getPlayableUrl(song),
         album: song.album,
         album_id: song.album_id,
         duration: song.duration,

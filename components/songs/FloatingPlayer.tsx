@@ -205,10 +205,11 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
 
             {/* Controls — standalone, no navigation */}
             <View style={styles.controlsContainer}>
-              <PlayPauseButton iconSize={fontSize.lg} />
+              <PlayPauseButton iconSize={fontSize.lg} color={colors.text} />
               <SkipToNextButton
                 iconSize={fontSize.lg}
                 handlePress={handlePlayNext}
+                color={colors.text}
               />
             </View>
           </View>

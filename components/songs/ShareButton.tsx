@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useActiveTrack } from "react-native-track-player";
 
-const ShareButton = () => {
+const ShareButton = React.memo(() => {
   const currentSong = useActiveTrack();
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
@@ -43,7 +43,7 @@ const ShareButton = () => {
       <Share2 size={22} color={colors.text} />
     </TouchableOpacity>
   );
-};
+});
 
 export default ShareButton;
 const styles = StyleSheet.create({

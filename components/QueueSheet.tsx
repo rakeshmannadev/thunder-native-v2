@@ -29,7 +29,7 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import TrackPlayer, { Track, useActiveTrack } from "react-native-track-player";
+import TrackPlayer, { Event, Track, useActiveTrack, useTrackPlayerEvents } from "react-native-track-player";
 
 import MenuModal, { MenuItem } from "@/components/MenuModal";
 import MusicVisualizer from "@/components/songs/MusicVisualizer";
@@ -210,8 +210,21 @@ const QueueSheetComponent = forwardRef<BottomSheet, QueueSheetProps>(
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const activeTrack = useActiveTrack();
 
-    useEffect(() => {
+    const refreshQueue = useCallback(() => {
       TrackPlayer.getQueue().then(setQueue);
+    }, []);
+
+    useEffect(() => {
+      refreshQueue();
+    }, [refreshQueue]);
+
+    useTrackPlayerEvents(
+      [Event.PlaybackActiveTrackChanged, Event.PlaybackQueueEnded],
+      refreshQueue
+    );
+
+    const handlePlay = useCallback((index: number) => {
+      TrackPlayer.skip(index);
     }, []);
 
     const CustomHandle = useCallback(() => {
@@ -224,7 +237,7 @@ const QueueSheetComponent = forwardRef<BottomSheet, QueueSheetProps>(
           item={item}
           index={index}
           isActive={activeTrack?.id === item.id}
-          onPlay={(i) => TrackPlayer.skip(i)}
+          onPlay={handlePlay}
           onMenu={(song) => {
             setMenuItems([
               {

@@ -8,12 +8,23 @@ import ShareButton from "@/components/songs/ShareButton";
 import { MovingText } from "@/components/songs/useMovingText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
+import { resolveImage } from "@/helpers/resolverImageUrl";
+import { getPlaylists } from "@/services/userServices";
+import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
+import { Artist, Playlist } from "@/types";
 import BottomSheet from "@gorhom/bottom-sheet";
+import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ChevronDown, MoreVertical } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -27,6 +38,7 @@ import Animated, {
   Easing,
   Extrapolation,
   interpolate,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -47,12 +59,32 @@ const EXPAND_SPRING = { damping: 26, stiffness: 240, mass: 0.8 };
 const PlayerScreen = React.memo(() => {
   const router = useRouter();
   const queueSheetRef = useRef<BottomSheet>(null);
-  const colorSchema = useColorScheme();
-  const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const currentSong = useActiveTrack();
   const { bottom } = useSafeAreaInsets();
   const [menuVisible, setMenuVisible] = useState(false);
   const queueSheetIndex = useSharedValue(0);
+  const currentUser = useUserStore((state) => state.currentUser);
+
+  const handleBack = useCallback(() => router.back(), [router]);
+  const handleCloseMenu = useCallback(() => setMenuVisible(false), []);
+  const handleOpenMenu = useCallback(() => setMenuVisible(true), []);
+
+  const gradientColors = useMemo(
+    () =>
+      colorScheme === "dark"
+        ? (["#1a1a1a", "#000000"] as const)
+        : (["#ffffff", "#f0f0f0"] as const),
+    [colorScheme]
+  );
+
+  // query
+  const { data: playlists } = useQuery({
+    queryKey: ["user-playlist"],
+    queryFn: () => getPlaylists(),
+    enabled: !!currentUser,
+  });
 
   const menuItems: MenuItem[] = useMemo(
     () =>
@@ -65,20 +97,47 @@ const PlayerScreen = React.memo(() => {
               data: currentSong.album_id,
             },
             {
-              key: "go_to_artist",
+              key: "artists",
               label: "Go to artist",
               icon: "artist",
-              data: currentSong?.artist_map?.primary_artists?.[0]?.id,
+
+              submenu: currentSong.artist_map?.primary_artists?.map(
+                (artist: Artist) => {
+                  return {
+                    key: "go_to_artist",
+                    label: artist.name,
+                    icon: "artist",
+                    data: artist.id,
+                    imageUrl: resolveImage(artist.image),
+                  };
+                }
+              ),
             },
             {
-              key: "save_to_playlist",
-              label: "Save to playlist",
+              key: "playlists",
+              label: "Add to Playlist",
               icon: "playlist",
-              data: currentSong.id,
+              data: currentSong,
+              submenu:
+                playlists &&
+                playlists?.map((playlist: Playlist) => ({
+                  key: "add_to_playlist",
+                  label: playlist.playlistName,
+                  imageUrl: playlist.imageUrl,
+
+                  icon: "playlist",
+                  data: { song: currentSong, playlist },
+                })),
+            },
+            {
+              key: "download",
+              label: "Download",
+              icon: "download",
+              data: currentSong,
             },
           ]
         : [],
-    [currentSong]
+    [currentSong, playlists]
   );
 
   // ── Animations ───────────────────────────────────────
@@ -94,17 +153,31 @@ const PlayerScreen = React.memo(() => {
     artworkOpacity.value = withTiming(1, { duration: 600 });
   }, [currentSong?.id]);
 
+  // Track whether the queue sheet is collapsed — updated reactively on the UI thread
+  const isPanEnabled = useSharedValue(true);
+  useAnimatedReaction(
+    () => queueSheetIndex.value <= 0.01,
+    (enabled) => {
+      isPanEnabled.value = enabled;
+    }
+  );
+
   const panGesture = Gesture.Pan()
     .activeOffsetY(10)
     .failOffsetY(-5)
-    .enabled(queueSheetIndex.value <= 0.01) // Only allow dismissal when queue is collapsed
     .onStart(() => {
+      if (!isPanEnabled.value) return;
       startY.value = translateY.value;
     })
     .onUpdate((e) => {
+      if (!isPanEnabled.value) return;
       translateY.value = Math.max(0, startY.value + e.translationY);
     })
     .onEnd((e) => {
+      if (!isPanEnabled.value) {
+        translateY.value = withSpring(0, EXPAND_SPRING);
+        return;
+      }
       if (e.velocityY > 1000 || translateY.value > DISMISS_THRESHOLD) {
         translateY.value = withTiming(
           SCREEN_HEIGHT,
@@ -194,47 +267,38 @@ const PlayerScreen = React.memo(() => {
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.container, animatedContainerStyle]}>
           <LinearGradient
-            colors={
-              colorSchema === "dark"
-                ? ["#1a1a1a", "#000000"]
-                : ["#ffffff", "#f0f0f0"]
-            }
+            colors={gradientColors}
             style={StyleSheet.absoluteFill}
           />
           <GradientBackground imageUrl={currentSong?.artwork} />
 
           <SafeAreaView style={{ flex: 1 }}>
-            <GestureDetector gesture={panGesture}>
-              <View style={styles.overlay}>
-                {/* Header */}
-                <View style={[styles.header]}>
-                  <TouchableOpacity
-                    onPress={() => router.back()}
-                    style={styles.iconBtn}
-                  >
-                    <ChevronDown color={colors.text} size={28} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => setMenuVisible(true)}
-                    style={styles.iconBtn}
-                  >
-                    <MoreVertical color={colors.text} size={24} />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Artwork Area */}
-                <View style={styles.artworkArea}>
-                  <Animated.View
-                    style={[styles.artworkShadow, animatedArtworkStyle]}
-                  >
-                    <Animated.Image
-                      source={{ uri: currentSong.artwork }}
-                      style={styles.artworkImage}
-                    />
-                  </Animated.View>
-                </View>
+            <View style={styles.overlay}>
+              {/* Header */}
+              <View style={styles.header}>
+                <TouchableOpacity onPress={handleBack} style={styles.iconBtn}>
+                  <ChevronDown color={colors.text} size={28} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleOpenMenu}
+                  style={styles.iconBtn}
+                >
+                  <MoreVertical color={colors.text} size={24} />
+                </TouchableOpacity>
               </View>
-            </GestureDetector>
+
+              {/* Artwork Area */}
+              <View style={styles.artworkArea}>
+                <Animated.View
+                  style={[styles.artworkShadow, animatedArtworkStyle]}
+                >
+                  <Animated.Image
+                    source={{ uri: currentSong.artwork }}
+                    style={styles.artworkImage}
+                  />
+                </Animated.View>
+              </View>
+            </View>
 
             {/* Controls Area */}
             <Animated.View
@@ -250,13 +314,13 @@ const PlayerScreen = React.memo(() => {
                     text={currentSong.title ?? ""}
                     style={[styles.songTitle, { color: colors.text }]}
                     animationThreshold={24}
-                    maskColor={colorSchema === "dark" ? "#121212" : "#f0f0f0"}
+                    maskColor={colorScheme === "dark" ? "#121212" : "#f0f0f0"}
                   />
                   <MovingText
                     text={currentSong.artist ?? ""}
                     style={[styles.songArtist, { color: colors.textMuted }]}
                     animationThreshold={30}
-                    maskColor={colorSchema === "dark" ? "#121212" : "#f0f0f0"}
+                    maskColor={colorScheme === "dark" ? "#121212" : "#f0f0f0"}
                   />
                 </View>
 
@@ -278,7 +342,7 @@ const PlayerScreen = React.memo(() => {
       <QueueSheet ref={queueSheetRef} animatedIndex={queueSheetIndex} />
       <MenuModal
         visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
+        onClose={handleCloseMenu}
         items={menuItems}
         imageUrl={currentSong?.artwork}
         title={currentSong?.title}

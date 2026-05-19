@@ -339,3 +339,14 @@ interface PrimaryArtist {
   type: string;
   image: Image[];
 }
+
+export interface DownloadedSong {
+  title: string;
+  artist: string;
+  artwork: string;
+  id: string;
+  url: string;
+  duration: number;
+  localUri: string;
+  downloadedAt: number;
+}

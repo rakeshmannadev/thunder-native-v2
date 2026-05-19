@@ -8,6 +8,7 @@ import { Appearance } from "react-native";
 import useSongOperations from "./useSongOperations";
 import { showToast } from "./useToastMessage";
 import { addSongToQueue, playNext } from "./useTrackPlayerActions";
+import useDownloadSong from "./useDownloadSong";
 
 const useMenuActions = () => {
   const router = useRouter();
@@ -18,6 +19,7 @@ const useMenuActions = () => {
   const { currentUser } = useUserStore();
   const { currentRoom, leaveJoinedRoom } = useRoomStore();
   const { addToPlaylistMutation } = useSongOperations();
+  const { downloadSong, deleteDownload } = useDownloadSong();
 
   const handleMenuActions = async (action: string, params?: number | any) => {
     switch (action) {
@@ -96,6 +98,16 @@ const useMenuActions = () => {
         break;
       case "request_song":
         router.push("/search");
+        break;
+      case "download":
+        if (params) {
+          downloadSong(params);
+        }
+        break;
+      case "delete_download":
+        if (params) {
+          deleteDownload(params);
+        }
         break;
 
       default:

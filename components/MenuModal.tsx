@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { ICON_MAPS } from "@/constants/Icons";
+import { resolveImage } from "@/helpers/resolverImageUrl";
 import useMenuActions from "@/hooks/useMenuActions";
 import {
   BottomSheetBackdrop,
@@ -8,7 +9,7 @@ import {
   type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react-native";
+import { ChevronLeftIcon, ChevronRightIcon, Plus } from "lucide-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -19,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CreatePlaylistModal from "./playlist/CreatePlaylistModal";
 
 export interface MenuItem {
   key: string;
@@ -52,6 +54,8 @@ const MenuModal = ({
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const { handleMenuActions } = useMenuActions();
   const { bottom } = useSafeAreaInsets();
+
+  const [isCreateModalVisible, setCreateModalVisible] = useState(false);
 
   // Submenu state
   const [activeSubmenu, setActiveSubmenu] = useState<MenuItem[] | null>(null);
@@ -144,7 +148,10 @@ const MenuModal = ({
           }}
         >
           {item.imageUrl ? (
-            <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
+            <Image
+              source={{ uri: resolveImage(item.imageUrl) }}
+              style={styles.itemImage}
+            />
           ) : (
             Icon && (
               <View
@@ -201,100 +208,122 @@ const MenuModal = ({
   });
 
   return (
-    <BottomSheetModal
-      ref={bottomSheetRef}
-      onChange={handleSheetChanges}
-      enableDynamicSizing={true}
-      backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: colors.component }}
-      handleIndicatorStyle={{
-        backgroundColor: colors.text,
-        opacity: 0.2,
-        width: 40,
-      }}
-    >
-      <BottomSheetView
-        style={[styles.contentContainer, { paddingBottom: bottom || 20 }]}
+    <>
+      <BottomSheetModal
+        ref={bottomSheetRef}
+        onChange={handleSheetChanges}
+        enableDynamicSizing={true}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={{ backgroundColor: colors.component }}
+        handleIndicatorStyle={{
+          backgroundColor: colors.text,
+          opacity: 0.2,
+          width: 40,
+        }}
       >
-        {/* Main menu */}
-        <Animated.View
-          style={{
-            transform: [{ translateX: mainTranslateX }],
-            opacity: mainOpacity,
-            display: activeSubmenu ? "flex" : "flex",
-          }}
-          pointerEvents={activeSubmenu ? "none" : "auto"}
+        <BottomSheetView
+          style={[styles.contentContainer, { paddingBottom: bottom || 20 }]}
         >
-          {imageUrl ? (
-            <View style={styles.songInfoHeader}>
-              <Image source={{ uri: imageUrl }} style={styles.songImage} />
-              <View style={styles.songInfoText}>
-                <Text
-                  style={[styles.songTitle, { color: colors.text }]}
-                  numberOfLines={1}
-                >
-                  {title}
-                </Text>
-                {description ? (
+          {/* Main menu */}
+          <Animated.View
+            style={{
+              transform: [{ translateX: mainTranslateX }],
+              opacity: mainOpacity,
+              display: activeSubmenu ? "flex" : "flex",
+            }}
+            pointerEvents={activeSubmenu ? "none" : "auto"}
+          >
+            {imageUrl ? (
+              <View style={styles.songInfoHeader}>
+                <Image
+                  source={{ uri: resolveImage(imageUrl) }}
+                  style={styles.songImage}
+                />
+                <View style={styles.songInfoText}>
                   <Text
-                    style={[
-                      styles.songDescription,
-                      { color: colors.textMuted },
-                    ]}
+                    style={[styles.songTitle, { color: colors.text }]}
                     numberOfLines={1}
                   >
-                    {description}
+                    {title}
                   </Text>
-                ) : null}
+                  {description ? (
+                    <Text
+                      style={[
+                        styles.songDescription,
+                        { color: colors.textMuted },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {description}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
-            </View>
-          ) : (
-            <View style={styles.header}>
-              <Text style={[styles.title, { color: colors.text }]}>
-                {title}
-              </Text>
-            </View>
-          )}
-          <View style={styles.itemsContainer}>
-            {renderMenuItems(items, false)}
-          </View>
-        </Animated.View>
-
-        {/* Submenu overlay */}
-        {activeSubmenu && (
-          <Animated.View
-            style={[
-              styles.submenuOverlay,
-              {
-                transform: [{ translateX: submenuTranslateX }],
-                opacity: submenuOpacity,
-              },
-            ]}
-          >
-            <View style={styles.header}>
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={closeSubmenu}
-                activeOpacity={0.7}
-              >
-                <ChevronLeftIcon size={22} color={colors.text} />
-                <Text style={[styles.backText, { color: colors.text }]}>
-                  Back
+            ) : (
+              <View style={styles.header}>
+                <Text style={[styles.title, { color: colors.text }]}>
+                  {title}
                 </Text>
-              </TouchableOpacity>
-              <Text style={[styles.title, { color: colors.text }]}>
-                {submenuTitle}
-              </Text>
-              {/* Spacer to center the title */}
-              <View style={styles.backButton} />
-            </View>
-            <View style={styles.itemsContainer}>
-              {renderMenuItems(activeSubmenu, true)}
-            </View>
+              </View>
+            )}
+
+            {renderMenuItems(items, false)}
           </Animated.View>
-        )}
-      </BottomSheetView>
-    </BottomSheetModal>
+
+          {/* Submenu overlay */}
+          {activeSubmenu && (
+            <Animated.View
+              style={[
+                styles.submenuOverlay,
+                {
+                  transform: [{ translateX: submenuTranslateX }],
+                  opacity: submenuOpacity,
+                },
+              ]}
+            >
+              <View style={styles.header}>
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={closeSubmenu}
+                  activeOpacity={0.7}
+                >
+                  <ChevronLeftIcon size={22} color={colors.text} />
+                  <Text style={[styles.backText, { color: colors.text }]}>
+                    Back
+                  </Text>
+                </TouchableOpacity>
+                <Text style={[styles.title, { color: colors.text }]}>
+                  {submenuTitle}
+                </Text>
+                {/* Spacer to center the title */}
+                {submenuTitle === "Add to Playlist" ? (
+                  <TouchableOpacity
+                    style={[styles.backButton, { justifyContent: "flex-end" }]}
+                    onPress={() => {
+                      onClose();
+                      setTimeout(() => {
+                        setCreateModalVisible(true);
+                      }, 300);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Plus size={22} color={colors.text} />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.backButton} />
+                )}
+              </View>
+
+              {renderMenuItems(activeSubmenu, true)}
+            </Animated.View>
+          )}
+        </BottomSheetView>
+      </BottomSheetModal>
+      <CreatePlaylistModal
+        visible={isCreateModalVisible}
+        onClose={() => setCreateModalVisible(false)}
+      />
+    </>
   );
 };
 

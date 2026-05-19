@@ -82,16 +82,14 @@ export const PlayPauseButton = React.memo(({
   color,
 }: PlayerButtonProps) => {
   const { playing } = useIsPlaying();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     if (playing) {
       TrackPlayer.pause();
     } else {
       TrackPlayer.play();
     }
-  };
+  }, [playing]);
 
   return (
     <View style={[{ height: iconSize }, style]}>
@@ -99,32 +97,26 @@ export const PlayPauseButton = React.memo(({
         <Ionicons
           name={playing ? "pause-circle" : "play-circle"}
           size={iconSize}
-          color={color ?? colors.text}
+          color={color}
         />
       </TouchableOpacity>
     </View>
   );
 });
 
-export const SkipToNextButton = React.memo(({
-  iconSize = 30,
-  handlePress,
-  style,
-  color,
-}: PlayerButtonProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
+export const SkipToNextButton = React.memo((
+  { iconSize = 30, handlePress, style, color }: PlayerButtonProps
+) => {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={handlePress}
-      style={style} // Pass style
+      style={style}
     >
       <MaterialCommunityIcons
         name="skip-next"
         size={iconSize}
-        color={color ?? colors.text}
+        color={color}
       />
     </TouchableOpacity>
   );
@@ -135,19 +127,16 @@ export const SkipToPreviousButton = React.memo(({
   style,
   color,
 }: PlayerButtonProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={handlePress}
-      style={style} // Pass style
+      style={style}
     >
       <MaterialCommunityIcons
         name="skip-previous"
         size={iconSize}
-        color={color ?? colors.text}
+        color={color}
       />
     </TouchableOpacity>
   );
@@ -161,19 +150,15 @@ const repeatOrder = [
   RepeatMode.Queue,
 ] as const;
 
-export const PlayerRepeatToggle = ({ color, ...iconProps }: IconProps) => {
+export const PlayerRepeatToggle = React.memo(({ color, ...iconProps }: IconProps) => {
   const { repeatMode, changeRepeatMode } = useTrackPlayerRepeatMode();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
-  const toggleRepeatMode = () => {
+  const toggleRepeatMode = useCallback(() => {
     if (repeatMode == null) return;
-
     const currentIndex = repeatOrder.indexOf(repeatMode);
     const nextIndex = (currentIndex + 1) % repeatOrder.length;
-
     changeRepeatMode(repeatOrder[nextIndex]);
-  };
+  }, [repeatMode, changeRepeatMode]);
 
   const icon =
     repeatMode === RepeatMode.Off
@@ -186,30 +171,28 @@ export const PlayerRepeatToggle = ({ color, ...iconProps }: IconProps) => {
     <MaterialCommunityIcons
       name={icon}
       onPress={toggleRepeatMode}
-      color={color ?? colors.text}
+      color={color}
       {...iconProps}
     />
   );
-};
-export const ShuffleButton = ({
+});
+
+export const ShuffleButton = React.memo(({
   iconSize = 48,
   handlePress,
   isShuffle,
   color,
 }: PlayerButtonProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
       <MaterialCommunityIcons
         name={isShuffle ? "shuffle-variant" : "shuffle-disabled"}
         size={iconSize}
-        color={color ?? colors.text}
+        color={color}
       />
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

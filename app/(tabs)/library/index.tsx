@@ -8,6 +8,7 @@ import useUserStore from "@/store/useUserStore";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import useDownloadStore from "@/store/useDownloadStore";
 import {
   ChevronRight,
   Disc,
@@ -52,6 +53,9 @@ const LibraryScreen = () => {
     queryFn: () => getPlaylists(),
   });
 
+  const { downloadedSongs } = useDownloadStore();
+  const downloadedCount = Object.keys(downloadedSongs).length;
+
   if (!currentUser) return <EmptyLibrary />;
 
   const sections = [
@@ -86,11 +90,11 @@ const LibraryScreen = () => {
     {
       id: "downloads",
       title: "Downloads",
-      count: 0,
+      count: downloadedCount,
       icon: Download,
       color: "#00B4DB",
-      path: "/library_content",
-      params: { pagename: "downloads" },
+      path: "/downloads",
+      params: {},
     },
   ];
 
