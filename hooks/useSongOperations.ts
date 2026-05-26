@@ -40,7 +40,13 @@ const useSongOperations = () => {
     },
   });
   const createPlaylistMutation = useMutation({
-    mutationFn: createPlaylist,
+    mutationFn: ({
+      name,
+      image,
+    }: {
+      name: string;
+      image: string | undefined;
+    }) => createPlaylist({ name, image }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-playlist"] });
       showToast("Playlist created successfully");

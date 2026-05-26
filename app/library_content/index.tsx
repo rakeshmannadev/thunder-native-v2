@@ -8,10 +8,14 @@ import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
-import { getFavoriteSongs, getPlaylists } from "@/services/userServices";
+import {
+  getFavoriteSongs,
+  getPlaylists,
+  getRecentlyPlayed,
+} from "@/services/userServices";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Playlist, Song } from "@/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Heart, ListMusic, Shuffle } from "lucide-react-native";
@@ -48,7 +52,6 @@ const LibraryContentScreen = () => {
 
   const { setShuffle } = usePlayerStore();
   const scrollY = useSharedValue(0);
-  const queryClient = useQueryClient();
 
   const { data: favoriteSongs, isLoading: favoritesLoading } = useQuery({
     queryKey: ["favorites"],
@@ -61,13 +64,27 @@ const LibraryContentScreen = () => {
     queryFn: getPlaylists,
     enabled: pagename === "playlists",
   });
+  const { data: recentlyPlayed, isLoading: recentlyPlayedLoading } = useQuery({
+    queryKey: ["recently-played"],
+    queryFn: getRecentlyPlayed,
+    enabled: pagename === "recently_played",
+  });
 
-  const songs: Song[] = pagename === "liked" ? favoriteSongs || [] : [];
+  const songs: Song[] =
+    pagename === "liked"
+      ? favoriteSongs || []
+      : pagename === "recently_played"
+      ? recentlyPlayed || []
+      : [];
   const playlists: Playlist[] =
     pagename === "playlists" ? userPlaylists || [] : [];
 
   const isPlaylistMode = pagename === "playlists";
-  const isLoading = isPlaylistMode ? playlistsLoading : favoritesLoading;
+  const isLoading = isPlaylistMode
+    ? playlistsLoading
+    : pagename === "recently_played"
+    ? recentlyPlayedLoading
+    : favoritesLoading;
   const isEmpty =
     !isLoading &&
     (isPlaylistMode ? playlists.length === 0 : songs.length === 0);
@@ -100,7 +117,11 @@ const LibraryContentScreen = () => {
   });
 
   const title = pagename
-    ? pagename.charAt(0).toUpperCase() + pagename.slice(1)
+    ? pagename === "recently_played"
+      ? "Recently Played"
+      : pagename === "liked"
+      ? "Liked Songs"
+      : pagename.charAt(0).toUpperCase() + pagename.slice(1)
     : "Collection";
   const headerImage =
     songs.length > 0
@@ -242,9 +263,17 @@ const LibraryContentScreen = () => {
               />
             ) : (
               <EmptyContent
-                title="Your Heart is Empty"
-                description="Songs you like will appear here. Find your favorite music and give it a heart!"
-                icon={Heart}
+                title={
+                  pagename === "recently_played"
+                    ? "No Recent Activity"
+                    : "Your Heart is Empty"
+                }
+                description={
+                  pagename === "recently_played"
+                    ? "Start listening to some music and your history will appear here."
+                    : "Songs you like will appear here. Find your favorite music and give it a heart!"
+                }
+                icon={pagename === "recently_played" ? ListMusic : Heart}
                 buttonText="Find Music"
                 onPress={() => router.push("/")}
               />

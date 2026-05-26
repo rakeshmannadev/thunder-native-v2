@@ -97,7 +97,7 @@ const AlbumItem = ({ isLoading, song }: { isLoading: boolean; song: Song }) => {
           label: "Go to artist",
           icon: "artist",
 
-          submenu: song.artist_map?.primary_artists.map((artist) => {
+          submenu: song.artist_map?.primary_artists?.map((artist) => {
             return {
               key: "go_to_artist",
               label: artist.name,

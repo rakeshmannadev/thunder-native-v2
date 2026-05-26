@@ -27,6 +27,79 @@ const { width } = Dimensions.get("window");
 const COLUMN_COUNT = 2;
 const CARD_WIDTH = (width - screenPadding.horizontal * 2 - 16) / COLUMN_COUNT;
 
+// Only animate the first batch of items (initial screen); skip for items
+// rendered during scroll to avoid heavy layout recalculations.
+const ANIMATED_ITEM_LIMIT = 10;
+
+type TrendingCardProps = {
+  song: Song;
+  index: number;
+  colors: (typeof Colors)["dark"];
+  onPress: (id: string) => void;
+};
+
+const TrendingCard = React.memo(
+  ({ song, index, colors, onPress }: TrendingCardProps) => {
+    const content = (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => onPress(song.id)}
+        style={styles.card}
+      >
+        <View style={styles.imageWrapper}>
+          <Image
+            source={{ uri: song.image[song.image.length - 1].link }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.6)"]}
+            style={styles.gradient}
+          />
+          <View style={styles.playButtonWrapper}>
+            <PlayButton song={song} />
+          </View>
+          <View style={styles.trendingBadge}>
+            <TrendingUp size={12} color="white" />
+          </View>
+        </View>
+        <View style={styles.cardContent}>
+          <ThemedText style={styles.cardName} numberOfLines={1}>
+            {song.name}
+          </ThemedText>
+          <ThemedText
+            style={[styles.cardSubtitle, { color: colors.textMuted }]}
+            numberOfLines={1}
+          >
+            {song.artist_map?.primary_artists
+              ? song.artist_map.primary_artists
+                  .map((artist) => artist.name)
+                  .join(", ")
+              : "Unknown Artist"}
+          </ThemedText>
+        </View>
+      </TouchableOpacity>
+    );
+
+    // Only apply entering animation for the initial visible batch
+    if (index < ANIMATED_ITEM_LIMIT) {
+      return (
+        <Animated.View
+          entering={FadeInDown.delay(index * 50).duration(600)}
+          style={styles.cardContainer}
+        >
+          {content}
+        </Animated.View>
+      );
+    }
+
+    return <View style={styles.cardContainer}>{content}</View>;
+  },
+  (prev, next) => prev.song.id === next.song.id && prev.index === next.index
+);
+
+TrendingCard.displayName = "TrendingCard";
+
 const TrendingPage = () => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
@@ -61,55 +134,26 @@ const TrendingPage = () => {
     setIsManualRefreshing(false);
   }, [refetch]);
 
-  const renderItem = ({ item, index }: { item: Song; index: number }) => (
-    <Animated.View
-      entering={FadeInDown.delay(index * 50).duration(600)}
-      style={styles.cardContainer}
-    >
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => {
-          if (item?.id) {
-            router.push(`../../song/${item.id}`);
-          }
-        }}
-        style={styles.card}
-      >
-        <View style={styles.imageWrapper}>
-          <Image
-            source={{ uri: item.image[item.image.length - 1].link }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.6)"]}
-            style={styles.gradient}
-          />
-          <View style={styles.playButtonWrapper}>
-            <PlayButton song={item} />
-          </View>
-          <View style={styles.trendingBadge}>
-            <TrendingUp size={12} color="white" />
-          </View>
-        </View>
-        <View style={styles.cardContent}>
-          <ThemedText style={styles.cardName} numberOfLines={1}>
-            {item.name}
-          </ThemedText>
-          <ThemedText
-            style={[styles.cardSubtitle, { color: colors.textMuted }]}
-            numberOfLines={1}
-          >
-            {item.artist_map?.primary_artists
-              ? item.artist_map.primary_artists
-                  .map((artist) => artist.name)
-                  .join(", ")
-              : "Unknown Artist"}
-          </ThemedText>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
+  const handleSongPress = useCallback(
+    (id: string) => {
+      router.push(`../../song/${id}`);
+    },
+    [router]
   );
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: Song; index: number }) => (
+      <TrendingCard
+        song={item}
+        index={index}
+        colors={colors}
+        onPress={handleSongPress}
+      />
+    ),
+    [colors, handleSongPress]
+  );
+
+  const keyExtractor = useCallback((item: Song) => item.id.toString(), []);
 
   const renderSkeleton = () => (
     <View style={styles.columnWrapper}>
@@ -177,7 +221,7 @@ const TrendingPage = () => {
       <FlatList
         data={songs}
         renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={keyExtractor}
         numColumns={COLUMN_COUNT}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.listContent}
@@ -192,6 +236,9 @@ const TrendingPage = () => {
         onRefresh={onRefresh}
         refreshing={isManualRefreshing}
         showsVerticalScrollIndicator={false}
+        windowSize={5}
+        maxToRenderPerBatch={6}
+        removeClippedSubviews={true}
       />
     </SafeAreaView>
   );
@@ -248,7 +295,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   gradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   playButtonWrapper: {
     position: "absolute",

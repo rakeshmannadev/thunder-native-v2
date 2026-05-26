@@ -76,7 +76,9 @@ const PlayButton = ({ song }: { song: Song }) => {
 
     // Otherwise, play the new song
     await playSong(song);
-    saveRecentlyPlayedMutation.mutate(song);
+    if (currentUser) {
+      saveRecentlyPlayedMutation.mutate(song);
+    }
   }, [
     song,
     isCurrentTrack,

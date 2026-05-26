@@ -16,7 +16,7 @@ import { Artist, Playlist } from "@/types";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { ChevronDown, MoreVertical } from "lucide-react-native";
 import React, {
   useCallback,
@@ -28,6 +28,7 @@ import React, {
 import {
   ActivityIndicator,
   Dimensions,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
@@ -53,11 +54,13 @@ import { useActiveTrack } from "react-native-track-player";
 import { scheduleOnRN } from "react-native-worklets";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
+const IS_ANDROID = Platform.OS === "android";
 const DISMISS_THRESHOLD = SCREEN_HEIGHT * 0.25;
 const EXPAND_SPRING = { damping: 26, stiffness: 240, mass: 0.8 };
 
 const PlayerScreen = React.memo(() => {
   const router = useRouter();
+  const navigation = useNavigation();
   const queueSheetRef = useRef<BottomSheet>(null);
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
@@ -153,7 +156,10 @@ const PlayerScreen = React.memo(() => {
     artworkOpacity.value = withTiming(1, { duration: 600 });
   }, [currentSong?.id]);
 
-  // Track whether the queue sheet is collapsed — updated reactively on the UI thread
+  // ── Android-only swipe-to-dismiss gesture ────────────
+  // On iOS, the native stack handles this via gestureEnabled + gestureDirection:'vertical'.
+  // On Android, we use a custom pan gesture and disable the navigation animation before
+  // calling router.back() to prevent the double-animation conflict.
   const isPanEnabled = useSharedValue(true);
   useAnimatedReaction(
     () => queueSheetIndex.value <= 0.01,
@@ -162,9 +168,17 @@ const PlayerScreen = React.memo(() => {
     }
   );
 
+  const dismissPlayer = useCallback(() => {
+    // Disable the navigation pop animation since our gesture already
+    // animated the content off-screen — prevents the "stuck" double animation
+    navigation.setOptions({ animation: "none" });
+    router.back();
+  }, [navigation, router]);
+
   const panGesture = Gesture.Pan()
     .activeOffsetY(10)
     .failOffsetY(-5)
+    .enabled(IS_ANDROID)
     .onStart(() => {
       if (!isPanEnabled.value) return;
       startY.value = translateY.value;
@@ -181,10 +195,10 @@ const PlayerScreen = React.memo(() => {
       if (e.velocityY > 1000 || translateY.value > DISMISS_THRESHOLD) {
         translateY.value = withTiming(
           SCREEN_HEIGHT,
-          { duration: 250, easing: Easing.out(Easing.quad) },
+          { duration: 220, easing: Easing.out(Easing.quad) },
           (finished) => {
             if (finished) {
-              scheduleOnRN(router.back);
+              scheduleOnRN(dismissPlayer);
             }
           }
         );

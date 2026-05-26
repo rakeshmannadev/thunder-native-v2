@@ -37,7 +37,7 @@ const CreatePlaylistModal = ({
   const { createPlaylistMutation } = useSongOperations();
 
   const [playlistName, setPlaylistName] = useState("");
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string | undefined>("");
 
   useEffect(() => {
     if (visible) {
@@ -53,7 +53,7 @@ const CreatePlaylistModal = ({
         onClose();
         // Reset form
         setPlaylistName("");
-        setImage(null);
+        setImage("");
       }
     },
     [onClose]
@@ -90,7 +90,7 @@ const CreatePlaylistModal = ({
     try {
       await createPlaylistMutation.mutateAsync({
         name: playlistName,
-        image: image || undefined,
+        image: image,
       });
       bottomSheetRef.current?.dismiss();
     } catch (error) {
@@ -102,8 +102,8 @@ const CreatePlaylistModal = ({
     <BottomSheetModal
       ref={bottomSheetRef}
       onChange={handleSheetChanges}
-      enableDynamicSizing={true}
-      snapPoints={["100%", "80%"]}
+      enableDynamicSizing={false}
+      snapPoints={["100%"]}
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.component }}
       handleIndicatorStyle={{

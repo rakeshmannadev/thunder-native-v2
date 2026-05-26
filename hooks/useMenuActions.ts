@@ -5,21 +5,22 @@ import useUserStore from "@/store/useUserStore";
 import { Playlist, Song } from "@/types";
 import { useRouter } from "expo-router";
 import { Appearance } from "react-native";
+import TrackPlayer, { useActiveTrack } from "react-native-track-player";
+import useDownloadSong from "./useDownloadSong";
 import useSongOperations from "./useSongOperations";
 import { showToast } from "./useToastMessage";
 import { addSongToQueue, playNext } from "./useTrackPlayerActions";
-import useDownloadSong from "./useDownloadSong";
 
 const useMenuActions = () => {
   const router = useRouter();
-  const { addToQueue, currentIndex, insertToQueue, setAudioPreference } =
-    usePlayerStore();
+  const { setAudioPreference } = usePlayerStore();
   const { startBroadcast, endBroadcast, deleteRoom, leaveRoom } =
     useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom, leaveJoinedRoom } = useRoomStore();
   const { addToPlaylistMutation } = useSongOperations();
   const { downloadSong, deleteDownload } = useDownloadSong();
+  const currentSong = useActiveTrack();
 
   const handleMenuActions = async (action: string, params?: number | any) => {
     switch (action) {
@@ -107,6 +108,10 @@ const useMenuActions = () => {
       case "delete_download":
         if (params) {
           deleteDownload(params);
+
+          if (currentSong?.id == params) {
+            await TrackPlayer.reset();
+          }
         }
         break;
 

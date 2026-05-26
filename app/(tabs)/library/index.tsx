@@ -3,14 +3,19 @@ import CreatePlaylistModal from "@/components/playlist/CreatePlaylistModal";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { getFavoriteSongs, getPlaylists } from "@/services/userServices";
+import {
+  getFavoriteSongs,
+  getPlaylists,
+  getRecentlyPlayed,
+} from "@/services/userServices";
+import useDownloadStore from "@/store/useDownloadStore";
 import useUserStore from "@/store/useUserStore";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import useDownloadStore from "@/store/useDownloadStore";
 import {
   ChevronRight,
+  Clock,
   Disc,
   Download,
   Heart,
@@ -50,7 +55,11 @@ const LibraryScreen = () => {
   });
   const { data: userPlaylists } = useQuery({
     queryKey: ["user-playlist"],
-    queryFn: () => getPlaylists(),
+    queryFn: getPlaylists,
+  });
+  const { data: recentlyPlayed } = useQuery({
+    queryKey: ["recently-played"],
+    queryFn: getRecentlyPlayed,
   });
 
   const { downloadedSongs } = useDownloadStore();
@@ -86,6 +95,15 @@ const LibraryScreen = () => {
       color: "#8E2DE2",
       path: "/library_content",
       params: { pagename: "albums" },
+    },
+    {
+      id: "recently_played",
+      title: "Recently Played",
+      count: recentlyPlayed?.length || 0,
+      icon: Clock,
+      color: colors.accent,
+      path: "/library_content",
+      params: { pagename: "recently_played" },
     },
     {
       id: "downloads",

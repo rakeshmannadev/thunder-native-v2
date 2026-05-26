@@ -1,7 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
-  ArrowLeft,
   Download,
   EllipsisVertical,
   Search,
@@ -31,7 +30,7 @@ import { Colors } from "@/constants/Colors";
 import { borderRadius, screenPadding } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
 import useDownloadSong from "@/hooks/useDownloadSong";
-import usePlayerStore from "@/store/usePlayerStore";
+import { usePlayDownloadSongs } from "@/hooks/usePlayDownloadSongs";
 import { DownloadedSong } from "@/types";
 
 const { width } = Dimensions.get("window");
@@ -44,7 +43,7 @@ const DownloadsScreen = () => {
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
   const { downloadedSongsList, deleteDownload } = useDownloadSong();
-  const { setShuffle } = usePlayerStore();
+  const { playSong, playAlbum } = usePlayDownloadSongs();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
@@ -58,35 +57,16 @@ const DownloadsScreen = () => {
 
   const handlePlayAll = async () => {
     if (filteredSongs.length === 0) return;
-    setShuffle(false);
-    // playAlbum(filteredSongs.map(song=>{
-    //        return {
-    //         id: song.id,
-    //         name: song.title,
-    //         artist: song.artist,
-    //         artwork: song.artwork,
-    //         duration: song.duration,
-    //         url: song.localUri,
-    //         album:song.name,
-    //         album_id:song.album_id,
-    //         artist_map:song.artist_map,
-    //         download_url:song.download_url,
-    //         image:song.image,
-    //         release_date:song.release_date,
-    //         subtitle:song.subtitle
-
-    //     }
-    // }), 0);
+    playAlbum(filteredSongs, 0);
   };
 
   const handleShufflePlay = () => {
     if (filteredSongs.length === 0) return;
-    setShuffle(true);
-    // playAlbum(filteredSongs, Math.floor(Math.random() * filteredSongs.length));
+    playAlbum(filteredSongs, Math.floor(Math.random() * filteredSongs.length));
   };
 
   const handleSongPress = (song: DownloadedSong) => {
-    // playSong(song);
+    playSong(song);
   };
 
   const openMenu = (song: DownloadedSong) => {
@@ -141,17 +121,14 @@ const DownloadsScreen = () => {
       {/* Header View */}
       <Animated.View
         entering={FadeInUp.duration(600)}
-        style={[styles.header, { paddingTop: top + 10 }]}
+        style={[styles.header, { paddingTop: top + 10, left: -4 }]}
       >
-        <TouchableOpacity
-          onPress={() => router.back()}
+        <View
           style={[
             styles.backButton,
             { backgroundColor: colors.secondaryBackground },
           ]}
-        >
-          <ArrowLeft color={colors.text} size={22} />
-        </TouchableOpacity>
+        ></View>
         <ThemedText style={styles.headerTitle}>Downloads</ThemedText>
         <View style={{ width: 40 }} />
       </Animated.View>

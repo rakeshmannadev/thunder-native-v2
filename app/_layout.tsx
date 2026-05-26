@@ -21,7 +21,7 @@ import { playbackService } from "@/services/playbackServices";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useColorScheme } from "react-native";
+import { Platform, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import TrackPlayer from "react-native-track-player";
@@ -95,6 +95,9 @@ export default function RootLayout() {
                       presentation: "transparentModal",
                       headerShown: false,
                       animation: "slide_from_bottom",
+                      gestureEnabled: Platform.OS === "ios",
+                      gestureDirection:
+                        Platform.OS === "ios" ? "vertical" : undefined,
                     }}
                   />
 
