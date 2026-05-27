@@ -12,6 +12,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect } from "react";
 import "react-native-reanimated";
 
+import ErrorBoundary from "@/components/ErrorBoundary";
 import SearchBar from "@/components/search/SearchBar";
 import FloatingPlayer from "@/components/songs/FloatingPlayer";
 import { Colors } from "@/constants/Colors";
@@ -74,189 +75,191 @@ export default function RootLayout() {
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <GluestackUIProvider mode={colorScheme === "light" ? "light" : "dark"}>
-        <SafeAreaProvider>
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <BottomSheetModalProvider>
-                <Stack>
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{
-                      headerShown: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="player"
-                    options={{
-                      presentation: "transparentModal",
-                      headerShown: false,
-                      animation: "slide_from_bottom",
-                      gestureEnabled: Platform.OS === "ios",
-                      gestureDirection:
-                        Platform.OS === "ios" ? "vertical" : undefined,
-                    }}
-                  />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <GluestackUIProvider mode={colorScheme === "light" ? "light" : "dark"}>
+          <SafeAreaProvider>
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <BottomSheetModalProvider>
+                  <Stack>
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{
+                        headerShown: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="player"
+                      options={{
+                        presentation: "transparentModal",
+                        headerShown: false,
+                        animation: "slide_from_bottom",
+                        gestureEnabled: Platform.OS === "ios",
+                        gestureDirection:
+                          Platform.OS === "ios" ? "vertical" : undefined,
+                      }}
+                    />
 
-                  <Stack.Screen
-                    name="auth"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="settings/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="search/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                      headerStyle: {
-                        backgroundColor: colors.background,
-                      },
-                      headerRight: () => <SearchBar />,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="notification/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                      headerStyle: {
-                        backgroundColor: colors.background,
-                      },
-                    }}
-                  />
-                  <Stack.Screen
-                    name="request_song/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                      headerStyle: {
-                        backgroundColor: colors.background,
-                      },
-                    }}
-                  />
-                  <Stack.Screen
-                    name="library_content/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="create_room/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="album/[id]"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="artist/[id]"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="song/[id]"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="playlist/[id]"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="room/[id]"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="featured/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="trending/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="artists/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="albums/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="downloads/index"
-                    options={{
-                      headerShown: true,
-                      headerTitle: "",
-                      headerTransparent: true,
-                    }}
-                  />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
+                    <Stack.Screen
+                      name="auth"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="settings/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="search/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                        headerStyle: {
+                          backgroundColor: colors.background,
+                        },
+                        headerRight: () => <SearchBar />,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="notification/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                        headerStyle: {
+                          backgroundColor: colors.background,
+                        },
+                      }}
+                    />
+                    <Stack.Screen
+                      name="request_song/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                        headerStyle: {
+                          backgroundColor: colors.background,
+                        },
+                      }}
+                    />
+                    <Stack.Screen
+                      name="library_content/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="create_room/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="album/[id]"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="artist/[id]"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="song/[id]"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="playlist/[id]"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="room/[id]"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="featured/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="trending/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="artists/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="albums/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="downloads/index"
+                      options={{
+                        headerShown: true,
+                        headerTitle: "",
+                        headerTransparent: true,
+                      }}
+                    />
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
 
-                {/* Floating mini-player bar — manages its own visibility */}
-                <FloatingPlayer segments={segments} />
-              </BottomSheetModalProvider>
-            </GestureHandlerRootView>
-          </ThemeProvider>
-        </SafeAreaProvider>
-      </GluestackUIProvider>
-    </QueryClientProvider>
+                  {/* Floating mini-player bar — manages its own visibility */}
+                  <FloatingPlayer segments={segments} />
+                </BottomSheetModalProvider>
+              </GestureHandlerRootView>
+            </ThemeProvider>
+          </SafeAreaProvider>
+        </GluestackUIProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

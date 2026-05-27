@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { ICON_MAPS } from "@/constants/Icons";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImage, resolveImageSource } from "@/helpers/resolverImageUrl";
 import useMenuActions from "@/hooks/useMenuActions";
 import {
   BottomSheetBackdrop,
@@ -149,7 +149,7 @@ const MenuModal = ({
         >
           {item.imageUrl ? (
             <Image
-              source={{ uri: resolveImage(item.imageUrl) }}
+              source={resolveImageSource(item.imageUrl)}
               style={styles.itemImage}
             />
           ) : (
@@ -236,7 +236,7 @@ const MenuModal = ({
             {imageUrl ? (
               <View style={styles.songInfoHeader}>
                 <Image
-                  source={{ uri: resolveImage(imageUrl) }}
+                  source={resolveImageSource(imageUrl)}
                   style={styles.songImage}
                 />
                 <View style={styles.songInfoText}>

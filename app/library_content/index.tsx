@@ -2,6 +2,7 @@ import AlbumItem from "@/components/album/AlbumItem";
 import EmptyContent from "@/components/EmptyContent";
 import PlayButton from "@/components/PlayButton";
 import PlaylistCard from "@/components/PlaylistCard";
+import ShuffleButton from "@/components/songs/ShuffleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
@@ -18,13 +19,12 @@ import { Playlist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Heart, ListMusic, Shuffle } from "lucide-react-native";
+import { Heart, ListMusic } from "lucide-react-native";
 import React from "react";
 import {
   Dimensions,
   FlatList,
   Image,
-  Pressable,
   StatusBar,
   StyleSheet,
   useColorScheme,
@@ -74,8 +74,8 @@ const LibraryContentScreen = () => {
     pagename === "liked"
       ? favoriteSongs || []
       : pagename === "recently_played"
-      ? recentlyPlayed || []
-      : [];
+        ? recentlyPlayed || []
+        : [];
   const playlists: Playlist[] =
     pagename === "playlists" ? userPlaylists || [] : [];
 
@@ -83,8 +83,8 @@ const LibraryContentScreen = () => {
   const isLoading = isPlaylistMode
     ? playlistsLoading
     : pagename === "recently_played"
-    ? recentlyPlayedLoading
-    : favoritesLoading;
+      ? recentlyPlayedLoading
+      : favoritesLoading;
   const isEmpty =
     !isLoading &&
     (isPlaylistMode ? playlists.length === 0 : songs.length === 0);
@@ -93,12 +93,6 @@ const LibraryContentScreen = () => {
     if (songs.length === 0) return;
     setShuffle(false);
     playAlbum(songs, 0);
-  };
-
-  const handleShufflePlay = () => {
-    if (songs.length === 0) return;
-    setShuffle(true);
-    playAlbum(songs, Math.floor(Math.random() * songs.length));
   };
 
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -120,8 +114,8 @@ const LibraryContentScreen = () => {
     ? pagename === "recently_played"
       ? "Recently Played"
       : pagename === "liked"
-      ? "Liked Songs"
-      : pagename.charAt(0).toUpperCase() + pagename.slice(1)
+        ? "Liked Songs"
+        : pagename.charAt(0).toUpperCase() + pagename.slice(1)
     : "Collection";
   const headerImage =
     songs.length > 0
@@ -159,10 +153,10 @@ const LibraryContentScreen = () => {
         style={[
           styles.backButton,
           { top: top + 8, left: 8 },
-          isEmpty && { backgroundColor: colors.secondaryBackground },
+          isEmpty && { backgroundColor: colors.iconBackground },
         ]}
       >
-        {/* <ChevronLeft color={isEmpty ? colors.text : "white"} size={24} /> */}
+        {/* <ChevronLeft color={isEmpty ? colors.icon : "white"} size={24} /> */}
       </View>
 
       <Animated.ScrollView
@@ -195,15 +189,7 @@ const LibraryContentScreen = () => {
                     color={colors.primary}
                   />
 
-                  <Pressable
-                    onPress={handleShufflePlay}
-                    style={[
-                      styles.shuffleButton,
-                      { backgroundColor: colors.secondaryBackground },
-                    ]}
-                  >
-                    <Shuffle color={colors.text} size={22} />
-                  </Pressable>
+                  <ShuffleButton songs={songs} />
                 </View>
               )}
             </Animated.View>
@@ -257,7 +243,7 @@ const LibraryContentScreen = () => {
                   <Animated.View
                     entering={FadeInDown.delay(300 + index * 50).duration(400)}
                   >
-                    <AlbumItem song={song} isLoading={false} />
+                    <AlbumItem song={song} />
                   </Animated.View>
                 )}
               />
@@ -319,6 +305,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "white",
     letterSpacing: -1,
+    lineHeight: 40,
   },
   subtitle: {
     fontSize: 16,

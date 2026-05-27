@@ -10,3 +10,17 @@ export const resolveImage = (img: any) => {
   }
   return unknownArtistUri;
 };
+
+export const resolveImageSource = (img: any) => {
+  const resolved = resolveImage(img);
+  if (
+    typeof resolved === "string" &&
+    (resolved.startsWith("http") ||
+      resolved.startsWith("file://") ||
+      resolved.startsWith("data:"))
+  ) {
+    return { uri: resolved };
+  }
+  return resolved;
+};
+

@@ -7,20 +7,24 @@ import { useRouter } from "expo-router";
 import { Appearance } from "react-native";
 import TrackPlayer, { useActiveTrack } from "react-native-track-player";
 import useDownloadSong from "./useDownloadSong";
+import useShare from "./useShare";
 import useSongOperations from "./useSongOperations";
 import { showToast } from "./useToastMessage";
 import { addSongToQueue, playNext } from "./useTrackPlayerActions";
 
 const useMenuActions = () => {
-  const router = useRouter();
   const { setAudioPreference } = usePlayerStore();
   const { startBroadcast, endBroadcast, deleteRoom, leaveRoom } =
     useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom, leaveJoinedRoom } = useRoomStore();
+  const currentSong = useActiveTrack();
+
   const { addToPlaylistMutation } = useSongOperations();
   const { downloadSong, deleteDownload } = useDownloadSong();
-  const currentSong = useActiveTrack();
+  const { handleShare } = useShare();
+
+  const router = useRouter();
 
   const handleMenuActions = async (action: string, params?: number | any) => {
     switch (action) {
@@ -114,7 +118,10 @@ const useMenuActions = () => {
           }
         }
         break;
-
+      case "share":
+        const songToShare = params as Song;
+        handleShare(songToShare);
+        break;
       default:
         break;
     }

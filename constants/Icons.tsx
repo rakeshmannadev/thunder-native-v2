@@ -17,27 +17,6 @@ import {
 } from "lucide-react-native";
 import { Image, ImageStyle } from "react-native";
 
-export const HomeIcon = ({ color }: { color: any }) => {
-  return (
-    <Image source={require("../assets/icons/home.svg")} tintColor={color} />
-  );
-};
-
-export const AlbumIcon = ({ color }: { color: any }) => {
-  return (
-    <Image source={require("../assets/icons/library.svg")} tintColor={color} />
-  );
-};
-export const RoomsIcon = ({ color }: { color: any }) => {
-  return (
-    <Image source={require("../assets/icons/rooms.svg")} tintColor={color} />
-  );
-};
-export const PersonIcon = ({ color }: { color: any }) => {
-  return (
-    <Image source={require("../assets/icons/person.svg")} tintColor={color} />
-  );
-};
 export const LogoIcon = ({ styles }: { styles?: ImageStyle }) => {
   return (
     <Image

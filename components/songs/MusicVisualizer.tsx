@@ -1,6 +1,8 @@
 // components/MusicVisualizer.tsx
+import { Colors } from "@/constants/Colors";
+import { PlayIcon } from "lucide-react-native";
 import React, { useEffect } from "react";
-import { View } from "react-native";
+import { useColorScheme, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,6 +10,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
+import { useIsPlaying } from "react-native-track-player";
 
 type Props = {
   playing?: boolean;
@@ -15,11 +18,12 @@ type Props = {
   color?: string;
 };
 
-const MusicVisualizer = ({
-  playing = true,
-  size = 20,
-  color = "#1DB954",
-}: Props) => {
+const MusicVisualizer = ({ size = 20 }: Props) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
+  const { playing } = useIsPlaying();
+
   const bar1 = useSharedValue(0.5);
   const bar2 = useSharedValue(0.8);
   const bar3 = useSharedValue(0.6);
@@ -63,7 +67,7 @@ const MusicVisualizer = ({
     transform: [{ scaleY: bar3.value }],
   }));
 
-  if (!playing) return null;
+  if (!playing) return <PlayIcon color={colors.accent} size={30} />;
 
   return (
     <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 2 }}>
@@ -72,7 +76,7 @@ const MusicVisualizer = ({
           {
             width: size / 5,
             height: size,
-            backgroundColor: color,
+            backgroundColor: colors.accent,
             borderRadius: 2,
           },
           style1,
@@ -83,7 +87,7 @@ const MusicVisualizer = ({
           {
             width: size / 5,
             height: size,
-            backgroundColor: color,
+            backgroundColor: colors.accent,
             borderRadius: 2,
           },
           style2,
@@ -94,7 +98,7 @@ const MusicVisualizer = ({
           {
             width: size / 5,
             height: size,
-            backgroundColor: color,
+            backgroundColor: colors.accent,
             borderRadius: 2,
           },
           style3,

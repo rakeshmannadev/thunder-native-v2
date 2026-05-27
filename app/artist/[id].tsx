@@ -2,6 +2,7 @@ import AlbumItem from "@/components/album/AlbumItem";
 import AlbumCard from "@/components/AlbumCard";
 import PlayButton from "@/components/PlayButton";
 import PlaylistCard from "@/components/PlaylistCard";
+import ShuffleButton from "@/components/songs/ShuffleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
@@ -9,13 +10,12 @@ import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getArtistById } from "@/services/songService";
-import usePlayerStore from "@/store/usePlayerStore";
-import { Artist, Song } from "@/types";
+import { Artist } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Radio, Shuffle } from "lucide-react-native";
+import { Radio } from "lucide-react-native";
 import React from "react";
 import {
   Dimensions,
@@ -46,8 +46,6 @@ const ArtistPage = () => {
   const { id }: { id: string } = useLocalSearchParams();
   const scrollY = useSharedValue(0);
 
-  const { setShuffle } = usePlayerStore();
-
   const { data: currentArtistResponse, isPending: isLoading } = useQuery({
     queryKey: ["artist", id],
     queryFn: () => getArtistById(id as string),
@@ -59,13 +57,6 @@ const ArtistPage = () => {
   const handlePlay = () => {
     if (!currentArtist || !currentArtist.top_songs) return;
     playAlbum(currentArtist.top_songs, 0);
-  };
-
-  const handleShufflePlay = () => {
-    if (!currentArtist || !currentArtist.top_songs) return;
-    const songs: Song[] = [...currentArtist.top_songs];
-    setShuffle(true);
-    playAlbum(songs, Math.floor(Math.random() * songs.length));
   };
 
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -188,15 +179,7 @@ const ArtistPage = () => {
                     disabled={isLoading || !currentArtist}
                   />
 
-                  <Pressable
-                    onPress={handleShufflePlay}
-                    style={[
-                      styles.actionButton,
-                      { backgroundColor: colors.secondaryBackground },
-                    ]}
-                  >
-                    <Shuffle color={colors.text} size={22} />
-                  </Pressable>
+                  <ShuffleButton songs={currentArtist.all_songs} />
 
                   <Pressable
                     onPress={() => null}
@@ -263,11 +246,7 @@ const ArtistPage = () => {
               <View style={styles.verticalList}>
                 {isLoading
                   ? Array.from({ length: 5 }).map((_, i) => (
-                      <AlbumItem
-                        key={i}
-                        song={undefined as any}
-                        isLoading={true}
-                      />
+                      <AlbumItem key={i} song={undefined as any} />
                     ))
                   : currentArtist?.top_songs?.map((song, index) => (
                       <Animated.View
@@ -276,7 +255,7 @@ const ArtistPage = () => {
                           400
                         )}
                       >
-                        <AlbumItem song={song} isLoading={false} />
+                        <AlbumItem song={song} />
                       </Animated.View>
                     ))}
               </View>

@@ -290,12 +290,25 @@ const PlayerScreen = React.memo(() => {
             <View style={styles.overlay}>
               {/* Header */}
               <View style={styles.header}>
-                <TouchableOpacity onPress={handleBack} style={styles.iconBtn}>
-                  <ChevronDown color={colors.text} size={28} />
+                <TouchableOpacity
+                  onPress={handleBack}
+                  style={[
+                    styles.iconBtn,
+                    { backgroundColor: colors.iconBackground },
+                  ]}
+                >
+                  <ChevronDown
+                    color={colors.text}
+                    size={28}
+                    style={{ marginTop: 2 }}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleOpenMenu}
-                  style={styles.iconBtn}
+                  style={[
+                    styles.iconBtn,
+                    { backgroundColor: colors.iconBackground },
+                  ]}
                 >
                   <MoreVertical color={colors.text} size={24} />
                 </TouchableOpacity>
@@ -339,8 +352,42 @@ const PlayerScreen = React.memo(() => {
                 </View>
 
                 <View style={styles.actionRow}>
-                  <LikeButton />
-                  <ShareButton />
+                  <LikeButton
+                    currentSong={{
+                      name: currentSong.title!,
+                      album: currentSong.album!,
+                      album_id: currentSong.album_id!,
+                      artist_map: currentSong.artist_map!,
+                      download_url: [
+                        { link: currentSong.url, quality: "320kbps" },
+                      ]!,
+                      duration: currentSong.duration!,
+                      id: currentSong.id!,
+                      image: [
+                        { link: currentSong.artwork!, quality: "900x900" },
+                      ],
+                      release_date: currentSong.release_date!,
+                      subtitle: currentSong.artist!,
+                    }}
+                  />
+                  <ShareButton
+                    currentSong={{
+                      name: currentSong.title!,
+                      album: currentSong.album!,
+                      album_id: currentSong.album_id!,
+                      artist_map: currentSong.artist_map!,
+                      download_url: [
+                        { link: currentSong.url, quality: "320kbps" },
+                      ]!,
+                      duration: currentSong.duration!,
+                      id: currentSong.id!,
+                      image: [
+                        { link: currentSong.artwork!, quality: "900x900" },
+                      ],
+                      release_date: currentSong.release_date!,
+                      subtitle: currentSong.artist!,
+                    }}
+                  />
                 </View>
               </View>
 
@@ -382,8 +429,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   iconBtn: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -397,17 +445,17 @@ const styles = StyleSheet.create({
   artworkShadow: {
     width: SCREEN_WIDTH * 0.85,
     height: SCREEN_WIDTH * 0.85,
-    borderRadius: 12,
+    borderRadius: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.35,
+    shadowRadius: 24,
+    elevation: 12,
   },
   artworkImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 12,
+    borderRadius: 24,
   },
   controlsArea: {
     marginTop: "auto",
@@ -447,7 +495,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   playbackControls: {
-    gap: 12,
+    gap: 28,
+    justifyContent: "space-evenly",
+    alignItems: "stretch",
   },
   footer: {
     flexDirection: "row",

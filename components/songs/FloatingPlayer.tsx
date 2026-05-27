@@ -10,7 +10,7 @@ import {
 
 import { Colors } from "@/constants/Colors";
 import { unknownTrackUri } from "@/constants/images";
-import { borderRadius, fontSize } from "@/constants/tokens";
+import { borderRadius } from "@/constants/tokens";
 
 import { useRouter } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -205,9 +205,9 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
 
             {/* Controls — standalone, no navigation */}
             <View style={styles.controlsContainer}>
-              <PlayPauseButton iconSize={fontSize.lg} color={colors.text} />
+              <PlayPauseButton iconSize={32} color={colors.text} />
               <SkipToNextButton
-                iconSize={fontSize.lg}
+                iconSize={32}
                 handlePress={handlePlayNext}
                 color={colors.text}
               />

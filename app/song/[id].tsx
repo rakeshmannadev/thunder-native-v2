@@ -1,17 +1,17 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import PlayButton from "@/components/PlayButton";
+import LikeButton from "@/components/songs/LikeButton";
+import ShareButton from "@/components/songs/ShareButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { playSong } from "@/hooks/useTrackPlayerActions";
 import { fetchSongById } from "@/services/songService";
-import useUserStore from "@/store/useUserStore";
 import { Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Heart, Radio } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Dimensions,
@@ -38,28 +38,20 @@ const SongScreen = () => {
   const { bottom, top } = useSafeAreaInsets();
   const { id }: { id: string } = useLocalSearchParams();
   const router = useRouter();
+
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
-  const scrollY = useSharedValue(0);
-  const [isSubtitleExpanded, setIsSubtitleExpanded] = useState(false);
 
-  const { favoriteSongs, addToFavorite } = useUserStore();
+  const scrollY = useSharedValue(0);
+
+  const [isSubtitleExpanded, setIsSubtitleExpanded] = useState(false);
+  const [showReadMoreButton, setShowReadMoreButton] = useState(false);
 
   const { data: songRes, isLoading } = useQuery({
     queryKey: ["song", id],
     queryFn: () => fetchSongById(id),
   });
   const song: Song = songRes?.song;
-
-  const handleAddToFavorite = () => {
-    if (!song) return;
-    addToFavorite(
-      song,
-      "Favorites",
-      song.artist_map.primary_artists,
-      song.image[song.image.length - 1].link
-    );
-  };
 
   const handlePlay = async () => {
     if (!song) return;
@@ -82,7 +74,6 @@ const SongScreen = () => {
     };
   });
 
-  const isAlreadyfavorite = favoriteSongs.some((s) => s.id === id);
   const songImage = song?.image ? song.image[song.image.length - 1].link : null;
 
   return (
@@ -132,7 +123,21 @@ const SongScreen = () => {
               {song?.name ?? (isLoading ? "Loading Song..." : "Song")}
             </ThemedText>
 
-            <View>
+            <View style={{ marginBottom: 16 }}>
+              <ThemedText
+                onTextLayout={(e) => {
+                  setShowReadMoreButton(e.nativeEvent.lines.length > 2);
+                }}
+                style={[
+                  styles.subtitle,
+                  { position: "absolute", opacity: 0, left: 0, right: 0 },
+                ]}
+              >
+                {isLoading
+                  ? "Finding details..."
+                  : `${song?.subtitle || ""} • ${song?.album || ""}`}
+              </ThemedText>
+
               <ThemedText
                 numberOfLines={isSubtitleExpanded ? undefined : 2}
                 style={[styles.subtitle, { color: colors.textMuted }]}
@@ -141,7 +146,7 @@ const SongScreen = () => {
                   ? "Finding details..."
                   : `${song?.subtitle || ""} • ${song?.album || ""}`}
               </ThemedText>
-              {!isLoading && (song?.subtitle || song?.album) && (
+              {!isLoading && showReadMoreButton && (
                 <Pressable
                   onPress={() => setIsSubtitleExpanded(!isSubtitleExpanded)}
                 >
@@ -156,35 +161,41 @@ const SongScreen = () => {
 
             {/* Action Bar */}
             <View style={styles.actionRow}>
-              <PlayButton
-                handlePlay={handlePlay}
-                title="Play"
-                color={colors.primary}
-              />
+              {isLoading ? (
+                <>
+                  <Skeleton
+                    variant="rounded"
+                    className="flex-1 h-[56px] rounded-full bg-background-200"
+                  />
+                  <Skeleton
+                    variant="circular"
+                    className="w-[56px] h-[56px] rounded-full bg-background-200"
+                  />
+                  <Skeleton
+                    variant="circular"
+                    className="w-[56px] h-[56px] rounded-full bg-background-200"
+                  />
+                </>
+              ) : (
+                <>
+                  <PlayButton
+                    handlePlay={handlePlay}
+                    title="Play"
+                    color={colors.primary}
+                    disabled={isLoading}
+                  />
 
-              <Pressable
-                onPress={handleAddToFavorite}
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: colors.secondaryBackground },
-                ]}
-              >
-                <Heart
-                  color={isAlreadyfavorite ? "#10b981" : colors.text}
-                  size={24}
-                  fill={isAlreadyfavorite ? "#10b981" : "none"}
-                />
-              </Pressable>
+                  <LikeButton
+                    style={{ height: 60, width: 60, borderRadius: 30 }}
+                    currentSong={song}
+                  />
 
-              <Pressable
-                onPress={() => null}
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: colors.secondaryBackground },
-                ]}
-              >
-                <Radio color={colors.text} size={24} />
-              </Pressable>
+                  <ShareButton
+                    style={{ height: 60, width: 60, borderRadius: 30 }}
+                    currentSong={song}
+                  />
+                </>
+              )}
             </View>
           </Animated.View>
 
@@ -206,7 +217,7 @@ const SongScreen = () => {
                   >
                     Single Track
                   </ThemedText>
-                  <AlbumItem song={song} isLoading={false} />
+                  <AlbumItem song={song} />
                 </Animated.View>
               )
             )}

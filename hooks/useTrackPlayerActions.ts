@@ -1,13 +1,8 @@
-import useDownloadStore from "@/store/useDownloadStore";
 import { Song } from "@/types";
 import TrackPlayer from "react-native-track-player";
+import { showToast } from "./useToastMessage";
 
 const getPlayableUrl = (song: Song) => {
-  const downloadedSongs = useDownloadStore.getState().downloadedSongs;
-  const downloaded = downloadedSongs[song.id];
-  if (downloaded && downloaded.localUri) {
-    return downloaded.localUri;
-  }
   return song.download_url[song.download_url.length - 1].link;
 };
 
@@ -64,6 +59,7 @@ const addSongToQueue = async (song: Song) => {
     artist_map: song.artist_map,
     release_date: song.release_date,
   });
+  showToast("Song added to queue");
 };
 
 const playNext = async (song: Song) => {
@@ -85,6 +81,7 @@ const playNext = async (song: Song) => {
       currentIndex + 1
     );
   }
+  showToast("Song added to queue");
 };
 
 export { addSongToQueue, playAlbum, playNext, playSong };

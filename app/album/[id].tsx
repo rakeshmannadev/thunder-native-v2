@@ -1,5 +1,6 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import PlayButton from "@/components/PlayButton";
+import ShuffleButton from "@/components/songs/ShuffleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
@@ -8,18 +9,16 @@ import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getAlbumById } from "@/services/songService";
 import usePlayerStore from "@/store/usePlayerStore";
-import useUserStore from "@/store/useUserStore";
-import { Album, Song } from "@/types";
+import { Album } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Heart, Shuffle } from "lucide-react-native";
+import { ArrowLeft } from "lucide-react-native";
 import React from "react";
 import {
   Dimensions,
   FlatList,
   Image,
-  Pressable,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -46,7 +45,6 @@ const AlbumScreen = () => {
   const { bottom, top } = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
 
-  const { addAlbumToPlaylist, playlists } = useUserStore();
   const { setShuffle } = usePlayerStore();
 
   const { data: albumRes, isLoading: isAlbumFetching } = useQuery({
@@ -56,34 +54,11 @@ const AlbumScreen = () => {
   });
 
   const currentAlbum: Album = albumRes?.data?.album;
-  const isAddedToPlaylist = playlists.find((p) => p.id === currentAlbum?.id);
 
   const handlePlay = () => {
     if (!currentAlbum) return;
     setShuffle(false);
     playAlbum(currentAlbum.songs, 0);
-  };
-
-  const handleShufflePlay = () => {
-    if (!currentAlbum) return;
-    setShuffle(true);
-    playAlbum(
-      currentAlbum.songs,
-      Math.floor(Math.random() * currentAlbum.songs.length)
-    );
-  };
-
-  const handleAddAlbumToFavorite = () => {
-    if (!currentAlbum) return;
-    const songs = currentAlbum.songs.map((s: Song) => s.id);
-    addAlbumToPlaylist(
-      null,
-      currentAlbum.name,
-      currentAlbum.artist_map.primary_artists,
-      currentAlbum.id,
-      currentAlbum.image[currentAlbum.image.length - 1]?.link,
-      songs
-    );
   };
 
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -187,29 +162,9 @@ const AlbumScreen = () => {
                     disabled={isAlbumFetching || !currentAlbum}
                   />
 
-                  <Pressable
-                    onPress={handleShufflePlay}
-                    style={[
-                      styles.actionButton,
-                      { backgroundColor: colors.secondaryBackground },
-                    ]}
-                  >
-                    <Shuffle color={colors.text} size={22} />
-                  </Pressable>
+                  <ShuffleButton songs={currentAlbum.songs} />
 
-                  <Pressable
-                    onPress={handleAddAlbumToFavorite}
-                    style={[
-                      styles.actionButton,
-                      { backgroundColor: colors.secondaryBackground },
-                    ]}
-                  >
-                    <Heart
-                      color={isAddedToPlaylist ? "#10b981" : colors.text}
-                      size={22}
-                      fill={isAddedToPlaylist ? "#10b981" : "none"}
-                    />
-                  </Pressable>
+                  {/* <AddToPlaylistButton currentPlaylist={currentAlbum.} /> */}
                 </>
               )}
             </View>
@@ -219,7 +174,7 @@ const AlbumScreen = () => {
           <View style={styles.listContainer}>
             {isAlbumFetching ? (
               Array.from({ length: 8 }).map((_, i) => (
-                <AlbumItem key={i} isLoading={true} song={undefined as any} />
+                <AlbumItem key={i} song={undefined as any} />
               ))
             ) : (
               <FlatList
@@ -230,7 +185,7 @@ const AlbumScreen = () => {
                   <Animated.View
                     entering={FadeInDown.delay(300 + index * 50).duration(400)}
                   >
-                    <AlbumItem isLoading={false} song={item} />
+                    <AlbumItem song={item} />
                   </Animated.View>
                 )}
               />

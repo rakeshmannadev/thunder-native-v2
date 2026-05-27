@@ -1,49 +1,39 @@
 import { Colors } from "@/constants/Colors";
+import useShare from "@/hooks/useShare";
+import { Song } from "@/types";
 import { Share2 } from "lucide-react-native";
-import React, { useCallback } from "react";
+import React from "react";
 import {
-  Share,
+  StyleProp,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
+  ViewStyle,
 } from "react-native";
-import { useActiveTrack } from "react-native-track-player";
 
-const ShareButton = React.memo(() => {
-  const currentSong = useActiveTrack();
-  const colorSchema = useColorScheme();
-  const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+const ShareButton = React.memo(
+  ({
+    style,
+    currentSong,
+  }: {
+    style?: StyleProp<ViewStyle>;
+    currentSong: Song;
+  }) => {
+    const colorSchema = useColorScheme();
+    const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
-  const handleShare = useCallback(async () => {
-    if (!currentSong) return;
-    try {
-      // Create a Universal Link (HTTPS) to the backend domain so it becomes clickable
-      const deepLink = `https://thunder-backend-ye33.onrender.com/api/v1/songs/s/${currentSong.id}`;
+    const { handleShare } = useShare();
 
-      // Construct a structured message that social apps can parse
-      const shareMessage = `Check out "${currentSong.title}" by ${currentSong.artist} on Thunder!\n\nListen here: ${deepLink}`;
-
-      await Share.share(
-        {
-          title: currentSong.title,
-          message: shareMessage,
-          url: deepLink, // Best for iOS to show the URL separately
-        },
-        {
-          dialogTitle: `Share ${currentSong.title}`,
-          subject: "Check out this song on Thunder",
-        }
-      );
-    } catch (error) {
-      console.error("Error sharing:", error);
-    }
-  }, [currentSong]);
-  return (
-    <TouchableOpacity onPress={handleShare} style={styles.circularActionBtn}>
-      <Share2 size={22} color={colors.text} />
-    </TouchableOpacity>
-  );
-});
+    return (
+      <TouchableOpacity
+        onPress={() => handleShare(currentSong)}
+        style={[styles.circularActionBtn, style]}
+      >
+        <Share2 size={22} color={colors.text} />
+      </TouchableOpacity>
+    );
+  }
+);
 
 export default ShareButton;
 const styles = StyleSheet.create({
