@@ -1,3 +1,5 @@
+import ExpandableText from "@/components/ExpandableText";
+import NoDataPlaceholder from "@/components/NoDataPlaceholder";
 import PlayButton from "@/components/PlayButton";
 import { ThemedText } from "@/components/ThemedText";
 import PlaylistCard from "@/components/playlist/PlaylistCard";
@@ -6,7 +8,7 @@ import ShuffleButton from "@/components/songs/ShuffleButton";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getPlaylistById } from "@/services/songService";
 import { Playlist } from "@/types";
@@ -39,7 +41,8 @@ const HEADER_HEIGHT = 400;
 
 const PlaylistScreen = () => {
   const { id, link } = useLocalSearchParams();
-
+  console.log("id: ", id);
+  console.log("link: ", link);
   const router = useRouter();
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
@@ -48,8 +51,7 @@ const PlaylistScreen = () => {
 
   const { data: playlistRes, isLoading: playlistLoading } = useQuery({
     queryKey: ["playlist", id],
-    queryFn: async () =>
-      await getPlaylistById({ id: id as string, link: link as string }),
+    queryFn: () => getPlaylistById({ id: id as string, link: link as string }),
     enabled: !!id,
   });
 
@@ -76,10 +78,18 @@ const PlaylistScreen = () => {
     };
   });
 
-  const playlistImage = currentPlaylist?.image
-    ? resolveImage(currentPlaylist.image)
-    : null;
+  const playlistImage = resolveImageSource(
+    currentPlaylist?.songs[0]?.image.at(-1)?.link
+  );
 
+  if (!playlistLoading && !playlistRes) {
+    return (
+      <NoDataPlaceholder
+        pagename="Playlist Not Found"
+        description="The playlist you are trying to view could not be loaded. It may have been removed, or the link might be broken."
+      />
+    );
+  }
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" />
@@ -87,7 +97,7 @@ const PlaylistScreen = () => {
       {/* Parallax Header */}
       <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
         {playlistImage ? (
-          <Image source={{ uri: playlistImage }} style={styles.headerImage} />
+          <Image source={playlistImage} style={styles.headerImage} />
         ) : (
           <View
             style={[
@@ -127,15 +137,18 @@ const PlaylistScreen = () => {
         <View style={styles.content}>
           <Animated.View entering={FadeInDown.delay(200).duration(600)}>
             <ThemedText style={styles.title}>
-              {currentPlaylist?.name ??
+              {currentPlaylist?.playlistName ??
                 (playlistLoading ? "Loading..." : "Playlist")}
             </ThemedText>
 
-            <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
-              {playlistLoading
-                ? "Finding tracks..."
-                : `${songs.length} Songs • ${currentPlaylist?.subtitle || "Thunder Playlist"}`}
-            </ThemedText>
+            <ExpandableText
+              text={
+                playlistLoading
+                  ? "Finding tracks..."
+                  : `${songs.length} Songs • ${(currentPlaylist?.artists && currentPlaylist?.artists.map((artist) => artist.name).join(",")) || "Thunder Playlist"}`
+              }
+              isLoading={playlistLoading}
+            />
 
             {/* Action Buttons */}
             <View style={styles.actionRow}>

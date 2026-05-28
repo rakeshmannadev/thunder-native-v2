@@ -31,7 +31,7 @@ const useSongOperations = () => {
         imageUrl: imageUrl,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-playlist"] });
+      queryClient.invalidateQueries({ queryKey: ["user-playlists"] });
       showToast("Song added to playlist");
     },
     onError: (error) => {
@@ -43,12 +43,16 @@ const useSongOperations = () => {
     mutationFn: ({
       name,
       image,
+      artists,
+      songs,
     }: {
       name: string;
       image: string | undefined;
-    }) => createPlaylist({ name, image }),
+      artists: any[];
+      songs: Song[];
+    }) => createPlaylist({ name, artists, songs, image }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-playlist"] });
+      queryClient.invalidateQueries({ queryKey: ["user-playlists"] });
       showToast("Playlist created successfully");
     },
     onError: (error) => {

@@ -1,4 +1,5 @@
 import AlbumItem from "@/components/album/AlbumItem";
+import ExpandableText from "@/components/ExpandableText";
 import PlayButton from "@/components/PlayButton";
 import LikeButton from "@/components/songs/LikeButton";
 import ShareButton from "@/components/songs/ShareButton";
@@ -16,7 +17,6 @@ import React, { useState } from "react";
 import {
   Dimensions,
   Image,
-  Pressable,
   StatusBar,
   StyleSheet,
   useColorScheme,
@@ -124,39 +124,14 @@ const SongScreen = () => {
             </ThemedText>
 
             <View style={{ marginBottom: 16 }}>
-              <ThemedText
-                onTextLayout={(e) => {
-                  setShowReadMoreButton(e.nativeEvent.lines.length > 2);
-                }}
-                style={[
-                  styles.subtitle,
-                  { position: "absolute", opacity: 0, left: 0, right: 0 },
-                ]}
-              >
-                {isLoading
-                  ? "Finding details..."
-                  : `${song?.subtitle || ""} • ${song?.album || ""}`}
-              </ThemedText>
-
-              <ThemedText
-                numberOfLines={isSubtitleExpanded ? undefined : 2}
-                style={[styles.subtitle, { color: colors.textMuted }]}
-              >
-                {isLoading
-                  ? "Finding details..."
-                  : `${song?.subtitle || ""} • ${song?.album || ""}`}
-              </ThemedText>
-              {!isLoading && showReadMoreButton && (
-                <Pressable
-                  onPress={() => setIsSubtitleExpanded(!isSubtitleExpanded)}
-                >
-                  <ThemedText
-                    style={[styles.readMoreText, { color: colors.primary }]}
-                  >
-                    {isSubtitleExpanded ? "Show less" : "Read more"}
-                  </ThemedText>
-                </Pressable>
-              )}
+              <ExpandableText
+                text={
+                  isLoading
+                    ? "Finding details..."
+                    : `${song?.subtitle || ""} • ${song?.album || ""}`
+                }
+                isLoading={isLoading}
+              />
             </View>
 
             {/* Action Bar */}

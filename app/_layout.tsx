@@ -35,7 +35,18 @@ import TrackPlayer from "react-native-track-player";
 SplashScreen.preventAutoHideAsync();
 TrackPlayer.registerPlaybackService(() => playbackService);
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 5,
+      gcTime: 10 * 60 * 1000, //10 mins
+      staleTime: 5 * 60 * 1000, //5 mins
+    },
+    mutations: {
+      retry: 5,
+    },
+  },
+});
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();

@@ -5,8 +5,9 @@ import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import {
   getFavoriteSongs,
-  getPlaylists,
   getRecentlyPlayed,
+  getSavedAlbums,
+  getUserPlaylists,
 } from "@/services/userServices";
 import useDownloadStore from "@/store/useDownloadStore";
 import useUserStore from "@/store/useUserStore";
@@ -53,13 +54,17 @@ const LibraryScreen = () => {
     queryKey: ["favorites"],
     queryFn: getFavoriteSongs,
   });
-  const { data: userPlaylists } = useQuery({
-    queryKey: ["user-playlist"],
-    queryFn: getPlaylists,
+  const { data: savedAlbums } = useQuery({
+    queryKey: ["saved-albums"],
+    queryFn: getSavedAlbums,
   });
   const { data: recentlyPlayed } = useQuery({
     queryKey: ["recently-played"],
     queryFn: getRecentlyPlayed,
+  });
+  const { data: userPlaylists } = useQuery({
+    queryKey: ["user-playlists"],
+    queryFn: getUserPlaylists,
   });
 
   const { downloadedSongs } = useDownloadStore();
@@ -79,22 +84,22 @@ const LibraryScreen = () => {
       featured: true,
     },
     {
-      id: "playlists",
+      id: "albums",
       title: "Saved",
-      count: userPlaylists?.length || 0,
+      count: savedAlbums?.length || 0,
       icon: ListMusic,
       color: colors.accent,
       path: "/library_content",
-      params: { pagename: "playlists" },
+      params: { pagename: "albums" },
     },
     {
-      id: "albums",
+      id: "playlists",
       title: "My Playlists",
-      count: 0,
+      count: userPlaylists?.length || 0,
       icon: Disc,
       color: "#8E2DE2",
       path: "/library_content",
-      params: { pagename: "albums" },
+      params: { pagename: "playlists" },
     },
     {
       id: "recently_played",
@@ -133,8 +138,8 @@ const LibraryScreen = () => {
             <ThemedText
               style={[styles.headerSubtitle, { color: colors.textMuted }]}
             >
-              {favoriteSongs?.length + (userPlaylists?.length || 0)} items in
-              your collection
+              {favoriteSongs?.length + (savedAlbums?.length || 0)} items in your
+              collection
             </ThemedText>
           </View>
           <View style={styles.headerActions}>
@@ -241,6 +246,8 @@ const LibraryScreen = () => {
       <CreatePlaylistModal
         visible={createModalVisible}
         onClose={() => setCreateModalVisible(false)}
+        artists={[]}
+        songs={[]}
       />
     </SafeAreaView>
   );

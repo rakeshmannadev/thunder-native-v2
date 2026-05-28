@@ -9,7 +9,7 @@ import { MovingText } from "@/components/songs/useMovingText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
-import { getPlaylists } from "@/services/userServices";
+import { getUserPlaylists } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 import { Artist, Playlist } from "@/types";
@@ -83,9 +83,9 @@ const PlayerScreen = React.memo(() => {
   );
 
   // query
-  const { data: playlists } = useQuery({
-    queryKey: ["user-playlist"],
-    queryFn: () => getPlaylists(),
+  const { data: userPlaylists } = useQuery({
+    queryKey: ["user-playlists"],
+    queryFn: () => getUserPlaylists(),
     enabled: !!currentUser,
   });
 
@@ -122,8 +122,8 @@ const PlayerScreen = React.memo(() => {
               icon: "playlist",
               data: currentSong,
               submenu:
-                playlists &&
-                playlists?.map((playlist: Playlist) => ({
+                userPlaylists &&
+                userPlaylists?.map((playlist: Playlist) => ({
                   key: "add_to_playlist",
                   label: playlist.playlistName,
                   imageUrl: playlist.imageUrl,
@@ -140,7 +140,7 @@ const PlayerScreen = React.memo(() => {
             },
           ]
         : [],
-    [currentSong, playlists]
+    [currentSong, userPlaylists]
   );
 
   // ── Animations ───────────────────────────────────────
@@ -408,6 +408,26 @@ const PlayerScreen = React.memo(() => {
         imageUrl={currentSong?.artwork}
         title={currentSong?.title}
         description={currentSong?.artist}
+        artists={currentSong?.artist_map?.primary_artists!}
+        songs={[
+          {
+            id: currentSong?.id,
+            name: currentSong?.title!,
+            subtitle: currentSong?.artist!,
+            image: [
+              {
+                link: currentSong?.artwork!,
+                quality: "900x900",
+              },
+            ],
+            album_id: currentSong?.album_id!,
+            album: currentSong?.album!,
+            artist_map: currentSong?.artist_map!,
+            duration: currentSong?.duration!,
+            release_date: currentSong?.release_date!,
+            download_url: [{ link: currentSong?.url!, quality: "320kbps" }],
+          },
+        ]}
       />
     </View>
   );

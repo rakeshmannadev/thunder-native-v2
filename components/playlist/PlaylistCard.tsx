@@ -1,10 +1,10 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImage, resolveImageSource } from "@/helpers/resolverImageUrl";
 import useSongOperations from "@/hooks/useSongOperations";
 import { playSong } from "@/hooks/useTrackPlayerActions";
-import { getPlaylists } from "@/services/userServices";
+import { getSavedAlbums } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { Playlist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -38,8 +38,8 @@ const PlaylistCard = ({
   const isPlaying = useIsPlaying();
 
   const { data: playlists } = useQuery({
-    queryKey: ["user-playlist"],
-    queryFn: () => getPlaylists(),
+    queryKey: ["saved-albums"],
+    queryFn: () => getSavedAlbums(),
     enabled: !!currentUser,
   });
 
@@ -131,9 +131,7 @@ const PlaylistCard = ({
           <Skeleton variant="rounded" className="w-16 h-16" />
         ) : (
           <Image
-            source={{
-              uri: `${song.image?.[2]?.link}`,
-            }}
+            source={resolveImageSource(song.image?.at(-1)?.link)}
             alt=""
             style={{
               width: 60,
@@ -203,6 +201,8 @@ const PlaylistCard = ({
         imageUrl={song.image?.[2]?.link}
         title={song.name}
         description={song.subtitle}
+        artists={song.artist_map.primary_artists}
+        songs={[song]}
       />
     </TouchableOpacity>
   );

@@ -11,8 +11,9 @@ import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import {
   getFavoriteSongs,
-  getPlaylists,
   getRecentlyPlayed,
+  getSavedAlbums,
+  getUserPlaylists,
 } from "@/services/userServices";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Playlist, Song } from "@/types";
@@ -59,15 +60,20 @@ const LibraryContentScreen = () => {
     enabled: pagename === "liked",
   });
 
-  const { data: userPlaylists, isLoading: playlistsLoading } = useQuery({
-    queryKey: ["user-playlist"],
-    queryFn: getPlaylists,
-    enabled: pagename === "playlists",
+  const { data: savedAlbums, isLoading: albumsLoading } = useQuery({
+    queryKey: ["saved-albums"],
+    queryFn: getSavedAlbums,
+    enabled: pagename === "albums",
   });
   const { data: recentlyPlayed, isLoading: recentlyPlayedLoading } = useQuery({
     queryKey: ["recently-played"],
     queryFn: getRecentlyPlayed,
     enabled: pagename === "recently_played",
+  });
+  const { data: userPlaylists, isLoading: userPlaylistsLoading } = useQuery({
+    queryKey: ["user-playlists"],
+    queryFn: getUserPlaylists,
+    enabled: pagename === "playlists",
   });
 
   const songs: Song[] =
@@ -77,11 +83,17 @@ const LibraryContentScreen = () => {
         ? recentlyPlayed || []
         : [];
   const playlists: Playlist[] =
-    pagename === "playlists" ? userPlaylists || [] : [];
+    pagename === "albums"
+      ? savedAlbums || []
+      : pagename === "playlists"
+        ? userPlaylists || []
+        : [];
 
-  const isPlaylistMode = pagename === "playlists";
+  const isPlaylistMode = pagename === "playlists" || pagename === "albums";
   const isLoading = isPlaylistMode
-    ? playlistsLoading
+    ? pagename === "albums"
+      ? albumsLoading
+      : userPlaylistsLoading
     : pagename === "recently_played"
       ? recentlyPlayedLoading
       : favoritesLoading;
@@ -119,7 +131,7 @@ const LibraryContentScreen = () => {
     : "Collection";
   const headerImage =
     songs.length > 0
-      ? resolveImage(songs[0]?.image?.[0]?.link)
+      ? resolveImage(songs[0]?.image?.at(-1)?.link)
       : playlists.length > 0
         ? resolveImage(playlists[0]?.imageUrl)
         : null;
@@ -196,7 +208,7 @@ const LibraryContentScreen = () => {
           )}
 
           <View style={styles.listContainer}>
-            {(isPlaylistMode ? playlistsLoading : favoritesLoading) ? (
+            {isLoading ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <View key={i} style={styles.skeletonItem}>
                   <Skeleton className="w-14 h-14 rounded-lg" />
@@ -210,7 +222,7 @@ const LibraryContentScreen = () => {
               playlists.length > 0 ? (
                 <FlatList
                   data={playlists}
-                  keyExtractor={(item) => item.id}
+                  keyExtractor={(item) => item._id}
                   scrollEnabled={false}
                   numColumns={2}
                   columnWrapperStyle={styles.columnWrapper}
@@ -221,7 +233,7 @@ const LibraryContentScreen = () => {
                       )}
                       style={{ width: "48%" }}
                     >
-                      <PlaylistCard playlist={playlist} isLoading={false} />
+                      <PlaylistCard playlist={playlist} />
                     </Animated.View>
                   )}
                 />

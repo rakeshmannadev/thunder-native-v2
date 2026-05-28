@@ -1,7 +1,8 @@
 import { Colors } from "@/constants/Colors";
 import { ICON_MAPS } from "@/constants/Icons";
-import { resolveImage, resolveImageSource } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import useMenuActions from "@/hooks/useMenuActions";
+import { Artist, Song } from "@/types";
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -39,6 +40,8 @@ interface MenuModalProps {
   title?: string;
   imageUrl?: string;
   description?: string;
+  artists?: Artist[];
+  songs?: Song[];
 }
 
 const MenuModal = ({
@@ -48,6 +51,8 @@ const MenuModal = ({
   title = "Options",
   imageUrl,
   description,
+  artists,
+  songs,
 }: MenuModalProps) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const colorScheme = useColorScheme();
@@ -322,6 +327,9 @@ const MenuModal = ({
       <CreatePlaylistModal
         visible={isCreateModalVisible}
         onClose={() => setCreateModalVisible(false)}
+        imageUrl={imageUrl}
+        artists={artists ?? []}
+        songs={songs ?? []}
       />
     </>
   );

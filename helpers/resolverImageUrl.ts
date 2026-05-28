@@ -1,4 +1,4 @@
-import { unknownArtistUri } from "@/constants/images";
+import { unknownArtistUri, unknownTrackUri } from "@/constants/images";
 
 export const resolveImage = (img: any) => {
   if (!img) return unknownArtistUri;
@@ -8,7 +8,7 @@ export const resolveImage = (img: any) => {
     if (typeof last === "string") return last;
     if (last && typeof last === "object" && last.link) return last.link;
   }
-  return unknownArtistUri;
+  return unknownTrackUri;
 };
 
 export const resolveImageSource = (img: any) => {
@@ -23,4 +23,3 @@ export const resolveImageSource = (img: any) => {
   }
   return resolved;
 };
-

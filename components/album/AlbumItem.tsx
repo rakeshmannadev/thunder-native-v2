@@ -3,7 +3,7 @@ import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playSong } from "@/hooks/useTrackPlayerActions";
-import { getPlaylists } from "@/services/userServices";
+import { getUserPlaylists } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { Playlist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -34,8 +34,8 @@ const AlbumItem = ({ song }: { song: Song }) => {
   // query
 
   const { data: playlists } = useQuery({
-    queryKey: ["user-playlist"],
-    queryFn: () => getPlaylists(),
+    queryKey: ["user-playlists"],
+    queryFn: getUserPlaylists,
     enabled: !!currentUser,
   });
 
@@ -181,6 +181,8 @@ const AlbumItem = ({ song }: { song: Song }) => {
           imageUrl={song?.image?.[song.image.length - 1]?.link || ""}
           title={song?.name || ""}
           description={song?.subtitle || ""}
+          artists={song?.artist_map?.primary_artists!}
+          songs={[song]}
         />
       )}
     </TouchableOpacity>

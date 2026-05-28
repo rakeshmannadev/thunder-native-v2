@@ -10,7 +10,7 @@ export const getFavoriteSongs = async () => {
   }
 };
 
-export const getPlaylists = async () => {
+export const getSavedAlbums = async () => {
   try {
     const response = await axiosInstance.get("/user/getPlaylists");
     return response.data.playlists;
@@ -85,22 +85,38 @@ export const savePlaylistToLibrary = async (playlist: Playlist) => {
     console.log(error.response.data.message);
   }
 };
+
 export const createPlaylist = async ({
   name,
   image,
+  artists,
+  songs,
 }: {
   name: string;
   image?: string;
+  artists: Artist[];
+  songs: Song[];
 }) => {
   try {
     const response = await axiosInstance.post("/user/createPlaylist", {
       playListName: name,
       imageUrl: image || "",
+      artists,
+      songs,
     });
     return response.data.playlist;
   } catch (error: any) {
     console.log(error.response.data.message);
     throw error;
+  }
+};
+
+export const getUserPlaylists = async () => {
+  try {
+    const response = await axiosInstance.get("/playlists/user-playlists");
+    return response.data.playlists;
+  } catch (error: any) {
+    console.log(error.response.data.message);
   }
 };
 

@@ -1,84 +1,148 @@
 import { Colors } from "@/constants/Colors";
-import { borderRadius } from "@/constants/tokens";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { Play } from "lucide-react-native";
 import React from "react";
 import {
   Image,
+  StyleSheet,
   Text,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
 import NoDataPlaceholder from "./NoDataPlaceholder";
-import { Card } from "./ui/card";
-import { Heading } from "./ui/heading";
-import { VStack } from "./ui/vstack";
 
 type SectionGridProps = {
   playlist: any;
-  isLoading: boolean;
 };
-const PlaylistCard = ({ playlist, isLoading }: SectionGridProps) => {
+
+const PlaylistCard = ({ playlist }: SectionGridProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const router = useRouter();
 
-  if (!playlist) return <NoDataPlaceholder />;
+  if (!playlist) {
+    return (
+      <NoDataPlaceholder
+        compact={true}
+        pagename="Missing Playlist"
+        description="This playlist content is currently unavailable."
+      />
+    );
+  }
 
-  const id = playlist.id || playlist.id;
+  const id = playlist.id || playlist._id;
   const name = playlist.name || playlist?.playlistName;
   const imageUrl = playlist?.image || playlist?.imageUrl;
-  const subtitle = playlist.subtitle;
+  const songsCount = playlist?.songs?.length ?? 0;
+  
+  // Format subtitle beautifully: use explicit subtitle, or tracks count if available
+  const subtitle = playlist.subtitle || (songsCount > 0 ? `${songsCount} tracks` : "Playlist");
 
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
+      activeOpacity={0.85}
       onPress={() => {
         router.push({
           pathname: "/playlist/[id]",
           params: { id },
         });
       }}
-      style={{
-        backgroundColor: colors.component,
-        borderRadius: borderRadius.md,
-        padding: 16,
-        flexDirection: "row",
-        alignItems: "center",
-      }}
+      style={[
+        styles.cardContainer,
+        {
+          backgroundColor: colors.secondaryBackground,
+          shadowColor: colorScheme === "dark" ? "#000" : "#94a3b8",
+        },
+      ]}
     >
-      <Card size="sm" variant="ghost" className="p-2 rounded-lg !max-w-xs  m-0">
-        <View>
-          <Image
-            source={{
-              uri: imageUrl,
-            }}
-            className="mb-1  w-36  rounded-md aspect-[263/240]"
-            alt={name}
-          />
+      <View style={styles.imageContainer}>
+        <Image
+          source={resolveImageSource(imageUrl)}
+          style={styles.image}
+          alt={name}
+        />
+        {/* Soft elegant gradient overlay on image */}
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.1)", "rgba(0,0,0,0.45)"]}
+          style={StyleSheet.absoluteFill}
+        />
+        {/* Modern play button badge floating in bottom right */}
+        <View style={[styles.playBadge, { backgroundColor: colors.primary }]}>
+          <Play size={12} color="white" fill="white" style={styles.playIcon} />
         </View>
+      </View>
 
-        <VStack className="truncate w-32 ">
-          <View className="w-32 h-14 truncate">
-            <Heading>{name}</Heading>
-          </View>
-          <View className="w-full h-6">
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 14,
-                color: colors.text,
-                letterSpacing: 0.5,
-                fontWeight: 700,
-              }}
-            >
-              {subtitle}
-            </Text>
-          </View>
-        </VStack>
-      </Card>
+      <View style={styles.infoContainer}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+          {name}
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]} numberOfLines={1}>
+          {subtitle}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  cardContainer: {
+    borderRadius: 16,
+    padding: 10,
+    width: "100%",
+    marginBottom: 16,
+    // Premium soft card shadow
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  imageContainer: {
+    width: "100%",
+    aspectRatio: 1, // Perfectly square premium aspect ratio
+    borderRadius: 12,
+    overflow: "hidden",
+    position: "relative",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  playBadge: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  playIcon: {
+    marginLeft: 2, // Slight offset to visually center the play triangle
+  },
+  infoContainer: {
+    marginTop: 10,
+    paddingHorizontal: 4,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+    marginBottom: 3,
+  },
+  subtitle: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+});
 
 export default PlaylistCard;

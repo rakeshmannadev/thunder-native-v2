@@ -37,10 +37,7 @@ import {
   View,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const SKELETON_DATA = Array.from({ length: 5 }, (_, i) => ({ _skeletonId: i }));
@@ -49,7 +46,6 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const { currentUser } = useUserStore();
   const { selectedCategory } = usePlayerStore();
-  const { top } = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
@@ -358,19 +354,27 @@ const SectionItem = React.memo(({ item, index, colors }: any) => {
       let content = null;
       switch (item.type) {
         case "recentlyPlayed":
-          content = <RecentlyPlayedCard song={subItem} isLoading={item.isLoading} />;
+          content = (
+            <RecentlyPlayedCard song={subItem} isLoading={item.isLoading} />
+          );
           break;
         case "featured":
-          content = <FeaturedCard featured={subItem} isLoading={item.isLoading} />;
+          content = (
+            <FeaturedCard featured={subItem} isLoading={item.isLoading} />
+          );
           break;
         case "trending":
           content = <SongCard song={subItem} isLoading={item.isLoading} />;
           break;
         case "artists":
-          content = <TopArtistCard artist={subItem} isLoading={item.isLoading} />;
+          content = (
+            <TopArtistCard artist={subItem} isLoading={item.isLoading} />
+          );
           break;
         case "albums":
-          content = <TopAlbumsCard album={subItem} isLoading={item.isLoading} />;
+          content = (
+            <TopAlbumsCard album={subItem} isLoading={item.isLoading} />
+          );
           break;
       }
 

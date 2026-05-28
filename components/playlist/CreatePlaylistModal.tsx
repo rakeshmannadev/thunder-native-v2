@@ -1,14 +1,13 @@
 import { Colors } from "@/constants/Colors";
 import useSongOperations from "@/hooks/useSongOperations";
+import { Artist, Song } from "@/types";
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
   BottomSheetView,
   type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
-import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
-import { Camera, Plus, X } from "lucide-react-native";
+import { Plus, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
@@ -24,11 +23,17 @@ import { ThemedText } from "../ThemedText";
 interface CreatePlaylistModalProps {
   visible: boolean;
   onClose: () => void;
+  artists: Artist[];
+  songs: Song[];
+  imageUrl?: string;
 }
 
 const CreatePlaylistModal = ({
   visible,
   onClose,
+  artists,
+  songs,
+  imageUrl,
 }: CreatePlaylistModalProps) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const colorScheme = useColorScheme();
@@ -37,7 +42,6 @@ const CreatePlaylistModal = ({
   const { createPlaylistMutation } = useSongOperations();
 
   const [playlistName, setPlaylistName] = useState("");
-  const [image, setImage] = useState<string | undefined>("");
 
   useEffect(() => {
     if (visible) {
@@ -53,7 +57,6 @@ const CreatePlaylistModal = ({
         onClose();
         // Reset form
         setPlaylistName("");
-        setImage("");
       }
     },
     [onClose]
@@ -71,26 +74,15 @@ const CreatePlaylistModal = ({
     []
   );
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
   const handleCreate = async () => {
     if (!playlistName.trim()) return;
 
     try {
       await createPlaylistMutation.mutateAsync({
         name: playlistName,
-        image: image,
+        image: imageUrl,
+        artists,
+        songs,
       });
       bottomSheetRef.current?.dismiss();
     } catch (error) {
@@ -103,7 +95,7 @@ const CreatePlaylistModal = ({
       ref={bottomSheetRef}
       onChange={handleSheetChanges}
       enableDynamicSizing={false}
-      snapPoints={["100%"]}
+      snapPoints={["80%"]}
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.component }}
       handleIndicatorStyle={{
@@ -123,28 +115,6 @@ const CreatePlaylistModal = ({
         </View>
 
         <View style={styles.form}>
-          {/* Image Picker */}
-          <TouchableOpacity
-            onPress={pickImage}
-            style={[
-              styles.imagePicker,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-          >
-            {image ? (
-              <Image source={{ uri: image }} style={styles.previewImage} />
-            ) : (
-              <View style={styles.placeholderIcon}>
-                <Camera size={32} color={colors.textMuted} />
-                <ThemedText
-                  style={[styles.imageLabel, { color: colors.textMuted }]}
-                >
-                  Add Cover Photo
-                </ThemedText>
-              </View>
-            )}
-          </TouchableOpacity>
-
           {/* Name Input */}
           <View style={styles.inputContainer}>
             <ThemedText style={styles.inputLabel}>Playlist Name</ThemedText>
