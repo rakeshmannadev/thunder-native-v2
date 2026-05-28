@@ -50,21 +50,27 @@ const ChatInput = ({ currentRoom }: { currentRoom: Room }) => {
         style={[
           styles.innerContainer,
           {
-            backgroundColor: "rgba(255, 255, 255, 0.05)",
-            borderColor: "rgba(255, 255, 255, 0.1)",
+            backgroundColor: colors.secondaryBackground,
+            borderColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
           },
         ]}
       >
-        <TouchableOpacity style={styles.actionBtn}>
-          <Smile size={22} color={colors.textMuted} />
+        <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+          <Smile size={20} color={colors.textMuted} />
         </TouchableOpacity>
 
         <Input style={styles.inputWrapper}>
           <InputField
             value={message}
             onChangeText={setMessage}
-            placeholder="Type a message..."
-            style={{ color: colors.text, fontSize: 15 }}
+            placeholder="Message..."
+            style={{ 
+              color: colors.text, 
+              fontSize: 14.5,
+              fontWeight: "550" as any,
+              letterSpacing: -0.1,
+              paddingVertical: 0,
+            }}
             placeholderTextColor={colors.textMuted}
           />
         </Input>
@@ -75,13 +81,16 @@ const ChatInput = ({ currentRoom }: { currentRoom: Room }) => {
             {
               backgroundColor: message.trim()
                 ? colors.primary
-                : "rgba(255, 255, 255, 0.1)",
+                : colorScheme === "dark"
+                ? "rgba(255, 255, 255, 0.05)"
+                : "rgba(0, 0, 0, 0.03)",
             },
           ]}
           onPress={handleSendMessage}
           disabled={!message.trim() || isSending}
+          activeOpacity={0.8}
         >
-          <Send size={20} color={message.trim() ? "white" : colors.textMuted} />
+          <Send size={18} color={message.trim() ? "white" : colors.textMuted} />
         </TouchableOpacity>
       </View>
     </View>

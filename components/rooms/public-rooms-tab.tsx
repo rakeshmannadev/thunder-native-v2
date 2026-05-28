@@ -41,17 +41,28 @@ const PublicRoomsTab = () => {
         <Input
           style={[
             styles.searchInput,
-            { backgroundColor: colors.secondaryBackground },
+            {
+              backgroundColor: colors.secondaryBackground,
+              borderColor:
+                colorScheme === "dark"
+                  ? "rgba(255, 255, 255, 0.05)"
+                  : "rgba(0, 0, 0, 0.04)",
+            },
           ]}
         >
           <View style={styles.searchIconContainer}>
-            <Search size={20} color={colors.textMuted} />
+            <Search size={18} color={colors.textMuted} />
           </View>
           <InputField
             placeholder="Search for live rooms..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            style={{ color: colors.text }}
+            style={{
+              color: colors.text,
+              fontSize: 15,
+              fontWeight: "500",
+              letterSpacing: -0.1,
+            }}
             placeholderTextColor={colors.textMuted}
           />
         </Input>
@@ -114,21 +125,24 @@ const NoRoomsView = () => {
           <Radio size={48} color={colors.primary} />
         </View>
       </Animated.View>
+      <View style={{ marginTop: 16, alignItems: "center" }}>
+        <ThemedText style={styles.noRoomsTitle}>No Public Rooms</ThemedText>
+        <ThemedText
+          style={[styles.noRoomsSubtitle, { color: colors.textMuted }]}
+        >
+          Be the first one to start a broadcast and invite others to join your
+          room!
+        </ThemedText>
 
-      <ThemedText style={styles.noRoomsTitle}>No Public Rooms</ThemedText>
-      <ThemedText style={[styles.noRoomsSubtitle, { color: colors.textMuted }]}>
-        Be the first one to start a broadcast and invite others to join your
-        room!
-      </ThemedText>
-
-      <TouchableOpacity
-        style={[styles.actionBtn, { backgroundColor: colors.primary }]}
-        activeOpacity={0.8}
-        onPress={() => router.push("/create_room")}
-      >
-        <ThemedText style={styles.actionBtnText}>Create a Room</ThemedText>
-        <ArrowRight size={20} color="white" />
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionBtn, { backgroundColor: colors.primary }]}
+          activeOpacity={0.8}
+          onPress={() => router.push("/create_room")}
+        >
+          <ThemedText style={styles.actionBtnText}>Create a Room</ThemedText>
+          <ArrowRight size={20} color="white" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -142,12 +156,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   searchInput: {
-    height: 56,
-    borderRadius: 16,
+    height: 48,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
     paddingHorizontal: 12,
+    alignItems: "center",
   },
+
   searchIconContainer: {
     marginRight: 8,
     paddingLeft: 4,

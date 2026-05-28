@@ -3,7 +3,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import usePlayerStore from "@/store/usePlayerStore";
 import {
-  ChevronRight,
   Download,
   Headphones,
   Moon,
@@ -81,7 +80,6 @@ const SettingsScreen = () => {
           </ThemedText>
         </View>
       </View>
-      <ChevronRight size={20} color={colors.textMuted} />
     </TouchableOpacity>
   );
 

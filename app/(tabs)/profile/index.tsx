@@ -3,8 +3,11 @@ import ProfileCard from "@/components/profile/ProfileCard";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { borderRadius, screenPadding } from "@/constants/tokens";
-import useAuthStore from "@/store/useAuthStore";
+import { removeToken } from "@/helpers/auth.helper";
+import { clearCachedToken } from "@/lib/axios";
+import { logout } from "@/services/authServices";
 import useUserStore from "@/store/useUserStore";
+import { useMutation } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
@@ -34,9 +37,19 @@ const ProfileScreen = () => {
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const { top, bottom } = useSafeAreaInsets();
   const router = useRouter();
-  const { currentUser } = useUserStore();
-  const { logout } = useAuthStore();
+  const { currentUser, setCurrentUser } = useUserStore();
+
   const [menuVisible, setMenuVisible] = useState(false);
+
+  const { mutate: logoutMutation } = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      setCurrentUser(null);
+      removeToken("user");
+      removeToken("accessToken");
+      clearCachedToken();
+    },
+  });
 
   const menuGroups = [
     {
@@ -45,7 +58,7 @@ const ProfileScreen = () => {
         {
           label: "Edit Profile",
           icon: User,
-          onPress: () => router.push("/profile/edit"),
+          onPress: () => null,
         },
         { label: "My Posts", icon: Globe, onPress: () => null },
       ],
@@ -159,7 +172,7 @@ const ProfileScreen = () => {
             <Animated.View entering={FadeInDown.delay(600).duration(600)}>
               <TouchableOpacity
                 style={[styles.logoutBtn, { borderColor: "#ff4b2b" }]}
-                onPress={logout}
+                onPress={() => logoutMutation()}
                 activeOpacity={0.7}
               >
                 <LogOut size={20} color="#ff4b2b" />

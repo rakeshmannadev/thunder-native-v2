@@ -7,7 +7,6 @@ interface UserStore {
   fetchJoinedRooms: () => Promise<void>;
   fetchPublicRooms: () => Promise<void>;
   fetchPlaylists: () => Promise<void>;
-  getCurrentUser: () => Promise<void>;
   fetchRecentlyPlayed: () => Promise<void>;
   saveRecentlyPlayed: (id: string) => Promise<void>;
   addToFavorite: (
@@ -33,6 +32,7 @@ interface UserStore {
     imageUrl: string,
     songs: Array<string>
   ) => Promise<void>;
+  setCurrentUser: (currentUser: User | null) => void;
   rooms: Room[];
   publicRooms: Room[];
   currentUser: User | null;
@@ -57,6 +57,9 @@ const useUserStore = create<UserStore>((set, get) => ({
   recentlyPlayed: [],
 
   currentUser: null,
+  setCurrentUser: (currentUser: User | null) => {
+    set({ currentUser });
+  },
   fetchJoinedRooms: async () => {
     set({ isFetchingRooms: true });
     try {
@@ -103,20 +106,7 @@ const useUserStore = create<UserStore>((set, get) => ({
       set({ playlistLoading: false });
     }
   },
-  getCurrentUser: async () => {
-    set({ isLoading: true });
-    try {
-      const response = await axiosInstance.get("/user/getCurrentUser");
-      if (response.status) {
-        set({ currentUser: response.data.user });
-      }
-    } catch (error: any) {
-      console.log(error);
-      set({ currentUser: null });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+
   addToFavorite: async (
     song: Song,
     playListName: string,

@@ -1,10 +1,10 @@
 import { showToast } from "@/hooks/useToastMessage";
+import { playAlbum, playSong } from "@/hooks/useTrackPlayerActions";
 import { fetchSongById } from "@/services/songService";
 import { Song, SongRequest, User } from "@/types";
 import TrackPlayer from "react-native-track-player";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
-import usePlayerStore from "./usePlayerStore";
 import useRoomStore from "./useRoomStore";
 import useUserStore from "./useUserStore";
 
@@ -217,7 +217,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
             const songData = await fetchSongById(songId);
             if (songData.status) {
               const song = songData.song;
-              usePlayerStore.getState().setCurrentSong(song);
+              playSong(song);
               set({
                 isPlayingSong: true,
                 isBroadcasting: true,
@@ -234,10 +234,9 @@ const useSocketStore = create<SocketState>((set, get) => ({
           break;
         case "pause": {
           const { isPlayingSong } = get();
-          if (
-            usePlayerStore.getState().currentSong?.id === songId &&
-            isPlayingSong
-          ) {
+          const currentSong = await TrackPlayer.getActiveTrack();
+          if (currentSong?.id === songId && isPlayingSong) {
+            await TrackPlayer.pause();
             set({ isPlayingSong: false });
           }
           break;
@@ -255,8 +254,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
             roomId,
             currentStreamingQueue: songs,
           });
-          usePlayerStore.setState({ queue: songs });
-          usePlayerStore.getState().playAlbum(songs, 0);
+          playAlbum(songs, 0);
           break;
         }
       }
@@ -275,10 +273,10 @@ const useSocketStore = create<SocketState>((set, get) => ({
         songs = [],
       }) => {
         if (song) {
-          usePlayerStore.getState().setCurrentSong(song);
+          playSong(song);
         } else if (songs && Array.isArray(songs) && songs.length > 0) {
           set({ currentStreamingQueue: songs });
-          usePlayerStore.getState().playAlbum(songs, 0);
+          playAlbum(songs, 0);
         }
         set({
           isBroadcasting,
@@ -291,7 +289,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       }
     );
 
-    socket.on("sync-request", ({ from }) => {
+    socket.on("sync-request", async ({ from }) => {
       const {
         socket,
         isBroadcasting,
@@ -302,6 +300,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
         currentStreamingQueue,
       } = get();
       if (!socket) return;
+      const currentSong = await TrackPlayer.getActiveTrack();
 
       socket.emit("sync-state", {
         to: from,
@@ -311,7 +310,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
         roomId,
         isPlaying: isPlayingSong,
         time: 0,
-        song: usePlayerStore.getState().currentSong,
+        song: currentSong,
         songs: currentStreamingQueue,
       });
     });
@@ -323,10 +322,10 @@ const useSocketStore = create<SocketState>((set, get) => ({
       showToast(`New song request received from ${data.song.currentJockey}`);
     });
 
-    socket.on("broadcastEnded", (data) => {
+    socket.on("broadcastEnded", async (data) => {
       set({ isBroadcasting: false, isPlayingSong: false });
-      usePlayerStore.setState({ currentSong: null });
-      TrackPlayer.reset();
+
+      await TrackPlayer.reset();
       showToast(data.message);
     });
 
@@ -423,7 +422,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       }
     });
   },
-  disconnectSocket: () => {
+  disconnectSocket: async () => {
     const { socket } = get();
     if (socket) {
       socket.disconnect();
@@ -433,8 +432,8 @@ const useSocketStore = create<SocketState>((set, get) => ({
         isBroadcasting: false,
         isPlayingSong: false,
       });
-      usePlayerStore.setState({ currentSong: null });
-      TrackPlayer.reset();
+
+      await TrackPlayer.reset();
       console.log("Socket disconnected.");
     }
   },

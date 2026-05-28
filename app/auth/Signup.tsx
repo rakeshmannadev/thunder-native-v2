@@ -1,40 +1,43 @@
-import { Button, ButtonText } from "@/components/ui/button";
-import { Divider } from "@/components/ui/divider";
-import { FormControl } from "@/components/ui/form-control";
+import { ThemedText } from "@/components/ThemedText";
 import { Heading } from "@/components/ui/heading";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { VStack } from "@/components/ui/vstack";
 import { Colors } from "@/constants/Colors";
 import { LogoIcon } from "@/constants/Icons";
-import { borderRadius, screenPadding } from "@/constants/tokens";
-import useAuthStore from "@/store/useAuthStore";
+import { screenPadding } from "@/constants/tokens";
+import { setToken } from "@/helpers/auth.helper";
+import { showToast } from "@/hooks/useToastMessage";
+import { setCachedToken } from "@/lib/axios";
+import { signup } from "@/services/authServices";
+import useUserStore from "@/store/useUserStore";
+import { User } from "@/types";
+import { useMutation } from "@tanstack/react-query";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
+  ArrowRight,
+  CheckCircle2,
   EyeIcon,
   EyeOffIcon,
   Lock,
   Mail,
-  User,
-  ArrowRight,
-  CheckCircle2,
+  UserIcon,
 } from "lucide-react-native";
 import React from "react";
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
-  ToastAndroid,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   useColorScheme,
   View,
-  TouchableOpacity,
-  ScrollView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ThemedText } from "@/components/ThemedText";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -46,8 +49,22 @@ const Signup = () => {
   const { top, bottom } = useSafeAreaInsets();
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "dark" ? "dark" : "light"];
-  const { signup } = useAuthStore();
+
+  const { setCurrentUser } = useUserStore();
+
   const router = useRouter();
+
+  const { mutate: signupMutation, isPending } = useMutation({
+    mutationFn: (authData: object) => signup(authData),
+    onSuccess: (response: any) => {
+      const user = response.user as User;
+      const token = response.accessToken as string;
+      setCurrentUser(user);
+      setToken("user", JSON.stringify(user));
+      setToken("accessToken", token);
+      setCachedToken(token);
+    },
+  });
 
   const handleSignUp = async () => {
     if (
@@ -56,18 +73,12 @@ const Signup = () => {
       password.trim() === "" ||
       gender.trim() === ""
     ) {
-      return ToastAndroid.show(
-        "Please enter all details to create an account.",
-        ToastAndroid.SHORT
-      );
+      return showToast("Please enter all details to create an account.");
     }
     if (password.length < 6) {
-      return ToastAndroid.show(
-        "Password must have at least 6 characters",
-        ToastAndroid.SHORT
-      );
+      return showToast("Password must have at least 6 characters");
     }
-    signup({ name, email, password, gender });
+    signupMutation({ name, email, password, gender });
   };
 
   return (
@@ -78,31 +89,53 @@ const Signup = () => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
           <LinearGradient
-            colors={[colors.primary + '30', 'transparent']}
+            colors={[colors.primary + "30", "transparent"]}
             style={StyleSheet.absoluteFill}
           />
 
-          <ScrollView 
+          <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: bottom + 40, paddingTop: top + 40 }}
+            contentContainerStyle={{
+              paddingBottom: bottom + 40,
+              paddingTop: top + 40,
+            }}
           >
             <View style={styles.content}>
               {/* Header */}
-              <Animated.View entering={FadeInUp.duration(800)} style={styles.header}>
+              <Animated.View
+                entering={FadeInUp.duration(800)}
+                style={styles.header}
+              >
                 <LogoIcon styles={{ width: 100, height: 100 }} />
-                <Heading style={[styles.title, { color: colors.text }]}>Create Account</Heading>
-                <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
+                <Heading style={[styles.title, { color: colors.text }]}>
+                  Create Account
+                </Heading>
+                <ThemedText
+                  style={[styles.subtitle, { color: colors.textMuted }]}
+                >
                   Join Thunder and explore millions of songs
                 </ThemedText>
               </Animated.View>
 
               {/* Form */}
-              <Animated.View entering={FadeInDown.delay(200).duration(800)} style={styles.formContainer}>
+              <Animated.View
+                entering={FadeInDown.delay(200).duration(800)}
+                style={styles.formContainer}
+              >
                 <VStack space="xl">
                   <VStack space="xs">
                     <ThemedText style={styles.label}>Full Name</ThemedText>
-                    <Input style={[styles.input, { backgroundColor: colors.secondaryBackground }]}>
-                      <InputIcon as={User} color={colors.textMuted} style={styles.inputIcon} />
+                    <Input
+                      style={[
+                        styles.input,
+                        { backgroundColor: colors.secondaryBackground },
+                      ]}
+                    >
+                      <InputIcon
+                        as={UserIcon}
+                        color={colors.textMuted}
+                        style={styles.inputIcon}
+                      />
                       <InputField
                         placeholder="Enter your name"
                         value={name}
@@ -115,8 +148,17 @@ const Signup = () => {
 
                   <VStack space="xs">
                     <ThemedText style={styles.label}>Email Address</ThemedText>
-                    <Input style={[styles.input, { backgroundColor: colors.secondaryBackground }]}>
-                      <InputIcon as={Mail} color={colors.textMuted} style={styles.inputIcon} />
+                    <Input
+                      style={[
+                        styles.input,
+                        { backgroundColor: colors.secondaryBackground },
+                      ]}
+                    >
+                      <InputIcon
+                        as={Mail}
+                        color={colors.textMuted}
+                        style={styles.inputIcon}
+                      />
                       <InputField
                         placeholder="Enter your email"
                         value={email}
@@ -131,8 +173,17 @@ const Signup = () => {
 
                   <VStack space="xs">
                     <ThemedText style={styles.label}>Password</ThemedText>
-                    <Input style={[styles.input, { backgroundColor: colors.secondaryBackground }]}>
-                      <InputIcon as={Lock} color={colors.textMuted} style={styles.inputIcon} />
+                    <Input
+                      style={[
+                        styles.input,
+                        { backgroundColor: colors.secondaryBackground },
+                      ]}
+                    >
+                      <InputIcon
+                        as={Lock}
+                        color={colors.textMuted}
+                        style={styles.inputIcon}
+                      />
                       <InputField
                         type={showPassword ? "text" : "password"}
                         placeholder="Create a password"
@@ -141,8 +192,14 @@ const Signup = () => {
                         style={{ color: colors.text }}
                         placeholderTextColor={colors.textMuted}
                       />
-                      <InputSlot onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                        <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} color={colors.textMuted} />
+                      <InputSlot
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={styles.eyeIcon}
+                      >
+                        <InputIcon
+                          as={showPassword ? EyeIcon : EyeOffIcon}
+                          color={colors.textMuted}
+                        />
                       </InputSlot>
                     </Input>
                   </VStack>
@@ -151,23 +208,34 @@ const Signup = () => {
                   <VStack space="xs">
                     <ThemedText style={styles.label}>Gender</ThemedText>
                     <View style={styles.genderRow}>
-                      {['male', 'female'].map((g) => (
+                      {["male", "female"].map((g) => (
                         <TouchableOpacity
                           key={g}
                           onPress={() => setGender(g)}
                           style={[
                             styles.genderOption,
-                            { 
-                              backgroundColor: gender === g ? colors.primary : colors.secondaryBackground,
-                              borderColor: gender === g ? colors.primary : colors.borderColor
-                            }
+                            {
+                              backgroundColor:
+                                gender === g
+                                  ? colors.primary
+                                  : colors.secondaryBackground,
+                              borderColor:
+                                gender === g
+                                  ? colors.primary
+                                  : colors.borderColor,
+                            },
                           ]}
                         >
-                          <CheckCircle2 size={18} color={gender === g ? 'white' : 'transparent'} />
-                          <ThemedText style={[
-                            styles.genderText,
-                            { color: gender === g ? 'white' : colors.text }
-                          ]}>
+                          <CheckCircle2
+                            size={18}
+                            color={gender === g ? "white" : "transparent"}
+                          />
+                          <ThemedText
+                            style={[
+                              styles.genderText,
+                              { color: gender === g ? "white" : colors.text },
+                            ]}
+                          >
                             {g.charAt(0).toUpperCase() + g.slice(1)}
                           </ThemedText>
                         </TouchableOpacity>
@@ -176,26 +244,57 @@ const Signup = () => {
                   </VStack>
 
                   <TouchableOpacity
-                    style={[styles.signupBtn, { backgroundColor: colors.primary }]}
+                    style={[
+                      styles.signupBtn,
+                      { backgroundColor: colors.primary },
+                    ]}
                     onPress={handleSignUp}
                     activeOpacity={0.8}
+                    disabled={isPending}
                   >
-                    <ThemedText style={styles.signupBtnText}>Sign Up</ThemedText>
-                    <ArrowRight color="white" size={20} />
+                    <ThemedText style={styles.signupBtnText}>
+                      {isPending ? "Creating account..." : "Create account"}
+                    </ThemedText>
+                    {isPending ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <ArrowRight color="white" size={20} />
+                    )}
                   </TouchableOpacity>
 
                   <View style={styles.dividerContainer}>
-                    <View style={[styles.divider, { backgroundColor: colors.borderColor }]} />
-                    <ThemedText style={[styles.dividerText, { color: colors.textMuted }]}>or</ThemedText>
-                    <View style={[styles.divider, { backgroundColor: colors.borderColor }]} />
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: colors.borderColor },
+                      ]}
+                    />
+                    <ThemedText
+                      style={[styles.dividerText, { color: colors.textMuted }]}
+                    >
+                      or
+                    </ThemedText>
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: colors.borderColor },
+                      ]}
+                    />
                   </View>
 
                   <TouchableOpacity
                     style={[styles.loginLink, { borderColor: colors.primary }]}
                     onPress={() => router.navigate("/auth/Login")}
                   >
-                    <ThemedText style={[styles.loginText, { color: colors.text }]}>
-                      Already have an account? <ThemedText style={{ color: colors.primary, fontWeight: '800' }}>Login</ThemedText>
+                    <ThemedText
+                      style={[styles.loginText, { color: colors.text }]}
+                    >
+                      Already have an account?{" "}
+                      <ThemedText
+                        style={{ color: colors.primary, fontWeight: "800" }}
+                      >
+                        Login
+                      </ThemedText>
                     </ThemedText>
                   </TouchableOpacity>
                 </VStack>
@@ -216,30 +315,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding.horizontal,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   title: {
     fontSize: 32,
-    fontWeight: '900',
+    fontWeight: "900",
     marginTop: 16,
     letterSpacing: -1,
   },
   subtitle: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   formContainer: {
     gap: 24,
   },
   label: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 8,
     marginLeft: 4,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 1,
   },
   input: {
@@ -255,7 +354,7 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   genderRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   genderOption: {
@@ -263,37 +362,37 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 16,
     borderWidth: 1.5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
   },
   genderText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   signupBtn: {
     height: 60,
     borderRadius: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 12,
     marginTop: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   signupBtnText: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
     marginVertical: 10,
   },
@@ -304,16 +403,16 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   loginLink: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 10,
   },
   loginText: {
     fontSize: 16,
-    fontWeight: '500',
-  }
+    fontWeight: "500",
+  },
 });
 
 export default Signup;

@@ -64,6 +64,7 @@ const SkeletonBox = ({
   style?: any;
 }) => {
   const shimmer = useShimmer();
+  const colorScheme = useColorScheme();
   return (
     <Animated.View
       style={[
@@ -71,7 +72,7 @@ const SkeletonBox = ({
           width,
           height,
           borderRadius,
-          backgroundColor: "rgba(255,255,255,0.12)",
+          backgroundColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
         },
         shimmer,
         style,

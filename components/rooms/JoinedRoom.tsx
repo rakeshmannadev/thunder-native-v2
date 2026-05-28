@@ -55,20 +55,20 @@ const JoinedRoom = ({ room }: { room: Room }) => {
 
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={0.85}
       onPress={handleVisitRoom}
       style={{
         backgroundColor: colors.secondaryBackground,
-        borderRadius: 24,
-        padding: 12,
+        borderRadius: 20,
+        padding: 16,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.05)",
+        borderColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: colorScheme === "dark" ? 0.2 : 0.04,
+        shadowRadius: 12,
+        elevation: 3,
       }}
     >
       <View
@@ -86,31 +86,51 @@ const JoinedRoom = ({ room }: { room: Room }) => {
             flex: 1,
           }}
         >
-          <Image
-            source={{ uri: room.image }}
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.1)",
-            }}
-          />
-          <View style={{ flex: 1 }}>
-            <ThemedText
-              style={{ fontSize: 18, fontWeight: "800", marginBottom: 2 }}
+          <View style={{ position: "relative" }}>
+            <Image
+              source={{ uri: room.image }}
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 14,
+                backgroundColor: colors.card,
+              }}
+            />
+            {/* Live indicator dot on cover art */}
+            <View
+              style={{
+                position: "absolute",
+                bottom: -2,
+                right: -2,
+                width: 14,
+                height: 14,
+                borderRadius: 7,
+                backgroundColor: colors.primary,
+                borderWidth: 2.5,
+                borderColor: colors.secondaryBackground,
+              }}
+            />
+          </View>
+
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "700",
+                color: colors.text,
+                marginBottom: 4,
+                letterSpacing: -0.3,
+              }}
+              numberOfLines={1}
             >
               {room.roomName}
-            </ThemedText>
+            </Text>
             <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
             >
               <View
                 style={{
-                  backgroundColor:
-                    room.visability === "public"
-                      ? "rgba(29, 185, 84, 0.1)"
-                      : "rgba(255, 255, 255, 0.05)",
+                  backgroundColor: colors.primary + "15",
                   paddingHorizontal: 8,
                   paddingVertical: 2,
                   borderRadius: 6,
@@ -118,13 +138,11 @@ const JoinedRoom = ({ room }: { room: Room }) => {
               >
                 <Text
                   style={{
-                    color:
-                      room.visability === "public"
-                        ? "#1DB954"
-                        : colors.textMuted,
-                    fontSize: 11,
+                    color: colors.primary,
+                    fontSize: 10,
                     fontWeight: "800",
                     textTransform: "uppercase",
+                    letterSpacing: 0.5,
                   }}
                 >
                   {room.visability}
@@ -132,11 +150,11 @@ const JoinedRoom = ({ room }: { room: Room }) => {
               </View>
               <View
                 style={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: 2,
+                  width: 3,
+                  height: 3,
+                  borderRadius: 1.5,
                   backgroundColor: colors.textMuted,
-                  opacity: 0.5,
+                  opacity: 0.4,
                 }}
               />
               <Text
@@ -144,24 +162,27 @@ const JoinedRoom = ({ room }: { room: Room }) => {
                   color: colors.textMuted,
                   fontSize: 13,
                   fontWeight: "600",
+                  letterSpacing: -0.1,
                 }}
               >
-                {room.participants.length} Listeners
+                {room.participants.length} {room.participants.length === 1 ? "listener" : "listeners"}
               </Text>
             </View>
           </View>
         </View>
         <View
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: "rgba(255,255,255,0.03)",
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.03)",
             justifyContent: "center",
             alignItems: "center",
+            borderWidth: 1,
+            borderColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.01)",
           }}
         >
-          <ChevronRight size={20} color={colors.textMuted} />
+          <ChevronRight size={18} color={colors.textMuted} />
         </View>
       </View>
     </TouchableOpacity>

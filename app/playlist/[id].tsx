@@ -9,7 +9,6 @@ import { screenPadding } from "@/constants/tokens";
 import { resolveImage } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getPlaylistById } from "@/services/songService";
-import useUserStore from "@/store/useUserStore";
 import { Playlist } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
@@ -46,7 +45,6 @@ const PlaylistScreen = () => {
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
   const { bottom, top } = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
-  const { playlists } = useUserStore();
 
   const { data: playlistRes, isLoading: playlistLoading } = useQuery({
     queryKey: ["playlist", id],
@@ -61,11 +59,6 @@ const PlaylistScreen = () => {
   const handlePlay = () => {
     if (songs.length === 0) return;
     playAlbum(songs, 0);
-  };
-
-  const handleShufflePlay = () => {
-    if (songs.length === 0) return;
-    playAlbum(songs, Math.floor(Math.random() * songs.length));
   };
 
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -167,6 +160,7 @@ const PlaylistScreen = () => {
                     handlePlay={handlePlay}
                     title="Play"
                     color={colors.primary}
+                    disabled={playlistLoading}
                   />
 
                   <ShuffleButton songs={currentPlaylist.songs} />

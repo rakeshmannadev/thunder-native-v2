@@ -2,9 +2,8 @@ import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 
-import { FontAwesome } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { CoffeeIcon, LibraryBig, LibraryIcon } from "lucide-react-native";
 import React from "react";
 import { useColorScheme } from "react-native";
 
@@ -18,11 +17,6 @@ export default function TabLayout() {
         screenOptions={{
           tabBarActiveTintColor: colors.accent,
           headerTransparent: true,
-          // headerLeft: () => <LogoIcon />,
-          // headerRight: () => <HeaderRight />,
-          // headerStyle: {
-          //   backgroundColor: colors.background,
-          // },
           tabBarButton: HapticTab,
           tabBarBackground: TabBarBackground,
           tabBarStyle: {
@@ -36,30 +30,27 @@ export default function TabLayout() {
           options={{
             title: "Home",
             tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="home" color={color} />
+              <MaterialCommunityIcons
+                name="home-variant"
+                size={28}
+                color={color}
+              />
             ),
             headerShown: false,
             headerTransparent: true,
-            // headerTitleStyle: {
-            //   marginLeft: 4,
-            //   color: colors.text,
-            //   fontSize: fontSize.lg,
-            //   fontWeight: "600",
-            //   letterSpacing: 1,
-            // },
           }}
         />
         <Tabs.Screen
           name="library/index"
           options={{
             title: "Library",
-            tabBarIcon: ({ focused, color }) =>
-              focused ? (
-                <LibraryBig size={28} color={color} />
-              ) : (
-                <LibraryIcon size={28} color={color} />
-              ),
-            headerTitle: "Library",
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="bookshelf"
+                size={28}
+                color={color}
+              />
+            ),
             headerShown: false,
             headerTransparent: true,
           }}
@@ -68,16 +59,15 @@ export default function TabLayout() {
           name="rooms/index"
           options={{
             title: "Rooms",
-            tabBarIcon: ({ color, focused }) =>
-              focused ? (
-                <CoffeeIcon size={28} color={color} />
-              ) : (
-                <FontAwesome size={28} name="coffee" color={color} />
-              ),
-            headerTitle: "Rooms",
-            headerShown: true,
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="radio-tower"
+                color={color}
+                size={28}
+              />
+            ),
+            headerShown: false,
             headerTransparent: true,
-            headerTitleStyle: { marginLeft: 10 },
           }}
         />
         <Tabs.Screen
@@ -86,12 +76,14 @@ export default function TabLayout() {
             title: "Profile",
 
             tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="user" color={color} />
+              <MaterialCommunityIcons
+                size={28}
+                name="account-music"
+                color={color}
+              />
             ),
-            headerTitle: "Profile",
             headerShown: false,
             headerTransparent: true,
-            headerTitleStyle: { marginLeft: 10 },
           }}
         />
       </Tabs>

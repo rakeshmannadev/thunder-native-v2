@@ -3,7 +3,7 @@ import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import useUserStore from "@/store/useUserStore";
 import { useRouter } from "expo-router";
-import { ArrowRight, Plus, Radio } from "lucide-react-native";
+import { ArrowRight, Radio } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
   FlatList,
@@ -61,15 +61,6 @@ const JoinedRoomsTab = ({
           }
         />
       )}
-
-      {/* Modern Floating Action Button */}
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.primary }]}
-        onPress={() => router.push("/create_room")}
-        activeOpacity={0.8}
-      >
-        <Plus color="white" size={28} />
-      </TouchableOpacity>
     </View>
   );
 };
@@ -81,7 +72,6 @@ const NoRoomsView = ({
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  const router = useRouter();
 
   return (
     <View
@@ -129,21 +119,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding.horizontal,
     paddingTop: 20,
     paddingBottom: 100,
-  },
-  fab: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 8,
   },
   // No Rooms View Styles
   noRoomsContainer: {
