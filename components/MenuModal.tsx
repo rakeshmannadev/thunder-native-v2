@@ -154,7 +154,7 @@ const MenuModal = ({
         >
           {item.imageUrl ? (
             <Image
-              source={resolveImageSource(item.imageUrl)}
+              source={resolveImageSource(item.imageUrl, "artist")}
               style={styles.itemImage}
             />
           ) : (
@@ -241,7 +241,7 @@ const MenuModal = ({
             {imageUrl ? (
               <View style={styles.songInfoHeader}>
                 <Image
-                  source={resolveImageSource(imageUrl)}
+                  source={resolveImageSource(imageUrl, "track")}
                   style={styles.songImage}
                 />
                 <View style={styles.songInfoText}>

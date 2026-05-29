@@ -1,19 +1,13 @@
-import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { Room } from "@/types";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Check } from "lucide-react-native";
 import React from "react";
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
 
 const PublicRoom = ({ room }: { room: Room }) => {
   const colorScheme = useColorScheme();
@@ -41,7 +35,10 @@ const PublicRoom = ({ room }: { room: Room }) => {
         padding: 16,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
+        borderColor:
+          colorScheme === "dark"
+            ? "rgba(255, 255, 255, 0.05)"
+            : "rgba(0, 0, 0, 0.04)",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: colorScheme === "dark" ? 0.2 : 0.04,
@@ -67,13 +64,14 @@ const PublicRoom = ({ room }: { room: Room }) => {
         >
           <View style={{ position: "relative" }}>
             <Image
-              source={{ uri: room.image }}
+              source={room.image}
               style={{
                 width: 60,
                 height: 60,
                 borderRadius: 14,
                 backgroundColor: colors.card,
               }}
+              contentFit="cover"
             />
             {/* Live indicator dot on cover art */}
             <View
@@ -144,7 +142,8 @@ const PublicRoom = ({ room }: { room: Room }) => {
                   letterSpacing: -0.1,
                 }}
               >
-                {room.participants.length} {room.participants.length === 1 ? "listener" : "listeners"}
+                {room.participants.length}{" "}
+                {room.participants.length === 1 ? "listener" : "listeners"}
               </Text>
             </View>
           </View>
@@ -169,7 +168,9 @@ const PublicRoom = ({ room }: { room: Room }) => {
             gap: 4,
           }}
         >
-          {isJoined && <Check size={14} color={colors.textMuted} strokeWidth={3} />}
+          {isJoined && (
+            <Check size={14} color={colors.textMuted} strokeWidth={3} />
+          )}
           <Text
             style={{
               color: isJoined ? colors.textMuted : "white",

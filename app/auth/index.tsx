@@ -1,16 +1,11 @@
 import React from "react";
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Divider } from "@/components/ui/divider";
 import { Colors } from "@/constants/Colors";
 import { FontAwesome } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { Link, useRouter } from "expo-router";
 import { User2Icon } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

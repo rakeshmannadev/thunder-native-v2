@@ -1,16 +1,16 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { playSong } from "@/hooks/useTrackPlayerActions";
 import { getUserPlaylists } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { Playlist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { EllipsisVerticalIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  Image,
   Pressable,
   TouchableOpacity,
   useColorScheme,
@@ -88,7 +88,7 @@ const AlbumItem = ({ song }: { song: Song }) => {
             label: artist.name,
             icon: "artist",
             data: artist.id,
-            imageUrl: resolveImage(artist.image),
+            imageUrl: artist.image,
           };
         }),
     },
@@ -119,9 +119,10 @@ const AlbumItem = ({ song }: { song: Song }) => {
     >
       <View>
         <Image
-          source={{
-            uri: song.image[song.image.length - 1].link,
-          }}
+          source={resolveImageSource(
+            song.image[song.image.length - 1].link,
+            "track"
+          )}
           alt=""
           style={{
             width: 60,

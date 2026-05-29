@@ -4,6 +4,7 @@ import { screenPadding } from "@/constants/tokens";
 import { getTopArtists } from "@/services/songService";
 import { TopArtists } from "@/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, User } from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
@@ -11,7 +12,6 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Image,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -86,9 +86,9 @@ const TopArtistsPage = () => {
           <View style={styles.imageWrapper}>
             {imageUrl ? (
               <Image
-                source={{ uri: imageUrl }}
+                source={imageUrl}
                 style={styles.image}
-                resizeMode="cover"
+                contentFit="cover"
               />
             ) : (
               <View

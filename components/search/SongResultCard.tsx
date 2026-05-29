@@ -1,5 +1,6 @@
+import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
@@ -14,7 +15,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { ThemedText } from "@/components/ThemedText";
 
 const SongResultCard = ({
   result,
@@ -53,25 +53,32 @@ const SongResultCard = ({
       onPress={() => router.push(`../../song/${result.id}`)}
     >
       <Image
-        source={{
-          uri: resolveImage(result.image[result.image.length - 1].link),
-        }}
+        source={resolveImageSource(
+          result.image[result.image.length - 1].link,
+          "track"
+        )}
         style={styles.image}
       />
       <View style={styles.content}>
         <ThemedText style={styles.name} numberOfLines={1}>
           {result.name}
         </ThemedText>
-        <ThemedText style={[styles.description, { color: colors.textMuted }]} numberOfLines={1}>
+        <ThemedText
+          style={[styles.description, { color: colors.textMuted }]}
+          numberOfLines={1}
+        >
           {result.singers}
         </ThemedText>
       </View>
 
       <View style={styles.actions}>
         {isBroadcasting && (
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleSendSongRequest}
-            style={[styles.actionBtn, { backgroundColor: colors.secondaryBackground }]}
+            style={[
+              styles.actionBtn,
+              { backgroundColor: colors.secondaryBackground },
+            ]}
           >
             <Radio size={16} color={colors.primary} />
           </TouchableOpacity>

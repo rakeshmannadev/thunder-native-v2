@@ -3,6 +3,7 @@ import NoDataPlaceholder from "@/components/NoDataPlaceholder";
 import PlayButton from "@/components/PlayButton";
 import { ThemedText } from "@/components/ThemedText";
 import PlaylistCard from "@/components/playlist/PlaylistCard";
+import HeaderImageSkeleton from "@/components/skeleton/HeaderImageSkeleton";
 import AddToPlaylistButton from "@/components/songs/AddToPlaylistButton";
 import ShuffleButton from "@/components/songs/ShuffleButton";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
@@ -13,6 +14,7 @@ import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getPlaylistById } from "@/services/songService";
 import { Playlist } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
@@ -20,7 +22,6 @@ import React from "react";
 import {
   Dimensions,
   FlatList,
-  Image,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -79,7 +80,8 @@ const PlaylistScreen = () => {
   });
 
   const playlistImage = resolveImageSource(
-    currentPlaylist?.songs[0]?.image.at(-1)?.link
+    currentPlaylist?.songs[0]?.image.at(-1)?.link,
+    "artist"
   );
 
   if (!playlistLoading && !playlistRes) {
@@ -99,12 +101,7 @@ const PlaylistScreen = () => {
         {playlistImage ? (
           <Image source={playlistImage} style={styles.headerImage} />
         ) : (
-          <View
-            style={[
-              styles.headerImage,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-          />
+          <HeaderImageSkeleton />
         )}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.5)", colors.background]}

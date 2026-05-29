@@ -9,12 +9,12 @@ import { Input, InputField } from "@/components/ui/input";
 import { Colors } from "@/constants/Colors";
 import { borderRadius, screenPadding } from "@/constants/tokens";
 import useRoomStore from "@/store/useRoomStore";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { ImagePlusIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -103,12 +103,13 @@ const index = (props: Props) => {
                 <ImagePlusIcon size={48} color={colors.icon} />
               ) : (
                 <Image
+                  source={imageFile.uri}
                   style={{
                     width: 200,
                     aspectRatio: 1,
                     borderRadius: borderRadius.md,
                   }}
-                  source={{ uri: imageFile.uri }}
+                  contentFit="cover"
                 />
               )}
             </TouchableOpacity>

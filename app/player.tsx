@@ -8,7 +8,6 @@ import ShareButton from "@/components/songs/ShareButton";
 import { MovingText } from "@/components/songs/useMovingText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { resolveImage } from "@/helpers/resolverImageUrl";
 import { getUserPlaylists } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
@@ -111,7 +110,7 @@ const PlayerScreen = React.memo(() => {
                     label: artist.name,
                     icon: "artist",
                     data: artist.id,
-                    imageUrl: resolveImage(artist.image),
+                    imageUrl: artist.image,
                   };
                 }
               ),

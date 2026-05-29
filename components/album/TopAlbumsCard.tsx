@@ -1,18 +1,18 @@
 import { Colors } from "@/constants/Colors";
 import { TopAlbums } from "@/types";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Image,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import { Skeleton, SkeletonText } from "../ui/skeleton";
-import { LinearGradient } from "expo-linear-gradient";
-import { ThemedText } from "../ThemedText";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { ThemedText } from "../ThemedText";
+import { Skeleton, SkeletonText } from "../ui/skeleton";
 
 type TopAlbumsCardProps = {
   album: TopAlbums;
@@ -55,8 +55,8 @@ const TopAlbumsCard = React.memo(
 
     return (
       <Animated.View entering={FadeInDown.duration(600)}>
-        <TouchableOpacity 
-          activeOpacity={0.8} 
+        <TouchableOpacity
+          activeOpacity={0.8}
           onPress={handlePress}
           style={styles.card}
         >
@@ -76,7 +76,10 @@ const TopAlbumsCard = React.memo(
             <ThemedText style={styles.albumName} numberOfLines={1}>
               {album?.name}
             </ThemedText>
-            <ThemedText style={[styles.artistName, { color: colors.textMuted }]} numberOfLines={1}>
+            <ThemedText
+              style={[styles.artistName, { color: colors.textMuted }]}
+              numberOfLines={1}
+            >
               {artists}
             </ThemedText>
           </View>

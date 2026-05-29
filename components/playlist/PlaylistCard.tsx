@@ -1,17 +1,17 @@
 import { Colors } from "@/constants/Colors";
 import { borderRadius } from "@/constants/tokens";
 import { formatDuration } from "@/helpers";
-import { resolveImage, resolveImageSource } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import useSongOperations from "@/hooks/useSongOperations";
 import { playSong } from "@/hooks/useTrackPlayerActions";
 import { getSavedAlbums } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { Playlist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  Image,
   Pressable,
   TouchableOpacity,
   useColorScheme,
@@ -96,7 +96,7 @@ const PlaylistCard = ({
               label: artist.name,
               icon: "artist",
               data: artist.id,
-              imageUrl: resolveImage(artist.image),
+              imageUrl: artist.image,
             };
           }),
         },
@@ -131,7 +131,7 @@ const PlaylistCard = ({
           <Skeleton variant="rounded" className="w-16 h-16" />
         ) : (
           <Image
-            source={resolveImageSource(song.image?.at(-1)?.link)}
+            source={resolveImageSource(song.image?.at(-1)?.link, "track")}
             alt=""
             style={{
               width: 60,

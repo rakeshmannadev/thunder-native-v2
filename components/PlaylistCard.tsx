@@ -1,11 +1,11 @@
 import { Colors } from "@/constants/Colors";
 import { resolveImageSource } from "@/helpers/resolverImageUrl";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Play } from "lucide-react-native";
 import React from "react";
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -35,11 +35,13 @@ const PlaylistCard = ({ playlist }: SectionGridProps) => {
 
   const id = playlist.id || playlist._id;
   const name = playlist.name || playlist?.playlistName;
-  const imageUrl = playlist?.image || playlist?.imageUrl;
+  const imageRaw = playlist?.image || playlist?.imageUrl;
   const songsCount = playlist?.songs?.length ?? 0;
-  
+
   // Format subtitle beautifully: use explicit subtitle, or tracks count if available
-  const subtitle = playlist.subtitle || (songsCount > 0 ? `${songsCount} tracks` : "Playlist");
+
+  const subtitle =
+    playlist.subtitle || (songsCount > 0 ? `${songsCount} tracks` : "Playlist");
 
   return (
     <TouchableOpacity
@@ -60,9 +62,10 @@ const PlaylistCard = ({ playlist }: SectionGridProps) => {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={resolveImageSource(imageUrl)}
+          source={resolveImageSource(imageRaw, "track")}
           style={styles.image}
-          alt={name}
+          contentFit="cover"
+          placeholder={undefined}
         />
         {/* Soft elegant gradient overlay on image */}
         <LinearGradient
@@ -79,7 +82,10 @@ const PlaylistCard = ({ playlist }: SectionGridProps) => {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
           {name}
         </Text>
-        <Text style={[styles.subtitle, { color: colors.textMuted }]} numberOfLines={1}>
+        <Text
+          style={[styles.subtitle, { color: colors.textMuted }]}
+          numberOfLines={1}
+        >
           {subtitle}
         </Text>
       </View>
@@ -91,7 +97,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     borderRadius: 16,
     padding: 10,
-    width: "100%",
+    width: 180,
     marginBottom: 16,
     // Premium soft card shadow
     shadowOffset: { width: 0, height: 6 },
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: "100%",
-    aspectRatio: 1, // Perfectly square premium aspect ratio
+    aspectRatio: 1,
     borderRadius: 12,
     overflow: "hidden",
     position: "relative",
@@ -109,7 +115,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   playBadge: {
     position: "absolute",

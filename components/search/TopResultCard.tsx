@@ -1,6 +1,6 @@
+import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { borderRadius } from "@/constants/tokens";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
@@ -15,7 +15,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { ThemedText } from "@/components/ThemedText";
 
 const TopResultCard = ({
   result,
@@ -51,14 +50,18 @@ const TopResultCard = ({
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      style={[styles.container, { backgroundColor: colors.secondaryBackground }]}
+      style={[
+        styles.container,
+        { backgroundColor: colors.secondaryBackground },
+      ]}
       onPress={() => router.push(`../../${result.type}/${result.id}`)}
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{
-            uri: resolveImage(result.image[result.image.length - 1].link),
-          }}
+          source={resolveImageSource(
+            result.image[result.image.length - 1].link,
+            "track"
+          )}
           style={styles.image}
         />
         <View style={[styles.typeBadge, { backgroundColor: colors.primary }]}>
@@ -72,14 +75,17 @@ const TopResultCard = ({
         <ThemedText style={styles.name} numberOfLines={1}>
           {result.name}
         </ThemedText>
-        <ThemedText style={[styles.description, { color: colors.textMuted }]} numberOfLines={1}>
+        <ThemedText
+          style={[styles.description, { color: colors.textMuted }]}
+          numberOfLines={1}
+        >
           {result.description || `Top ${result.type} match`}
         </ThemedText>
       </View>
 
       <View style={styles.actions}>
         {isBroadcasting && (
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleSendSongRequest}
             style={[styles.actionBtn, { backgroundColor: colors.background }]}
           >

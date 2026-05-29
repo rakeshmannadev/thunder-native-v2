@@ -1,8 +1,9 @@
 import { Colors } from "@/constants/Colors";
 import useUserStore from "@/store/useUserStore";
 import { Message } from "@/types";
+import { Image } from "expo-image";
 import React from "react";
-import { Image, StyleSheet, Text, useColorScheme, View } from "react-native";
+import { StyleSheet, Text, useColorScheme, View } from "react-native";
 
 const Chat = ({ message }: { message: Message }) => {
   const colorScheme = useColorScheme();
@@ -14,10 +15,13 @@ const Chat = ({ message }: { message: Message }) => {
   const bubbleBg = isMe
     ? colors.primary
     : colorScheme === "dark"
-    ? "rgba(255, 255, 255, 0.06)"
-    : "rgba(0, 0, 0, 0.04)";
+      ? "rgba(255, 255, 255, 0.06)"
+      : "rgba(0, 0, 0, 0.04)";
 
-  const avatarBorder = colorScheme === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)";
+  const avatarBorder =
+    colorScheme === "dark"
+      ? "rgba(255, 255, 255, 0.08)"
+      : "rgba(0, 0, 0, 0.04)";
 
   return (
     <View
@@ -26,9 +30,10 @@ const Chat = ({ message }: { message: Message }) => {
         { flexDirection: isMe ? "row-reverse" : "row" },
       ]}
     >
-      <Image 
-        source={{ uri: message.senderId.image }} 
-        style={[styles.avatar, { borderColor: avatarBorder }]} 
+      <Image
+        source={message.senderId.image}
+        style={[styles.avatar, { borderColor: avatarBorder }]}
+        contentFit="cover"
       />
       <View
         style={[
@@ -36,7 +41,16 @@ const Chat = ({ message }: { message: Message }) => {
           { alignItems: isMe ? "flex-end" : "flex-start" },
         ]}
       >
-        <Text style={[styles.senderName, { color: colors.textMuted, marginLeft: isMe ? 0 : 4, marginRight: isMe ? 4 : 0 }]}>
+        <Text
+          style={[
+            styles.senderName,
+            {
+              color: colors.textMuted,
+              marginLeft: isMe ? 0 : 4,
+              marginRight: isMe ? 4 : 0,
+            },
+          ]}
+        >
           {message.senderId.name}
         </Text>
         <View

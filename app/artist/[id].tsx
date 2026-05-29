@@ -7,7 +7,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getArtistById } from "@/services/songService";
 import { Artist } from "@/types";
@@ -75,7 +75,7 @@ const ArtistPage = () => {
   });
 
   const artistImage = currentArtist?.image
-    ? resolveImage(currentArtist.image)
+    ? resolveImageSource(currentArtist.image, "artist")
     : null;
 
   return (
@@ -88,7 +88,7 @@ const ArtistPage = () => {
           <Skeleton className="w-full h-full bg-background-200" />
         ) : artistImage ? (
           <Image
-            source={{ uri: artistImage }}
+            source={artistImage}
             style={styles.headerImage}
             contentFit="cover"
           />
@@ -271,13 +271,10 @@ const ArtistPage = () => {
                 >
                   <FlatList
                     horizontal
-                    showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.horizontalListContent}
                     data={currentArtist.dedicated_artist_playlist}
                     keyExtractor={(item) => item.id.toString()}
-                    renderItem={({ item }) => (
-                      <PlaylistCard playlist={item} isLoading={false} />
-                    )}
+                    renderItem={({ item }) => <PlaylistCard playlist={item} />}
                   />
                 </Section>
               )}

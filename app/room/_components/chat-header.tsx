@@ -1,20 +1,15 @@
+import MenuModal, { MenuItem } from "@/components/MenuModal";
 import { Colors } from "@/constants/Colors";
-import { borderRadius, fontSize, screenPadding } from "@/constants/tokens";
+import { screenPadding } from "@/constants/tokens";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { Room } from "@/types";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { ChevronLeft, MoreHorizontal } from "lucide-react-native";
 import React, { useState } from "react";
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import MenuModal, { MenuItem } from "@/components/MenuModal";
 
 const ChatHeader = ({ room }: { room: Room }) => {
   const colorScheme = useColorScheme();
@@ -67,9 +62,10 @@ const ChatHeader = ({ room }: { room: Room }) => {
     },
   ];
 
-  const menuItems = currentUser && currentUser._id === room.admin
-    ? adminMenuItems
-    : memberMenuItems;
+  const menuItems =
+    currentUser && currentUser._id === room.admin
+      ? adminMenuItems
+      : memberMenuItems;
 
   return (
     <View
@@ -79,31 +75,43 @@ const ChatHeader = ({ room }: { room: Room }) => {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: colorScheme === "dark" ? "rgba(9, 13, 22, 0.45)" : "rgba(248, 250, 252, 0.45)",
+        backgroundColor:
+          colorScheme === "dark"
+            ? "rgba(9, 13, 22, 0.45)"
+            : "rgba(248, 250, 252, 0.45)",
         borderBottomWidth: 1,
-        borderBottomColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
+        borderBottomColor:
+          colorScheme === "dark"
+            ? "rgba(255, 255, 255, 0.05)"
+            : "rgba(0, 0, 0, 0.04)",
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <TouchableOpacity 
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <TouchableOpacity
           onPress={() => router.back()}
-          style={{ 
-            width: 38, 
-            height: 38, 
-            borderRadius: 19, 
-            backgroundColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)", 
-            justifyContent: 'center', 
-            alignItems: 'center',
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 19,
+            backgroundColor:
+              colorScheme === "dark"
+                ? "rgba(255, 255, 255, 0.05)"
+                : "rgba(0, 0, 0, 0.04)",
+            justifyContent: "center",
+            alignItems: "center",
             borderWidth: 1,
-            borderColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.01)",
+            borderColor:
+              colorScheme === "dark"
+                ? "rgba(255, 255, 255, 0.02)"
+                : "rgba(0, 0, 0, 0.01)",
           }}
         >
           <ChevronLeft size={22} color={colors.text} />
         </TouchableOpacity>
-        
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Image
-            source={{ uri: room.image }}
+            source={room.image}
             style={{
               width: 42,
               height: 42,
@@ -111,6 +119,7 @@ const ChatHeader = ({ room }: { room: Room }) => {
               borderWidth: 1.5,
               borderColor: colors.primary,
             }}
+            contentFit="cover"
           />
           <View>
             <Text
@@ -125,24 +134,49 @@ const ChatHeader = ({ room }: { room: Room }) => {
             >
               {room.roomName}
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary }} />
-              <Text style={{ fontSize: 11, color: colors.primary, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 }}>LIVE</Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+            >
+              <View
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: colors.primary,
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: colors.primary,
+                  fontWeight: "800",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                LIVE
+              </Text>
             </View>
           </View>
         </View>
       </View>
- 
+
       <TouchableOpacity
-        style={{ 
-          width: 38, 
-          height: 38, 
-          borderRadius: 19, 
-          backgroundColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)", 
-          justifyContent: 'center', 
-          alignItems: 'center',
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 19,
+          backgroundColor:
+            colorScheme === "dark"
+              ? "rgba(255, 255, 255, 0.05)"
+              : "rgba(0, 0, 0, 0.04)",
+          justifyContent: "center",
+          alignItems: "center",
           borderWidth: 1,
-          borderColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.01)",
+          borderColor:
+            colorScheme === "dark"
+              ? "rgba(255, 255, 255, 0.02)"
+              : "rgba(0, 0, 0, 0.01)",
         }}
         onPress={() => setMenuVisible(true)}
       >

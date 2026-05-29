@@ -1,5 +1,6 @@
+import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { ArtistResult } from "@/types";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
@@ -11,7 +12,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { ThemedText } from "@/components/ThemedText";
 
 const ArtistResultCard = ({
   result,
@@ -22,7 +22,7 @@ const ArtistResultCard = ({
 }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
-  
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -30,17 +30,18 @@ const ArtistResultCard = ({
       onPress={() => router.push(`../../artist/${result.id}`)}
     >
       <Image
-        source={{
-          uri: resolveImage(result.image),
-        }}
+        source={resolveImageSource(result.image, "artist")}
         style={styles.image}
       />
       <View style={styles.content}>
         <ThemedText style={styles.name} numberOfLines={1}>
           {result.name}
         </ThemedText>
-        <ThemedText style={[styles.description, { color: colors.textMuted }]} numberOfLines={1}>
-          {result.type.charAt(0).toUpperCase() + result.type.slice(1)} • Artist
+        <ThemedText
+          style={[styles.description, { color: colors.textMuted }]}
+          numberOfLines={1}
+        >
+          {result.subtitle} • Artist
         </ThemedText>
       </View>
       <ChevronRight size={18} color={colors.textMuted} />

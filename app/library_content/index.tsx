@@ -2,12 +2,13 @@ import AlbumItem from "@/components/album/AlbumItem";
 import EmptyContent from "@/components/EmptyContent";
 import PlayButton from "@/components/PlayButton";
 import PlaylistCard from "@/components/PlaylistCard";
+import HeaderImageSkeleton from "@/components/skeleton/HeaderImageSkeleton";
 import ShuffleButton from "@/components/songs/ShuffleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import {
   getFavoriteSongs,
@@ -18,6 +19,7 @@ import {
 import usePlayerStore from "@/store/usePlayerStore";
 import { Playlist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Heart, ListMusic } from "lucide-react-native";
@@ -25,7 +27,6 @@ import React from "react";
 import {
   Dimensions,
   FlatList,
-  Image,
   StatusBar,
   StyleSheet,
   useColorScheme,
@@ -131,9 +132,9 @@ const LibraryContentScreen = () => {
     : "Collection";
   const headerImage =
     songs.length > 0
-      ? resolveImage(songs[0]?.image?.at(-1)?.link)
+      ? resolveImageSource(songs[0]?.image?.at(-1)?.link, "track")
       : playlists.length > 0
-        ? resolveImage(playlists[0]?.imageUrl)
+        ? resolveImageSource(playlists[0]?.imageUrl, "artist")
         : null;
 
   return (
@@ -144,14 +145,9 @@ const LibraryContentScreen = () => {
       {!isEmpty && (
         <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
           {headerImage ? (
-            <Image source={{ uri: headerImage }} style={styles.headerImage} />
+            <Image source={headerImage} style={styles.headerImage} />
           ) : (
-            <View
-              style={[
-                styles.headerImage,
-                { backgroundColor: colors.secondaryBackground },
-              ]}
-            />
+            <HeaderImageSkeleton />
           )}
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.4)", colors.background]}

@@ -1,12 +1,19 @@
-import React from "react";
-import { Image, StyleSheet, TouchableOpacity, useColorScheme, View } from "react-native";
-import { Song } from "../types/index";
 import { Colors } from "@/constants/Colors";
-import PlayButton from "./songs/PlayButton";
-import { Skeleton, SkeletonText } from "./ui/skeleton";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { ThemedText } from "./ThemedText";
 import { router } from "expo-router";
+import React from "react";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import { Song } from "../types/index";
+import PlayButton from "./songs/PlayButton";
+import { ThemedText } from "./ThemedText";
+import { Skeleton, SkeletonText } from "./ui/skeleton";
 
 const SongCard = React.memo(
   ({ song, isLoading }: { song: Song; isLoading: boolean }) => {
@@ -20,8 +27,8 @@ const SongCard = React.memo(
     };
 
     return (
-      <TouchableOpacity 
-        activeOpacity={0.8} 
+      <TouchableOpacity
+        activeOpacity={0.8}
         onPress={handlePress}
         style={styles.card}
       >
@@ -31,9 +38,10 @@ const SongCard = React.memo(
           ) : (
             <>
               <Image
-                source={{
-                  uri: song.image[song.image.length - 1].link,
-                }}
+                source={resolveImageSource(
+                  song.image[song.image.length - 1].link,
+                  "track"
+                )}
                 style={styles.image}
                 alt="song-cover"
               />
@@ -45,7 +53,7 @@ const SongCard = React.memo(
           )}
           {!isLoading && (
             <View style={styles.playButtonContainer}>
-               <PlayButton song={song} />
+              <PlayButton song={song} />
             </View>
           )}
         </View>
@@ -61,7 +69,10 @@ const SongCard = React.memo(
               <ThemedText style={styles.songName} numberOfLines={1}>
                 {song.name}
               </ThemedText>
-              <ThemedText style={[styles.artistName, { color: colors.textMuted }]} numberOfLines={1}>
+              <ThemedText
+                style={[styles.artistName, { color: colors.textMuted }]}
+                numberOfLines={1}
+              >
                 {song.artist_map
                   ? song.artist_map?.primary_artists
                       ?.map((artist) => artist.name)
@@ -125,7 +136,7 @@ const styles = StyleSheet.create({
   },
   skeletonContainer: {
     marginTop: 8,
-  }
+  },
 });
 
 export default SongCard;

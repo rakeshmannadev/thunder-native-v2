@@ -1,8 +1,9 @@
 import { Colors } from "@/constants/Colors";
 import { Show } from "@/types";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Image, Pressable, Text, useColorScheme, View } from "react-native";
+import { Pressable, Text, useColorScheme, View } from "react-native";
 import { Card } from "./ui/card";
 import { Skeleton, SkeletonText } from "./ui/skeleton";
 import { VStack } from "./ui/vstack";
@@ -16,10 +17,11 @@ const ShowCard = React.memo(({ show, isLoading }: ShowCardProps) => {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  
-  const imageUrl = show.image && show.image.length > 0 
-    ? show.image[show.image.length - 1].link 
-    : show.bannerImage;
+
+  const imageUrl =
+    show.image && show.image.length > 0
+      ? show.image[show.image.length - 1].link
+      : show.bannerImage;
 
   return (
     <Pressable
@@ -34,11 +36,10 @@ const ShowCard = React.memo(({ show, isLoading }: ShowCardProps) => {
             <Skeleton className="max-w-36 max-h-36 rounded-md" />
           ) : (
             <Image
-              source={{
-                uri: `${imageUrl}`,
-              }}
+              source={imageUrl}
               className="mb-1 w-54 rounded-md aspect-[263/240]"
               alt={show.name}
+              contentFit="cover"
             />
           )}
         </View>
@@ -74,7 +75,8 @@ const ShowCard = React.memo(({ show, isLoading }: ShowCardProps) => {
                   fontWeight: "500",
                 }}
               >
-                {show.subtitle || (show.seasonNumber ? `Season ${show.seasonNumber}` : "")}
+                {show.subtitle ||
+                  (show.seasonNumber ? `Season ${show.seasonNumber}` : "")}
               </Text>
             )}
           </View>

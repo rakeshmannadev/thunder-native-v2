@@ -1,5 +1,6 @@
+import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { PlaylistResult } from "@/types";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
@@ -11,7 +12,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { ThemedText } from "@/components/ThemedText";
 
 const PlaylistResultCard = ({
   result,
@@ -30,17 +30,24 @@ const PlaylistResultCard = ({
       onPress={() => router.push(`../../playlist/${result.id}`)}
     >
       <Image
-        source={{
-          uri: resolveImage(result.image[result.image.length - 1].link),
-        }}
+        source={resolveImageSource(
+          result.image[result.image.length - 1].link,
+          "track"
+        )}
         style={styles.image}
       />
       <View style={styles.content}>
         <ThemedText style={styles.name} numberOfLines={1}>
           {result.name}
         </ThemedText>
-        <ThemedText style={[styles.description, { color: colors.textMuted }]} numberOfLines={1}>
-          {result.type.charAt(0).toUpperCase() + result.type.slice(1)} • {result.language || "Playlist"}
+        <ThemedText
+          style={[styles.description, { color: colors.textMuted }]}
+          numberOfLines={1}
+        >
+          {result.subtitle +
+            " • " +
+            result.language.charAt(0).toUpperCase() +
+            result.language.slice(1)}
         </ThemedText>
       </View>
       <ChevronRight size={18} color={colors.textMuted} />

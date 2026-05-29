@@ -10,7 +10,6 @@ import React, { useState } from "react";
 import {
   Dimensions,
   FlatList,
-  Image,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -32,6 +31,7 @@ import { formatDuration } from "@/helpers";
 import useDownloadSong from "@/hooks/useDownloadSong";
 import { usePlayDownloadSongs } from "@/hooks/usePlayDownloadSongs";
 import { DownloadedSong } from "@/types";
+import { Image } from "expo-image";
 
 const { width } = Dimensions.get("window");
 const HEADER_HEIGHT = 280;
@@ -211,8 +211,9 @@ const DownloadsScreen = () => {
                 style={styles.songItem}
               >
                 <Image
-                  source={{ uri: song.artwork }}
+                  source={song.artwork}
                   style={styles.songImage}
+                  contentFit="cover"
                 />
 
                 <View style={styles.songDetails}>

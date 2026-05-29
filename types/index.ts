@@ -72,6 +72,7 @@ export interface TopResult {
   primary_artists?: string;
   subtitle?: string;
   album?: string;
+  description: string;
 }
 
 export interface SongResult {
@@ -98,6 +99,7 @@ export interface PlaylistResult {
   subtitle: string;
   type: string;
   image: Image[];
+  language: string;
 }
 export interface ArtistResult {
   id: string;

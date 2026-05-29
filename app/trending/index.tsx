@@ -2,9 +2,11 @@ import PlayButton from "@/components/songs/PlayButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { getTrendingSongs } from "@/services/songService";
 import { Song } from "@/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, TrendingUp } from "lucide-react-native";
@@ -13,7 +15,6 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Image,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -48,9 +49,12 @@ const TrendingCard = React.memo(
       >
         <View style={styles.imageWrapper}>
           <Image
-            source={{ uri: song.image[song.image.length - 1].link }}
+            source={resolveImageSource(
+              song.image[song.image.length - 1].link,
+              "track"
+            )}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
           />
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.6)"]}

@@ -15,7 +15,6 @@ import React, {
   useState,
 } from "react";
 import {
-  Image,
   ListRenderItemInfo,
   StyleSheet,
   TouchableOpacity,
@@ -29,11 +28,17 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import TrackPlayer, { Event, Track, useActiveTrack, useTrackPlayerEvents } from "react-native-track-player";
+import TrackPlayer, {
+  Event,
+  Track,
+  useActiveTrack,
+  useTrackPlayerEvents,
+} from "react-native-track-player";
 
 import MenuModal, { MenuItem } from "@/components/MenuModal";
 import MusicVisualizer from "@/components/songs/MusicVisualizer";
 import { Colors } from "@/constants/Colors";
+import { Image } from "expo-image";
 import { ThemedText } from "./ThemedText";
 
 // ─── Queue Row ────────────────────────────────────────────────────────────────
@@ -71,7 +76,11 @@ const QueueRow = React.memo(
         </View>
 
         <View style={styles.artworkWrapper}>
-          <Image source={{ uri: item.artwork }} style={styles.artwork} />
+          <Image
+            source={{ uri: item.artwork }}
+            style={styles.artwork}
+            contentFit="cover"
+          />
           {isActive && (
             <View
               style={[
@@ -330,9 +339,7 @@ const QueueSheetComponent = forwardRef<BottomSheet, QueueSheetProps>(
     );
 
     const QueueBackgroundComponent = useCallback(() => {
-      return (
-        <QueueBackground animatedIndex={animatedIndex} colors={colors} />
-      );
+      return <QueueBackground animatedIndex={animatedIndex} colors={colors} />;
     }, [colors, animatedIndex]);
 
     return (

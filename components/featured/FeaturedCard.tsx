@@ -1,18 +1,18 @@
 import { Colors } from "@/constants/Colors";
 import { Featured } from "@/types";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Image,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import { Skeleton, SkeletonText } from "../ui/skeleton";
-import { LinearGradient } from "expo-linear-gradient";
-import { ThemedText } from "../ThemedText";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { ThemedText } from "../ThemedText";
+import { Skeleton, SkeletonText } from "../ui/skeleton";
 
 type FeaturedCardProps = {
   featured: Featured;
@@ -48,8 +48,8 @@ const FeaturedCard = React.memo(
 
     return (
       <Animated.View entering={FadeInDown.duration(600)}>
-        <TouchableOpacity 
-          activeOpacity={0.9} 
+        <TouchableOpacity
+          activeOpacity={0.9}
           onPress={handlePress}
           style={styles.container}
         >
@@ -72,7 +72,10 @@ const FeaturedCard = React.memo(
             <ThemedText style={styles.name} numberOfLines={1}>
               {featured?.name}
             </ThemedText>
-            <ThemedText style={[styles.subtitle, { color: 'rgba(255,255,255,0.7)' }]} numberOfLines={1}>
+            <ThemedText
+              style={[styles.subtitle, { color: "rgba(255,255,255,0.7)" }]}
+              numberOfLines={1}
+            >
               {featured?.subtitle}
             </ThemedText>
           </View>

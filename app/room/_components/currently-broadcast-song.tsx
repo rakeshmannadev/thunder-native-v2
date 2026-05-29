@@ -3,18 +3,13 @@ import { ThemedText } from "@/components/ThemedText";
 import { Button, ButtonIcon } from "@/components/ui/button";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import useSocketStore from "@/store/useSocketStore";
 import { Room } from "@/types";
+import { Image } from "expo-image";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import React, { useState } from "react";
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { useActiveTrack } from "react-native-track-player";
 import NoBroadCastScreen from "./no-broadcast-screen";
 import StandByScreen from "./stand-by-screen";
@@ -121,9 +116,7 @@ const CurrentlyBroadcastSong = ({ currentRoom }: { currentRoom: Room }) => {
                   borderRadius: 12,
                   backgroundColor: colors.secondaryBackground,
                 }}
-                source={{
-                  uri: resolveImage(currentSong.artwork),
-                }}
+                source={resolveImageSource(currentSong.artwork, "track")}
               />
               <Button
                 onPress={() => setExpanded(!expanded)}

@@ -1,17 +1,17 @@
+import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { AlbumResult } from "@/types";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import React from "react";
 import {
-  Image,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import { ThemedText } from "@/components/ThemedText";
 
 const AlbumResultCard = ({
   result,
@@ -22,7 +22,7 @@ const AlbumResultCard = ({
 }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
-  
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -30,16 +30,20 @@ const AlbumResultCard = ({
       onPress={() => router.push(`../../album/${result.id}`)}
     >
       <Image
-        source={{
-          uri: resolveImage(result.image[result.image.length - 1].link),
-        }}
+        source={resolveImageSource(
+          result.image[result.image.length - 1].link,
+          "track"
+        )}
         style={styles.image}
       />
       <View style={styles.content}>
         <ThemedText style={styles.name} numberOfLines={1}>
           {result.name}
         </ThemedText>
-        <ThemedText style={[styles.description, { color: colors.textMuted }]} numberOfLines={1}>
+        <ThemedText
+          style={[styles.description, { color: colors.textMuted }]}
+          numberOfLines={1}
+        >
           {result.subtitle || "Album"}
         </ThemedText>
       </View>

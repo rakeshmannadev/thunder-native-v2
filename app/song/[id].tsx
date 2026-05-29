@@ -1,6 +1,8 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import ExpandableText from "@/components/ExpandableText";
+import NoDataPlaceholder from "@/components/NoDataPlaceholder";
 import PlayButton from "@/components/PlayButton";
+import HeaderImageSkeleton from "@/components/skeleton/HeaderImageSkeleton";
 import LikeButton from "@/components/songs/LikeButton";
 import ShareButton from "@/components/songs/ShareButton";
 import { ThemedText } from "@/components/ThemedText";
@@ -11,12 +13,14 @@ import { playSong } from "@/hooks/useTrackPlayerActions";
 import { fetchSongById } from "@/services/songService";
 import { Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { ArrowLeft } from "lucide-react-native";
+import React from "react";
 import {
   Dimensions,
-  Image,
+  Pressable,
   StatusBar,
   StyleSheet,
   useColorScheme,
@@ -43,9 +47,6 @@ const SongScreen = () => {
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
   const scrollY = useSharedValue(0);
-
-  const [isSubtitleExpanded, setIsSubtitleExpanded] = useState(false);
-  const [showReadMoreButton, setShowReadMoreButton] = useState(false);
 
   const { data: songRes, isLoading } = useQuery({
     queryKey: ["song", id],
@@ -76,14 +77,29 @@ const SongScreen = () => {
 
   const songImage = song?.image ? song.image[song.image.length - 1].link : null;
 
+  if (!isLoading && !song) {
+    return (
+      <NoDataPlaceholder
+        pagename="Song Not Found"
+        description="The song you are looking for could not be loaded. It may have been removed, or the link might be broken."
+      />
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" />
 
       {/* Immersive Parallax Header */}
       <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
-        {songImage ? (
-          <Image source={{ uri: songImage }} style={styles.headerImage} />
+        {isLoading ? (
+          <HeaderImageSkeleton />
+        ) : songImage ? (
+          <Image
+            source={songImage}
+            style={styles.headerImage}
+            contentFit="cover"
+          />
         ) : (
           <View
             style={[
@@ -100,12 +116,9 @@ const SongScreen = () => {
 
       {/* Navigation Bar */}
       <View style={[styles.navBar, { top: top + 8, left: 8 }]}>
-        <View
-          // onPress={() => router.back()}
-          style={styles.navButton}
-        >
-          {/* <ArrowLeft color="white" size={24} /> */}
-        </View>
+        <Pressable onPress={() => router.back()} style={styles.navButton}>
+          <ArrowLeft color="white" size={24} />
+        </Pressable>
       </View>
 
       <Animated.ScrollView
@@ -246,7 +259,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.4)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
-    lineHeight: 36,
+    lineHeight: 38,
   },
   subtitle: {
     fontSize: 16,
@@ -264,27 +277,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     marginBottom: 40,
-  },
-  playButton: {
-    flex: 1,
-    height: 60,
-    borderRadius: 30,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
-  playButtonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  actionButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
   },
   sectionTitle: {
     fontSize: 18,

@@ -1,14 +1,13 @@
-import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { Room } from "@/types";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import React from "react";
 import {
   Alert,
-  Image,
   Text,
   TouchableOpacity,
   useColorScheme,
@@ -63,7 +62,10 @@ const JoinedRoom = ({ room }: { room: Room }) => {
         padding: 16,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
+        borderColor:
+          colorScheme === "dark"
+            ? "rgba(255, 255, 255, 0.05)"
+            : "rgba(0, 0, 0, 0.04)",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: colorScheme === "dark" ? 0.2 : 0.04,
@@ -88,13 +90,14 @@ const JoinedRoom = ({ room }: { room: Room }) => {
         >
           <View style={{ position: "relative" }}>
             <Image
-              source={{ uri: room.image }}
+              source={room.image}
               style={{
                 width: 60,
                 height: 60,
                 borderRadius: 14,
                 backgroundColor: colors.card,
               }}
+              contentFit="cover"
             />
             {/* Live indicator dot on cover art */}
             <View
@@ -165,7 +168,8 @@ const JoinedRoom = ({ room }: { room: Room }) => {
                   letterSpacing: -0.1,
                 }}
               >
-                {room.participants.length} {room.participants.length === 1 ? "listener" : "listeners"}
+                {room.participants.length}{" "}
+                {room.participants.length === 1 ? "listener" : "listeners"}
               </Text>
             </View>
           </View>
@@ -175,11 +179,17 @@ const JoinedRoom = ({ room }: { room: Room }) => {
             width: 32,
             height: 32,
             borderRadius: 16,
-            backgroundColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.03)",
+            backgroundColor:
+              colorScheme === "dark"
+                ? "rgba(255, 255, 255, 0.04)"
+                : "rgba(0, 0, 0, 0.03)",
             justifyContent: "center",
             alignItems: "center",
             borderWidth: 1,
-            borderColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.01)",
+            borderColor:
+              colorScheme === "dark"
+                ? "rgba(255, 255, 255, 0.02)"
+                : "rgba(0, 0, 0, 0.01)",
           }}
         >
           <ChevronRight size={18} color={colors.textMuted} />

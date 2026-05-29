@@ -4,6 +4,7 @@ import { screenPadding } from "@/constants/tokens";
 import { getFeaturedSongs } from "@/services/songService";
 import { Featured } from "@/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, Sparkles } from "lucide-react-native";
@@ -12,7 +13,6 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Image,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -79,11 +79,7 @@ const FeaturedScreen = () => {
         style={styles.card}
       >
         <View style={styles.imageWrapper}>
-          <Image
-            source={{ uri: item.image }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          <Image source={item.image} style={styles.image} contentFit="cover" />
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.6)"]}
             style={styles.gradient}

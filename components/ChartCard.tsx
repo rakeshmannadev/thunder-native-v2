@@ -1,8 +1,10 @@
 import { Colors } from "@/constants/Colors";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { Chart } from "@/types";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Image, Pressable, Text, useColorScheme, View } from "react-native";
+import { Pressable, Text, useColorScheme, View } from "react-native";
 import { Card } from "./ui/card";
 import { Skeleton, SkeletonText } from "./ui/skeleton";
 import { VStack } from "./ui/vstack";
@@ -32,11 +34,10 @@ const ChartCard = React.memo(({ chart, isLoading }: ChartCardProps) => {
             <Skeleton className="max-w-36 max-h-36 rounded-md" />
           ) : (
             <Image
-              source={{
-                uri: `${chart.image}`,
-              }}
+              source={resolveImageSource(chart.image, "album")}
               className="mb-1 w-54 rounded-md aspect-[263/240]"
               alt={chart.name}
+              contentFit="cover"
             />
           )}
         </View>

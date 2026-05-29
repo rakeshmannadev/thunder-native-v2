@@ -1,16 +1,18 @@
 import AlbumItem from "@/components/album/AlbumItem";
 import PlayButton from "@/components/PlayButton";
+import HeaderImageSkeleton from "@/components/skeleton/HeaderImageSkeleton";
 import ShuffleButton from "@/components/songs/ShuffleButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { resolveImage } from "@/helpers/resolverImageUrl";
+import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { playAlbum } from "@/hooks/useTrackPlayerActions";
 import { getAlbumById } from "@/services/songService";
 import usePlayerStore from "@/store/usePlayerStore";
 import { Album } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
@@ -18,7 +20,6 @@ import React from "react";
 import {
   Dimensions,
   FlatList,
-  Image,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -77,7 +78,10 @@ const AlbumScreen = () => {
   });
 
   const albumImage = currentAlbum?.image
-    ? resolveImage(currentAlbum.image[currentAlbum.image.length - 1]?.link)
+    ? resolveImageSource(
+        currentAlbum.image[currentAlbum.image.length - 1]?.link,
+        "artist"
+      )
     : null;
 
   if (!currentAlbum && !isAlbumFetching) return null;
@@ -88,9 +92,9 @@ const AlbumScreen = () => {
 
       <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
         {isAlbumFetching ? (
-          <Skeleton className="w-full h-full bg-background-200" />
+          <HeaderImageSkeleton />
         ) : albumImage ? (
-          <Image source={{ uri: albumImage }} style={styles.headerImage} />
+          <Image source={albumImage} style={styles.headerImage} />
         ) : (
           <View
             style={[
