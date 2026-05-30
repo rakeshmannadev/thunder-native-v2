@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { showToast } from "@/hooks/useToastMessage";
 import { getSavedAlbums, savePlaylistToLibrary } from "@/services/userServices";
+import useUserStore from "@/store/useUserStore";
 import { Playlist } from "@/types";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -16,9 +17,12 @@ const AddToPlaylistButton = ({
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
+  const { currentUser } = useUserStore();
+
   const { data: userPlaylists, refetch: refetchUserPlaylists } = useQuery({
     queryKey: ["saved-albums"],
     queryFn: getSavedAlbums,
+    enabled: !!currentUser,
   });
 
   const isAlreadySavedInLibrary = useMemo(() => {
@@ -40,6 +44,10 @@ const AddToPlaylistButton = ({
 
   const handleSavePlaylist = async () => {
     if (!currentPlaylist || isAlreadySavedInLibrary) return;
+    if (!currentUser) {
+      showToast("Please login to add to your library");
+      return;
+    }
     savePlaylistMutate();
   };
 

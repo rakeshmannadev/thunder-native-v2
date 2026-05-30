@@ -3,7 +3,6 @@ import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { Play } from "lucide-react-native";
 import React from "react";
 import {
   StyleSheet,
@@ -72,10 +71,6 @@ const PlaylistCard = ({ playlist }: SectionGridProps) => {
           colors={["transparent", "rgba(0,0,0,0.1)", "rgba(0,0,0,0.45)"]}
           style={StyleSheet.absoluteFill}
         />
-        {/* Modern play button badge floating in bottom right */}
-        <View style={[styles.playBadge, { backgroundColor: colors.primary }]}>
-          <Play size={12} color="white" fill="white" style={styles.playIcon} />
-        </View>
       </View>
 
       <View style={styles.infoContainer}>

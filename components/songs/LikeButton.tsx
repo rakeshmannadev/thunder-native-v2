@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { showToast } from "@/hooks/useToastMessage";
 import { addToFavorites, getFavoriteSongs } from "@/services/userServices";
+import useUserStore from "@/store/useUserStore";
 import { Song } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react-native";
@@ -24,6 +25,7 @@ const LikeButton = React.memo(
     const colorSchema = useColorScheme();
     const colors = Colors[colorSchema === "light" ? "light" : "dark"];
     const queryClient = useQueryClient();
+    const { currentUser } = useUserStore();
 
     const { mutate: addToFavoriteMutaion } = useMutation({
       mutationFn: (song: Song) =>
@@ -66,6 +68,10 @@ const LikeButton = React.memo(
 
     const handleAddToFavorite = useCallback(async () => {
       if (!currentSong) return;
+      if (!currentUser) {
+        showToast("Please login to add to favorites");
+        return;
+      }
       addToFavoriteMutaion({
         id: currentSong.id,
         name: currentSong.name!,
@@ -95,6 +101,7 @@ const LikeButton = React.memo(
       queryKey: ["favorites"],
       queryFn: getFavoriteSongs,
       staleTime: 1000 * 60 * 5,
+      enabled: !!currentUser,
     });
     const isFavorite = useMemo(
       () => favorites?.some((fav) => fav.id === currentSong?.id),

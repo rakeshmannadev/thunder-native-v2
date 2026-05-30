@@ -62,7 +62,6 @@ const useMenuActions = () => {
         if (!params) return;
         const songToPlayNext: Song = params;
         playNext(songToPlayNext);
-        showToast("Song added to queue");
         break;
       case "light":
         Appearance.setColorScheme("light");

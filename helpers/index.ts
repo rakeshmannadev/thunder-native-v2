@@ -7,9 +7,7 @@ export const formatDuration = (seconds: number) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
-export const getAudioPreference = async (): Promise<
-  AudioPreferenceType | undefined
-> => {
+export const getAudioPreference = async () => {
   try {
     const value = await AsyncStorage.getItem("audio-preference");
     if (value) {

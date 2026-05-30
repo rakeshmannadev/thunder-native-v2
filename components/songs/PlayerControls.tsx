@@ -29,13 +29,14 @@ type PlayerButtonProps = {
 };
 
 export const PlayerControls = React.memo(({ style }: PlayerControlsProps) => {
-  const { setShuffle, shuffle } = usePlayerStore();
+  const { audioPreference, setAudioPreference } = usePlayerStore();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const handleShuffle = useCallback(() => {
-    setShuffle(!shuffle);
-  }, [shuffle, setShuffle]);
+    const newShuffle = !audioPreference.shuffle;
+    setAudioPreference({ ...audioPreference, shuffle: newShuffle });
+  }, [audioPreference, setAudioPreference]);
 
   const handlePlayNext = useCallback(async () => {
     await TrackPlayer.skipToNext();
@@ -51,7 +52,7 @@ export const PlayerControls = React.memo(({ style }: PlayerControlsProps) => {
         <ShuffleButton
           handlePress={handleShuffle}
           iconSize={30}
-          isShuffle={shuffle}
+          isShuffle={audioPreference.shuffle}
           color={colors.text}
         />
 

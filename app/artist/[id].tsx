@@ -179,7 +179,11 @@ const ArtistPage = () => {
                     disabled={isLoading || !currentArtist}
                   />
 
-                  <ShuffleButton songs={currentArtist.all_songs} />
+                  <ShuffleButton
+                    songs={
+                      currentArtist.all_songs || currentArtist.top_songs || []
+                    }
+                  />
 
                   <Pressable
                     onPress={() => null}
@@ -271,6 +275,7 @@ const ArtistPage = () => {
                 >
                   <FlatList
                     horizontal
+                    showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.horizontalListContent}
                     data={currentArtist.dedicated_artist_playlist}
                     keyExtractor={(item) => item.id.toString()}

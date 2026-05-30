@@ -23,6 +23,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CreatePlaylistModal from "./playlist/CreatePlaylistModal";
 
+import useUserStore from "@/store/useUserStore";
+
 export interface MenuItem {
   key: string;
   label: string;
@@ -59,6 +61,7 @@ const MenuModal = ({
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const { handleMenuActions } = useMenuActions();
   const { bottom } = useSafeAreaInsets();
+  const { currentUser } = useUserStore();
 
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
 
@@ -66,6 +69,14 @@ const MenuModal = ({
   const [activeSubmenu, setActiveSubmenu] = useState<MenuItem[] | null>(null);
   const [submenuTitle, setSubmenuTitle] = useState<string>("");
   const slideAnim = useRef(new Animated.Value(0)).current;
+
+  const filteredItems = items.filter((item) => {
+    if (item.key === "playlists" && !currentUser) {
+      return false;
+    }
+    return true;
+  });
+
 
   useEffect(() => {
     if (visible) {
@@ -272,7 +283,7 @@ const MenuModal = ({
               </View>
             )}
 
-            {renderMenuItems(items, false)}
+            {renderMenuItems(filteredItems, false)}
           </Animated.View>
 
           {/* Submenu overlay */}

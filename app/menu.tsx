@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 
+import useUserStore from "@/store/useUserStore";
+
 export interface menuItems {
   key: string;
   data?: any;
@@ -29,6 +31,7 @@ export default function MenuSheet() {
   const params = useLocalSearchParams();
 
   const { handleMenuActions } = useMenuActions();
+  const { currentUser } = useUserStore();
 
   let menuItems: menuItems[] = [];
   try {
@@ -36,6 +39,13 @@ export default function MenuSheet() {
   } catch (error) {
     console.log("Error parsing menu items:", error);
   }
+
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (item.key === "playlists" && !currentUser) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <View
@@ -61,7 +71,7 @@ export default function MenuSheet() {
         {params.title ?? "Song Options"}
       </ThemedText>
 
-      {menuItems.map((item, index) => {
+      {filteredMenuItems.map((item, index) => {
         const iconName = item?.icon ? item.icon : null;
         const Icon = iconName ? ICON_MAPS[iconName as string] : null;
 
