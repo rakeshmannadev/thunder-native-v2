@@ -8,7 +8,6 @@ import {
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  Dimensions,
   FlatList,
   Pressable,
   StatusBar,
@@ -33,7 +32,6 @@ import { usePlayDownloadSongs } from "@/hooks/usePlayDownloadSongs";
 import { DownloadedSong } from "@/types";
 import { Image } from "expo-image";
 
-const { width } = Dimensions.get("window");
 const HEADER_HEIGHT = 280;
 
 const DownloadsScreen = () => {
@@ -80,19 +78,48 @@ const DownloadsScreen = () => {
           key: "play_next",
           label: "Play next",
           icon: "play_next",
-          data: selectedSong,
+          data: {
+            id: selectedSong?.id!,
+            name: selectedSong?.title!,
+            subtitle: selectedSong?.artist!,
+            artist_map: { primary_artists: [] },
+            download_url: [{ quality: "500", link: selectedSong?.url! }],
+            image: [{ quality: "500", link: selectedSong?.artwork! }],
+            duration: selectedSong?.duration!,
+            album_id: selectedSong?.url!,
+          },
         },
         {
           key: "add_to_queue",
           label: "Add to Queue",
           icon: "queue",
-          data: [selectedSong],
+          data: [
+            {
+              id: selectedSong?.id!,
+              name: selectedSong?.title!,
+              subtitle: selectedSong?.artist!,
+              artist_map: { primary_artists: [] },
+              download_url: [{ quality: "500", link: selectedSong?.url! }],
+              image: [{ quality: "500", link: selectedSong?.artwork! }],
+              duration: selectedSong?.duration!,
+              album_id: selectedSong?.url!,
+            },
+          ],
         },
         {
           key: "share",
           label: "Share",
           icon: "share",
-          data: selectedSong,
+          data: {
+            id: selectedSong?.id!,
+            name: selectedSong?.title!,
+            subtitle: selectedSong?.artist!,
+            artist_map: { primary_artists: [] },
+            download_url: [{ quality: "500", link: selectedSong?.url! }],
+            image: [{ quality: "500", link: selectedSong?.artwork! }],
+            duration: selectedSong?.duration!,
+            album_id: selectedSong?.url!,
+          },
         },
         {
           key: "delete_download",

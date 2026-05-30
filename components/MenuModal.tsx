@@ -77,7 +77,6 @@ const MenuModal = ({
     return true;
   });
 
-
   useEffect(() => {
     if (visible) {
       bottomSheetRef.current?.present();
@@ -419,6 +418,7 @@ const styles = StyleSheet.create({
   songInfoHeader: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     gap: 16,
     marginBottom: 16,
     paddingBottom: 16,

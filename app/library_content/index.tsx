@@ -218,7 +218,7 @@ const LibraryContentScreen = () => {
               playlists.length > 0 ? (
                 <FlatList
                   data={playlists}
-                  keyExtractor={(item) => item._id}
+                  keyExtractor={(item, index) => item._id}
                   scrollEnabled={false}
                   numColumns={2}
                   columnWrapperStyle={styles.columnWrapper}
@@ -229,7 +229,11 @@ const LibraryContentScreen = () => {
                       )}
                       style={{ width: "48%" }}
                     >
-                      <PlaylistCard playlist={playlist} />
+                      <PlaylistCard
+                        playlist={playlist}
+                        showDeleteOption={pagename === "playlists"}
+                        showRemoveAlbumOption={pagename === "albums"}
+                      />
                     </Animated.View>
                   )}
                 />
@@ -245,13 +249,16 @@ const LibraryContentScreen = () => {
             ) : songs.length > 0 ? (
               <FlatList
                 data={songs}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item, index) => `${item.id}-${index}`}
                 scrollEnabled={false}
                 renderItem={({ item: song, index }) => (
                   <Animated.View
                     entering={FadeInDown.delay(300 + index * 50).duration(400)}
                   >
-                    <AlbumItem song={song} />
+                    <AlbumItem
+                      song={song}
+                      showRemoveFavoriteOption={pagename === "liked"}
+                    />
                   </Animated.View>
                 )}
               />

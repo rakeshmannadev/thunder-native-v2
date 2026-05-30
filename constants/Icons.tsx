@@ -1,6 +1,7 @@
 import {
   DiscAlbumIcon,
   DownloadIcon,
+  EditIcon,
   Headphones,
   ListMusicIcon,
   ListPlusIcon,
@@ -10,7 +11,9 @@ import {
   LucideIcon,
   Mic2Icon,
   MoonIcon,
+  PlayIcon,
   Share2Icon,
+  ShuffleIcon,
   SunIcon,
   TrashIcon,
   WifiOffIcon,
@@ -50,4 +53,7 @@ export const ICON_MAPS: Record<string, LucideIcon> = {
   broadcast: Mic2Icon,
   logout: LogOutIcon,
   disconnect: WifiOffIcon,
+  edit: EditIcon,
+  play: PlayIcon,
+  shuffle: ShuffleIcon,
 };

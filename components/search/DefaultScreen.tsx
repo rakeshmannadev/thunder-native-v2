@@ -1,8 +1,17 @@
+import RecentSearches from "@/components/search/RecentSearches";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import { screenPadding } from "@/constants/tokens";
+import useSearchStore from "@/store/useSearchStore";
 import { Disc, Mic, Music, Search } from "lucide-react-native";
 import React from "react";
-import { Dimensions, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from "react-native";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 const { width } = Dimensions.get("window");
@@ -10,95 +19,112 @@ const { width } = Dimensions.get("window");
 const DefaultScreen = () => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-
+  const { recentSearches } = useSearchStore();
+  console.log("recentsearch: ", recentSearches);
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.content}>
-        {/* Animated Illustration Section */}
-        <Animated.View
-          entering={ZoomIn.duration(800)}
-          style={styles.illustrationContainer}
-        >
-          {/* Background Glow */}
-          <View
-            style={[styles.glow, { backgroundColor: colors.primary + "15" }]}
-          />
-
-          {/* Layered Floating Icons */}
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(1000)}
-            style={[
-              styles.floatingIcon,
-              styles.musicIcon,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-          >
-            <Music size={24} color={colors.primary} />
-          </Animated.View>
-
-          <Animated.View
-            entering={FadeInDown.delay(600).duration(1000)}
-            style={[
-              styles.floatingIcon,
-              styles.discIcon,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-          >
-            <Disc size={24} color={colors.primary} />
-          </Animated.View>
-
-          <Animated.View
-            entering={FadeInDown.delay(800).duration(1000)}
-            style={[
-              styles.floatingIcon,
-              styles.micIcon,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-          >
-            <Mic size={24} color={colors.primary} />
-          </Animated.View>
-
-          {/* Main Search Icon */}
-          <View
-            style={[
-              styles.mainIconCircle,
-              { backgroundColor: colors.secondaryBackground },
-            ]}
-          >
-            <Search size={56} color={colors.primary} />
-          </View>
-        </Animated.View>
-
-        {/* Text Content Section */}
-        <Animated.View
-          entering={FadeInDown.delay(300).duration(800)}
-          style={styles.textContainer}
-        >
-          <ThemedText style={styles.title}>Search the Universe</ThemedText>
-          <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
-            Explore millions of tracks, albums, and artists. Your next favorite
-            song is just a search away.
-          </ThemedText>
-        </Animated.View>
-
-        {/* Dynamic Decoration Lines */}
-        {/* <Animated.View
-          entering={FadeIn.delay(1000).duration(1500)}
-          style={styles.decorationLine}
-        /> */}
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[
+        styles.scrollContent,
+        {
+          justifyContent: recentSearches.length === 0 ? "center" : "flex-start",
+        },
+      ]}
+    >
+      <View style={styles.recentSearchesContainer}>
+        <RecentSearches />
       </View>
-    </View>
+
+      {recentSearches.length === 0 && (
+        <View style={styles.content}>
+          {/* Animated Illustration Section */}
+          <Animated.View
+            entering={ZoomIn.duration(800)}
+            style={styles.illustrationContainer}
+          >
+            {/* Background Glow */}
+            <View
+              style={[styles.glow, { backgroundColor: colors.primary + "15" }]}
+            />
+
+            {/* Layered Floating Icons */}
+            <Animated.View
+              entering={FadeInDown.delay(400).duration(1000)}
+              style={[
+                styles.floatingIcon,
+                styles.musicIcon,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+            >
+              <Music size={24} color={colors.primary} />
+            </Animated.View>
+
+            <Animated.View
+              entering={FadeInDown.delay(600).duration(1000)}
+              style={[
+                styles.floatingIcon,
+                styles.discIcon,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+            >
+              <Disc size={24} color={colors.primary} />
+            </Animated.View>
+
+            <Animated.View
+              entering={FadeInDown.delay(800).duration(1000)}
+              style={[
+                styles.floatingIcon,
+                styles.micIcon,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+            >
+              <Mic size={24} color={colors.primary} />
+            </Animated.View>
+
+            {/* Main Search Icon */}
+            <View
+              style={[
+                styles.mainIconCircle,
+                { backgroundColor: colors.secondaryBackground },
+              ]}
+            >
+              <Search size={56} color={colors.primary} />
+            </View>
+          </Animated.View>
+
+          {/* Text Content Section */}
+          <Animated.View
+            entering={FadeInDown.delay(300).duration(800)}
+            style={styles.textContainer}
+          >
+            <ThemedText style={styles.title}>Search the Universe</ThemedText>
+            <ThemedText style={[styles.subtitle, { color: colors.textMuted }]}>
+              Explore millions of tracks, albums, and artists. Your next
+              favorite song is just a search away.
+            </ThemedText>
+          </Animated.View>
+        </View>
+      )}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: screenPadding.horizontal,
+    paddingBottom: 40,
+  },
+  recentSearchesContainer: {
+    marginTop: 40,
   },
   content: {
     width: width * 0.85,
+    alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
   },

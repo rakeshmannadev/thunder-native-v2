@@ -1,6 +1,7 @@
 import { getAudioPreference } from "@/helpers";
 import { QUALITY_MAP } from "@/helpers/audioQualityMap";
 import { Song } from "@/types";
+import { DeviceEventEmitter } from "react-native";
 import TrackPlayer from "react-native-track-player";
 import { showToast } from "./useToastMessage";
 
@@ -78,6 +79,12 @@ const addSongToQueue = async (song: Song) => {
   showToast("Song added to queue");
 };
 
+const removeFromQueue = async (index: number) => {
+  await TrackPlayer.remove([index]);
+  showToast("Song removed from queue");
+  DeviceEventEmitter.emit("queue_updated");
+};
+
 const playNext = async (song: Song) => {
   const currentIndex = await TrackPlayer.getActiveTrackIndex();
   if (currentIndex != null) {
@@ -100,4 +107,4 @@ const playNext = async (song: Song) => {
   }
 };
 
-export { addSongToQueue, playAlbum, playNext, playSong };
+export { addSongToQueue, playAlbum, playNext, playSong, removeFromQueue };

@@ -1,5 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import useMusicStore from "@/store/useMusicStore";
+import useSearchStore from "@/store/useSearchStore";
 import { History, X } from "lucide-react-native";
 import React from "react";
 import {
@@ -8,19 +10,20 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import Animated, { FadeInDown, FadeOutLeft } from "react-native-reanimated";
 
 const RecentSearches = () => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+  const { recentSearches, clearRecentSearches } = useSearchStore();
 
-  // Dummy data for demonstration as requested to redesign without changing functionality
-  const recentItems = ["Arjit Singh", "The Weeknd", "Global Top 50"];
+  if (recentSearches.length === 0) return null;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <ThemedText style={styles.title}>Recent Searches</ThemedText>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={clearRecentSearches} activeOpacity={0.7}>
           <ThemedText style={[styles.clearAll, { color: colors.primary }]}>
             Clear All
           </ThemedText>
@@ -28,8 +31,14 @@ const RecentSearches = () => {
       </View>
 
       <View style={styles.list}>
-        {recentItems.map((item, index) => (
-          <SearchItem key={index} term={item} />
+        {recentSearches.map((item, index) => (
+          <Animated.View
+            key={item}
+            entering={FadeInDown.delay(index * 40).duration(300)}
+            exiting={FadeOutLeft.duration(200)}
+          >
+            <SearchItem term={item} />
+          </Animated.View>
         ))}
       </View>
     </View>
@@ -39,9 +48,15 @@ const RecentSearches = () => {
 const SearchItem = ({ term }: { term: string }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
+  const { setSearchQuery } = useMusicStore();
+  const { removeRecentSearch } = useSearchStore();
+
+  const handlePress = () => {
+    setSearchQuery(term);
+  };
 
   return (
-    <TouchableOpacity style={styles.item} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.item} activeOpacity={0.7} onPress={handlePress}>
       <View style={styles.itemLeft}>
         <View
           style={[
@@ -53,7 +68,11 @@ const SearchItem = ({ term }: { term: string }) => {
         </View>
         <ThemedText style={styles.itemText}>{term}</ThemedText>
       </View>
-      <TouchableOpacity style={styles.removeBtn}>
+      <TouchableOpacity
+        style={styles.removeBtn}
+        onPress={() => removeRecentSearch(term)}
+        hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+      >
         <X size={16} color={colors.textMuted} />
       </TouchableOpacity>
     </TouchableOpacity>

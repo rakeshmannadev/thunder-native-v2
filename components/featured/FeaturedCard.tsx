@@ -58,6 +58,7 @@ const FeaturedCard = React.memo(
               source={{ uri: featured?.image }}
               style={styles.image}
               alt={featured?.name}
+              contentFit="cover"
             />
             <LinearGradient
               colors={["transparent", "rgba(0,0,0,0.2)", "rgba(0,0,0,0.9)"]}
@@ -117,7 +118,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,

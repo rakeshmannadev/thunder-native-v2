@@ -111,6 +111,45 @@ export const createPlaylist = async ({
   }
 };
 
+export const deletePlaylist = async (playlistId: string) => {
+  try {
+    const response = await axiosInstance.delete(
+      `/user/deletePlaylist/${playlistId}`
+    );
+    return response.data.status;
+  } catch (error: any) {
+    console.log(error.response.data.message);
+    throw error;
+  }
+};
+
+export const removeFromFavorites = async (songId: string) => {
+  try {
+    const response = await axiosInstance.delete(
+      `/user/removeFromFavorite/${songId}`
+    );
+    return response.data.status;
+  } catch (error: any) {
+    console.log(error.response.data.message);
+    throw error;
+  }
+};
+
+export const removeSongFromPlaylist = async (
+  songId: string,
+  playlistId: string
+) => {
+  try {
+    const response = await axiosInstance.delete(
+      `/user/deleteFromPlaylist/${playlistId}/${songId}`
+    );
+    return response.data.status;
+  } catch (error: any) {
+    console.log(error.response.data.message);
+    throw error;
+  }
+};
+
 export const getUserPlaylists = async () => {
   try {
     const response = await axiosInstance.get("/playlists/user-playlists");

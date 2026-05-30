@@ -1,11 +1,15 @@
 import { Colors } from "@/constants/Colors";
 import { showToast } from "@/hooks/useToastMessage";
-import { addToFavorites, getFavoriteSongs } from "@/services/userServices";
+import {
+  addToFavorites,
+  getFavoriteSongs,
+  removeFromFavorites,
+} from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { Song } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react-native";
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   StyleProp,
   StyleSheet,
@@ -27,6 +31,14 @@ const LikeButton = React.memo(
     const queryClient = useQueryClient();
     const { currentUser } = useUserStore();
 
+    // queries
+    const { data: favorites = [] } = useQuery<Song[]>({
+      queryKey: ["favorites"],
+      queryFn: getFavoriteSongs,
+      staleTime: 1000 * 60 * 5,
+      enabled: !!currentUser,
+    });
+    // mutations
     const { mutate: addToFavoriteMutaion } = useMutation({
       mutationFn: (song: Song) =>
         addToFavorites({
@@ -66,10 +78,30 @@ const LikeButton = React.memo(
       },
     });
 
-    const handleAddToFavorite = useCallback(async () => {
+    const { mutate: removeFromFavoriteMutaion } = useMutation({
+      mutationFn: (songId: string) => removeFromFavorites(songId),
+      onSuccess: () => {
+        showToast("Removed from favorites");
+        queryClient.invalidateQueries({ queryKey: ["favorites"] });
+      },
+      onError: () => {
+        showToast("Failed to remove from favorites");
+      },
+    });
+
+    const isFavorite = useMemo(
+      () => favorites?.some((fav) => fav.id === currentSong?.id),
+      [favorites, currentSong?.id]
+    );
+
+    const handleAddToFavorite = () => {
       if (!currentSong) return;
       if (!currentUser) {
         showToast("Please login to add to favorites");
+        return;
+      }
+      if (isFavorite) {
+        removeFromFavoriteMutaion(currentSong.id);
         return;
       }
       addToFavoriteMutaion({
@@ -95,18 +127,8 @@ const LikeButton = React.memo(
         artist_map: currentSong.artist_map!,
         release_date: currentSong.release_date,
       });
-    }, [currentSong, addToFavoriteMutaion]);
+    };
 
-    const { data: favorites = [] } = useQuery<Song[]>({
-      queryKey: ["favorites"],
-      queryFn: getFavoriteSongs,
-      staleTime: 1000 * 60 * 5,
-      enabled: !!currentUser,
-    });
-    const isFavorite = useMemo(
-      () => favorites?.some((fav) => fav.id === currentSong?.id),
-      [favorites, currentSong?.id]
-    );
     return (
       <TouchableOpacity
         onPress={handleAddToFavorite}

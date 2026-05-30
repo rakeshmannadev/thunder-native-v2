@@ -1,26 +1,39 @@
 import { Colors } from "@/constants/Colors";
 import { resolveImageSource } from "@/helpers/resolverImageUrl";
+import { Playlist } from "@/types";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React from "react";
+import { EllipsisVerticalIcon } from "lucide-react-native";
+import React, { useState } from "react";
 import {
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
+import MenuModal, { MenuItem } from "./MenuModal";
 import NoDataPlaceholder from "./NoDataPlaceholder";
 
 type SectionGridProps = {
-  playlist: any;
+  playlist: Playlist;
+  /** Pass true only for user-owned playlists so the Delete option appears */
+  showDeleteOption?: boolean;
+  /** Pass true for saved albums so the Remove from Library option appears */
+  showRemoveAlbumOption?: boolean;
 };
 
-const PlaylistCard = ({ playlist }: SectionGridProps) => {
+const PlaylistCard = ({
+  playlist,
+  showDeleteOption = false,
+  showRemoveAlbumOption = false,
+}: SectionGridProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const router = useRouter();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   if (!playlist) {
     return (
@@ -37,10 +50,69 @@ const PlaylistCard = ({ playlist }: SectionGridProps) => {
   const imageRaw = playlist?.image || playlist?.imageUrl;
   const songsCount = playlist?.songs?.length ?? 0;
 
-  // Format subtitle beautifully: use explicit subtitle, or tracks count if available
-
   const subtitle =
     playlist.subtitle || (songsCount > 0 ? `${songsCount} tracks` : "Playlist");
+
+  const menuItems: MenuItem[] = [
+    ...(showDeleteOption
+      ? [
+          {
+            key: "edit",
+            label: "Edit",
+            icon: "edit",
+            data: playlist._id || playlist.id,
+            destructive: false,
+          },
+
+          {
+            key: "share",
+            label: "Share",
+            icon: "share",
+            data: playlist._id || playlist.id,
+            destructive: false,
+          },
+          {
+            key: "delete-playlist",
+            label: "Delete Playlist",
+            icon: "delete",
+            data: playlist._id || playlist.id,
+            destructive: true,
+          },
+        ]
+      : []),
+    ...(showRemoveAlbumOption
+      ? [
+          {
+            key: "play-playlist",
+            label: "Play",
+            icon: "play",
+            data: playlist.id,
+            destructive: false,
+          },
+          {
+            key: "shuffle",
+            label: "Shuffle",
+            icon: "shuffle",
+            data: playlist.id,
+            destructive: false,
+          },
+          {
+            key: "share",
+            label: "Share",
+            icon: "share",
+            data: playlist._id || playlist.id,
+            destructive: false,
+          },
+          {
+            key: "remove-saved-album",
+            label: "Remove from Library",
+            icon: "delete",
+            data: playlist._id || playlist.id,
+            destructive: true,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <TouchableOpacity
@@ -71,6 +143,20 @@ const PlaylistCard = ({ playlist }: SectionGridProps) => {
           colors={["transparent", "rgba(0,0,0,0.1)", "rgba(0,0,0,0.45)"]}
           style={StyleSheet.absoluteFill}
         />
+
+        {/* More options button — only when menu items exist */}
+        {menuItems.length > 0 && (
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation?.();
+              setMenuVisible(true);
+            }}
+            style={styles.moreButton}
+            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+          >
+            <EllipsisVerticalIcon size={16} color="white" />
+          </Pressable>
+        )}
       </View>
 
       <View style={styles.infoContainer}>
@@ -84,6 +170,15 @@ const PlaylistCard = ({ playlist }: SectionGridProps) => {
           {subtitle}
         </Text>
       </View>
+
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        items={menuItems}
+        title={name}
+        imageUrl={imageRaw}
+        description={subtitle}
+      />
     </TouchableOpacity>
   );
 };
@@ -94,7 +189,6 @@ const styles = StyleSheet.create({
     padding: 10,
     width: 180,
     marginBottom: 16,
-    // Premium soft card shadow
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 10,
@@ -111,23 +205,16 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  playBadge: {
+  moreButton: {
     position: "absolute",
-    bottom: 8,
+    top: 8,
     right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  playIcon: {
-    marginLeft: 2, // Slight offset to visually center the play triangle
   },
   infoContainer: {
     marginTop: 10,

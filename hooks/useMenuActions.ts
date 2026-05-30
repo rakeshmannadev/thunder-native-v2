@@ -1,3 +1,5 @@
+import { getRandomIndex } from "@/helpers/utils";
+import { getPlaylistById } from "@/services/songService";
 import usePlayerStore from "@/store/usePlayerStore";
 import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
@@ -10,7 +12,12 @@ import useDownloadSong from "./useDownloadSong";
 import useShare from "./useShare";
 import useSongOperations from "./useSongOperations";
 import { showToast } from "./useToastMessage";
-import { addSongToQueue, playNext } from "./useTrackPlayerActions";
+import {
+  addSongToQueue,
+  playAlbum,
+  playNext,
+  removeFromQueue,
+} from "./useTrackPlayerActions";
 
 const useMenuActions = () => {
   const { setAudioPreference } = usePlayerStore();
@@ -20,7 +27,12 @@ const useMenuActions = () => {
   const { currentRoom, leaveJoinedRoom } = useRoomStore();
   const currentSong = useActiveTrack();
 
-  const { addToPlaylistMutation } = useSongOperations();
+  const {
+    addToPlaylistMutation,
+    deletePlaylistMutation,
+    removeFromFavoritesMutation,
+    removeSavedAlbumMutation,
+  } = useSongOperations();
   const { downloadSong, deleteDownload } = useDownloadSong();
   const { handleShare } = useShare();
 
@@ -120,6 +132,42 @@ const useMenuActions = () => {
       case "share":
         const songToShare = params as Song;
         handleShare(songToShare);
+        break;
+      case "delete-playlist":
+        if (params) {
+          deletePlaylistMutation.mutate(params as string);
+        }
+        break;
+      case "remove-from-favorites":
+        if (params) {
+          removeFromFavoritesMutation.mutate(params as string);
+        }
+        break;
+      case "remove-saved-album":
+        if (params) {
+          removeSavedAlbumMutation.mutate(params as string);
+        }
+      case "play-playlist":
+        const playlistId: string = params;
+        const playlist = await getPlaylistById({ id: playlistId, link: "" });
+        playAlbum(playlist?.songs || [], 0);
+        showToast("Playing playlist");
+        break;
+      case "shuffle":
+        const shuffleId: string = params;
+        const shufflePlaylist = await getPlaylistById({
+          id: shuffleId,
+          link: "",
+        });
+        playAlbum(shufflePlaylist?.songs || [], getRandomIndex());
+        showToast("Playing shuffled playlist");
+        break;
+      case "remove_from_queue":
+        const index = params;
+        if (index) {
+          removeFromQueue(Number(index));
+        }
+        showToast("Song removed from queue");
         break;
       default:
         break;

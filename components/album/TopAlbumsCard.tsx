@@ -65,6 +65,7 @@ const TopAlbumsCard = React.memo(
               source={{ uri: imageUrl }}
               style={styles.image}
               alt={album?.name || "Album"}
+              contentFit="cover"
             />
             <LinearGradient
               colors={["transparent", "rgba(0,0,0,0.3)", "rgba(0,0,0,0.6)"]}
@@ -110,7 +111,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,

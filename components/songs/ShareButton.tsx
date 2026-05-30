@@ -23,7 +23,6 @@ const ShareButton = React.memo(
     const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
     const { handleShare } = useShare();
-
     return (
       <TouchableOpacity
         onPress={() => handleShare(currentSong)}

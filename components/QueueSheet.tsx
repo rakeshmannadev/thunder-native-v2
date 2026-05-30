@@ -15,6 +15,7 @@ import React, {
   useState,
 } from "react";
 import {
+  DeviceEventEmitter,
   ListRenderItemInfo,
   StyleSheet,
   TouchableOpacity,
@@ -38,6 +39,9 @@ import TrackPlayer, {
 import MenuModal, { MenuItem } from "@/components/MenuModal";
 import MusicVisualizer from "@/components/songs/MusicVisualizer";
 import { Colors } from "@/constants/Colors";
+import { getUserPlaylists } from "@/services/userServices";
+import { Artist, Playlist } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { ThemedText } from "./ThemedText";
 
@@ -225,6 +229,9 @@ const QueueSheetComponent = forwardRef<BottomSheet, QueueSheetProps>(
 
     useEffect(() => {
       refreshQueue();
+
+      const sub = DeviceEventEmitter.addListener("queue_updated", refreshQueue);
+      return () => sub.remove();
     }, [refreshQueue]);
 
     useTrackPlayerEvents(
@@ -239,6 +246,15 @@ const QueueSheetComponent = forwardRef<BottomSheet, QueueSheetProps>(
     const CustomHandle = useCallback(() => {
       return <QueueHandle animatedIndex={animatedIndex} colors={colors} />;
     }, [colors, animatedIndex]);
+    // query
+
+    // query
+
+    const { data: playlists } = useQuery({
+      queryKey: ["user-playlists"],
+      queryFn: getUserPlaylists,
+      enabled: true,
+    });
 
     const renderItem = useCallback(
       ({ item, index }: ListRenderItemInfo<Track>) => (
@@ -256,16 +272,37 @@ const QueueSheetComponent = forwardRef<BottomSheet, QueueSheetProps>(
                 data: song.album,
               },
               {
-                key: "go_to_artist",
+                key: "artists",
                 label: "Go to artist",
                 icon: "artist",
-                data: song.artist,
+
+                submenu:
+                  song &&
+                  song.artist_map?.primary_artists?.map((artist: Artist) => {
+                    return {
+                      key: "go_to_artist",
+                      label: artist.name,
+                      icon: "artist",
+                      data: artist.id,
+                      imageUrl: artist.image,
+                    };
+                  }),
               },
               {
-                key: "save_to_playlist",
-                label: "Save to playlist",
+                key: "playlists",
+                label: "Add to Playlist",
                 icon: "playlist",
-                data: song.id,
+                data: song,
+                submenu:
+                  playlists &&
+                  playlists.map((playlist: Playlist) => ({
+                    key: "add_to_playlist",
+                    label: playlist.playlistName,
+                    imageUrl: playlist.imageUrl,
+
+                    icon: "playlist",
+                    data: { song, playlist },
+                  })),
               },
               {
                 key: "remove_from_queue",

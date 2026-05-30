@@ -44,6 +44,7 @@ const SongCard = React.memo(
                 )}
                 style={styles.image}
                 alt="song-cover"
+                contentFit="cover"
               />
               <LinearGradient
                 colors={["transparent", "rgba(0,0,0,0.4)", "rgba(0,0,0,0.8)"]}
@@ -109,7 +110,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

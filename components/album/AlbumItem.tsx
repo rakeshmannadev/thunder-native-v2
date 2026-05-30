@@ -21,7 +21,7 @@ import MenuModal, { MenuItem } from "../MenuModal";
 import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
 
-const AlbumItem = ({ song }: { song: Song }) => {
+const AlbumItem = ({ song, showRemoveFavoriteOption = false }: { song: Song; showRemoveFavoriteOption?: boolean }) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
@@ -110,6 +110,17 @@ const AlbumItem = ({ song }: { song: Song }) => {
       icon: "share",
       data: song,
     },
+    ...(showRemoveFavoriteOption
+      ? [
+          {
+            key: "remove-from-favorites",
+            label: "Remove from Favorites",
+            icon: "delete",
+            data: song.id,
+            destructive: true,
+          },
+        ]
+      : []),
   ];
 
   return (

@@ -4,7 +4,7 @@ import { getSavedAlbums, savePlaylistToLibrary } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { Playlist } from "@/types";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react-native";
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
@@ -18,6 +18,7 @@ const AddToPlaylistButton = ({
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 
   const { currentUser } = useUserStore();
+  const queryClient = useQueryClient();
 
   const { data: userPlaylists, refetch: refetchUserPlaylists } = useQuery({
     queryKey: ["saved-albums"],
@@ -33,12 +34,25 @@ const AddToPlaylistButton = ({
     useMutation({
       mutationKey: ["save-playlist-to-library"],
       mutationFn: () => savePlaylistToLibrary(currentPlaylist),
+      onMutate: async () => {
+        await queryClient.cancelQueries({ queryKey: ["saved-albums"] });
+        const previousPlaylists = queryClient.getQueryData<Playlist[]>(["saved-albums"]);
+        queryClient.setQueryData<Playlist[]>(["saved-albums"], (old) => {
+          return old ? [currentPlaylist, ...old] : [currentPlaylist];
+        });
+        return { previousPlaylists };
+      },
+      onError: (error: any, _variables, context) => {
+        if (context?.previousPlaylists) {
+          queryClient.setQueryData(["saved-albums"], context.previousPlaylists);
+        }
+        showToast(error.message);
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: ["saved-albums"] });
+      },
       onSuccess: () => {
         showToast("Playlist added to library");
-        refetchUserPlaylists();
-      },
-      onError: (error: any) => {
-        showToast(error.message);
       },
     });
 
