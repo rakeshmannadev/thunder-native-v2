@@ -1,3 +1,4 @@
+import { PulsingDot } from "@/components/PulsingDot";
 import { MovingText } from "@/components/songs/useMovingText";
 import { ThemedText } from "@/components/ThemedText";
 import { Button, ButtonIcon } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Image } from "expo-image";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
-import { useActiveTrack } from "react-native-track-player";
+import { useActiveTrack, useIsPlaying } from "react-native-track-player";
 import NoBroadCastScreen from "./no-broadcast-screen";
 import StandByScreen from "./stand-by-screen";
 
@@ -20,9 +21,9 @@ const CurrentlyBroadcastSong = ({ currentRoom }: { currentRoom: Room }) => {
 
   const [expanded, setExpanded] = useState(false);
 
-  const { isBroadcasting, startBroadcast, currentJockey, isPlayingSong } =
-    useSocketStore();
+  const { isBroadcasting, currentJockey } = useSocketStore();
   const currentSong = useActiveTrack();
+  const { playing: isPlaying } = useIsPlaying();
 
   return (
     <View
@@ -42,7 +43,7 @@ const CurrentlyBroadcastSong = ({ currentRoom }: { currentRoom: Room }) => {
         activeOpacity={0.8}
         onPress={() => setExpanded(!expanded)}
       >
-        {isBroadcasting && currentSong ? (
+        {isBroadcasting && currentSong && isPlaying ? (
           <View
             style={{
               flexDirection: "row",
@@ -55,14 +56,7 @@ const CurrentlyBroadcastSong = ({ currentRoom }: { currentRoom: Room }) => {
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
               >
-                <View
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: colors.primary,
-                  }}
-                />
+                <PulsingDot color={colors.primary} size={6} />
                 <Text
                   style={{
                     color: colors.primary,
@@ -131,7 +125,7 @@ const CurrentlyBroadcastSong = ({ currentRoom }: { currentRoom: Room }) => {
               </Button>
             </View>
           </View>
-        ) : isBroadcasting && !isPlayingSong ? (
+        ) : isBroadcasting && !isPlaying ? (
           <StandByScreen />
         ) : (
           <NoBroadCastScreen

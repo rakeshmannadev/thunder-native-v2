@@ -11,7 +11,8 @@ import {
   View,
 } from "react-native";
 import { Song } from "../types/index";
-import PlayButton from "./songs/PlayButton";
+
+import FloatingPlayButton from "./songs/FloatingPlayButton";
 import { ThemedText } from "./ThemedText";
 import { Skeleton, SkeletonText } from "./ui/skeleton";
 
@@ -54,7 +55,7 @@ const SongCard = React.memo(
           )}
           {!isLoading && (
             <View style={styles.playButtonContainer}>
-              <PlayButton song={song} />
+              <FloatingPlayButton song={song} />
             </View>
           )}
         </View>

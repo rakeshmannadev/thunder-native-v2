@@ -91,17 +91,22 @@ const useMenuActions = () => {
         setAudioPreference({ quality: "high" });
         break;
       case "start_broadcast":
-        if (currentUser && currentRoom) {
-          startBroadcast(currentUser?._id, currentRoom?.roomId);
+        const roomId = params;
+        if (currentUser && roomId) {
+          startBroadcast(currentUser?._id, roomId);
         }
         break;
       case "stop_broadcast":
-        if (currentUser && currentRoom) {
-          endBroadcast(currentUser?._id, currentRoom?.roomId);
+        const stopRoomId = params;
+        if (currentUser && stopRoomId) {
+          endBroadcast(currentUser?._id, stopRoomId);
         }
         break;
       case "delete_room":
-        deleteRoom(currentUser?._id!, currentRoom?._id!, currentRoom?.roomId!);
+        const { roomId: delRoomId, id: delId } = params;
+        if (currentUser && delRoomId && delId) {
+          deleteRoom(currentUser?._id!, delId, delRoomId);
+        }
 
         break;
       case "leave_room":
@@ -110,7 +115,7 @@ const useMenuActions = () => {
         break;
       case "end_session":
         router.push("/rooms");
-        leaveRoom(currentRoom?._id!, currentUser?._id!);
+        leaveRoom(currentUser?._id!, currentRoom?._id!);
         break;
       case "request_song":
         router.push("/search");

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -12,6 +13,9 @@ import { Colors } from "@/constants/Colors";
 import { unknownTrackUri } from "@/constants/images";
 import { borderRadius } from "@/constants/tokens";
 
+import useSocketStore from "@/store/useSocketStore";
+import useUserStore from "@/store/useUserStore";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -59,6 +63,31 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
   const router = useRouter();
   const currentSong = useActiveTrack();
   const { bottom } = useSafeAreaInsets();
+  const { isBroadcasting, currentJockey, currentRoom, roomId, endBroadcast } =
+    useSocketStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+
+  const isAdmin =
+    isBroadcasting && !!currentUser && currentUser._id === currentRoom?.admin;
+
+  const handleStopBroadcast = useCallback(() => {
+    Alert.alert(
+      "End Live Broadcast",
+      "Are you sure you want to end this live broadcast for all listeners?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "End Broadcast",
+          style: "destructive",
+          onPress: () => {
+            if (currentUser?._id && roomId) {
+              endBroadcast(currentUser._id, roomId);
+            }
+          },
+        },
+      ]
+    );
+  }, [currentUser?._id, roomId, endBroadcast]);
 
   // ── Progress via SharedValue (no JS re-renders) ───────────────────
   const progressValue = useSharedValue(0);
@@ -122,8 +151,12 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
   }, [currentSong?.id, translateY]);
 
   const handleStop = useCallback(async () => {
-    await TrackPlayer.reset();
-  }, []);
+    if (isBroadcasting) {
+      handleStopBroadcast();
+    } else {
+      await TrackPlayer.reset();
+    }
+  }, [isBroadcasting, handleStopBroadcast]);
 
   const panGesture = Gesture.Pan()
     .activeOffsetY(8)
@@ -171,6 +204,15 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
             backgroundColor: colors.component,
             borderRadius: borderRadius.md,
             overflow: "hidden",
+            borderWidth: isBroadcasting ? 1.5 : 0,
+            borderColor: isBroadcasting ? "#FF3B30" : "transparent",
+            shadowColor: isBroadcasting ? "#FF3B30" : "#000",
+            shadowOffset: isBroadcasting
+              ? { width: 0, height: 4 }
+              : { width: 0, height: 2 },
+            shadowOpacity: isBroadcasting ? 0.35 : 0.25,
+            shadowRadius: isBroadcasting ? 12 : 3.84,
+            elevation: isBroadcasting ? 8 : 5,
           },
           animatedStyle,
         ]}
@@ -183,10 +225,17 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
               onPress={() => router.push("/player")}
               style={styles.trackInfoTouchable}
             >
-              <Image
-                source={{ uri: currentSong?.artwork ?? unknownTrackUri }}
-                style={styles.songImage}
-              />
+              <View style={{ position: "relative" }}>
+                <Image
+                  source={{ uri: currentSong?.artwork ?? unknownTrackUri }}
+                  style={styles.songImage}
+                />
+                {isBroadcasting && (
+                  <View style={styles.liveBadge}>
+                    <Text style={styles.liveBadgeText}>LIVE</Text>
+                  </View>
+                )}
+              </View>
               <View style={styles.textContainer}>
                 <Text
                   numberOfLines={1}
@@ -195,8 +244,15 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
                   {currentSong.title ?? ""}
                 </Text>
                 <MovingText
-                  style={[styles.trackArtist, { color: colors.textMuted }]}
-                  text={currentSong.artist ?? ""}
+                  style={[
+                    styles.trackArtist,
+                    { color: isBroadcasting ? "#FF3B30" : colors.textMuted },
+                  ]}
+                  text={
+                    isBroadcasting
+                      ? `LIVE • DJ ${currentJockey?.name || "Host"}`
+                      : (currentSong.artist ?? "")
+                  }
                   animationThreshold={25}
                   maskColor={colors.component}
                 />
@@ -205,6 +261,15 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
 
             {/* Controls — standalone, no navigation */}
             <View style={styles.controlsContainer}>
+              {isAdmin && (
+                <TouchableOpacity
+                  onPress={handleStopBroadcast}
+                  activeOpacity={0.8}
+                  style={styles.stopBroadcastFloatingBtn}
+                >
+                  <Ionicons name="stop" size={15} color="#FFFFFF" />
+                </TouchableOpacity>
+              )}
               <PlayPauseButton iconSize={32} color={colors.text} />
               <SkipToNextButton
                 iconSize={32}
@@ -216,7 +281,12 @@ const FloatingPlayer = React.memo(({ segments }: FloatingPlayerProps) => {
 
           <View style={styles.progressContainer}>
             <Animated.View
-              style={[{ backgroundColor: colors.primary }, progressStyle]}
+              style={[
+                {
+                  backgroundColor: isBroadcasting ? "#FF3B30" : colors.primary,
+                },
+                progressStyle,
+              ]}
             />
             <Animated.View style={remainingStyle} />
           </View>
@@ -276,5 +346,42 @@ const styles = StyleSheet.create({
   },
   parentContainer: {
     flexDirection: "column",
+  },
+  liveBadge: {
+    position: "absolute",
+    top: -4,
+    left: -4,
+    backgroundColor: "#FF3B30",
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  liveBadgeText: {
+    color: "white",
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  stopBroadcastFloatingBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 16,
+    backgroundColor: "#FF3B30",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#FF3B30",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });

@@ -39,7 +39,7 @@ const JoinedRoom = ({ room }: { room: Room }) => {
           {
             text: "Leave & Join",
             onPress: () => {
-              leaveRoom(roomId, currentUser?._id as string);
+              leaveRoom(currentUser?._id as string, roomId);
               router.push(`/room/${room.roomId}`);
             },
             style: "default",

@@ -1,11 +1,10 @@
 import { Colors } from "@/constants/Colors";
 import useSongOperations from "@/hooks/useSongOperations";
 import { playSong } from "@/hooks/useTrackPlayerActions";
-import useRoomStore from "@/store/useRoomStore";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { Song } from "@/types";
-import { Pause, Play } from "lucide-react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback } from "react";
 import {
   StyleSheet,
@@ -23,15 +22,15 @@ import TrackPlayer, {
   useIsPlaying,
 } from "react-native-track-player";
 
-const PlayButton = ({ song }: { song: Song }) => {
+const FloatingPlayButton = ({ song }: { song: Song }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
 
   const scale = useSharedValue(1);
 
-  const { isBroadcasting, playSong: broadcastSong } = useSocketStore();
-  const { currentUser, saveRecentlyPlayed } = useUserStore();
-  const { currentRoom } = useRoomStore();
+  const { isBroadcasting, playAlbum, roomId, currentRoom, pauseSong } =
+    useSocketStore();
+  const { currentUser } = useUserStore();
 
   const currentActiveTrack = useActiveTrack();
   const { playing: isPlaying } = useIsPlaying();
@@ -48,33 +47,35 @@ const PlayButton = ({ song }: { song: Song }) => {
     scale.value = withSpring(1, { damping: 12, stiffness: 200 });
   };
 
+  const outerRingColor = isBroadcasting ? "#FF3B30" : colors.accent + "30";
+  const fabBgColor = isBroadcasting ? "#FF3B30" : "#0A0A0A";
+  const fabBorderColor = isBroadcasting
+    ? "rgba(255,255,255,0.2)"
+    : "rgba(255,255,255,0.08)";
+  const iconColor = isBroadcasting ? "#FFFFFF" : colors.accent;
+
   const handleAction = useCallback(async () => {
     if (!song) return;
-
-    if (isCurrentTrack && isPlaying) {
-      await TrackPlayer.pause();
+    const isAdmin =
+      isBroadcasting && !!currentUser && currentUser._id === currentRoom?.admin;
+    // 1. Admin broadcast controls take priority
+    if (isAdmin) {
+      if (isCurrentTrack && isPlaying) {
+        const { position } = await TrackPlayer.getProgress();
+        pauseSong(currentUser!._id, roomId, position);
+      } else {
+        playAlbum(roomId, [song], currentUser);
+      }
       return;
     }
 
-    if (isBroadcasting && currentUser && currentRoom) {
-      broadcastSong(
-        currentUser._id,
-        currentRoom?.roomId,
-        song.id,
-        null,
-        0,
-        currentUser
-      );
+    // 2. Local play / pause for the currently active track
+    if (isCurrentTrack) {
+      isPlaying ? await TrackPlayer.pause() : await TrackPlayer.play();
       return;
     }
 
-    // If it's the current track but not playing (paused/stopped), resume it
-    if (isCurrentTrack && !isPlaying) {
-      await TrackPlayer.play();
-      return;
-    }
-
-    // Otherwise, play the new song
+    // 3. Play a new song locally
     await playSong(song);
     if (currentUser) {
       saveRecentlyPlayedMutation.mutate(song);
@@ -83,11 +84,13 @@ const PlayButton = ({ song }: { song: Song }) => {
     song,
     isCurrentTrack,
     isPlaying,
-    isBroadcasting,
     currentUser,
-    currentRoom,
-    broadcastSong,
+    roomId,
+    pauseSong,
+    playAlbum,
     saveRecentlyPlayedMutation,
+    isBroadcasting,
+    currentRoom,
   ]);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -102,7 +105,11 @@ const PlayButton = ({ song }: { song: Song }) => {
       <Animated.View
         style={[
           styles.outerRing,
-          { borderColor: colors.accent + "30" },
+          { borderColor: outerRingColor },
+          isBroadcasting && {
+            borderColor: "rgba(255, 59, 48, 0.35)",
+            borderWidth: 1,
+          },
           animatedStyle,
         ]}
       />
@@ -116,7 +123,14 @@ const PlayButton = ({ song }: { song: Song }) => {
         <Animated.View
           style={[
             styles.fab,
-            { backgroundColor: "#0A0A0A" }, // Deep premium dark background
+            { backgroundColor: fabBgColor, borderColor: fabBorderColor },
+            isBroadcasting && {
+              shadowColor: "#FF3B30",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.35,
+              shadowRadius: 8,
+              elevation: 6,
+            },
             animatedStyle,
           ]}
         >
@@ -124,27 +138,28 @@ const PlayButton = ({ song }: { song: Song }) => {
           <View
             style={[
               styles.accentOverlay,
-              { backgroundColor: colors.accent + "15" },
+              {
+                backgroundColor: isBroadcasting
+                  ? "rgba(255,255,255,0.1)"
+                  : colors.accent + "15",
+              },
             ]}
           />
 
           <View style={styles.iconContainer}>
-            {isCurrentTrack && isPlaying ? (
-              <Pause
-                fill={colors.accent}
-                size={22}
-                color={colors.accent}
-                strokeWidth={2.5}
-              />
-            ) : (
-              <Play
-                fill={colors.accent}
-                size={22}
-                color={colors.accent}
-                strokeWidth={2.5}
-                style={{ marginLeft: 2 }}
-              />
-            )}
+            <MaterialCommunityIcons
+              name={
+                isCurrentTrack && isPlaying
+                  ? "pause"
+                  : isBroadcasting
+                    ? "broadcast"
+                    : "play"
+              }
+              fill={iconColor}
+              size={24}
+              color={iconColor}
+              strokeWidth={2.5}
+            />
           </View>
         </Animated.View>
       </TouchableOpacity>
@@ -184,7 +199,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   accentOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 28,
   },
   iconContainer: {
@@ -194,4 +209,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PlayButton;
+export default FloatingPlayButton;

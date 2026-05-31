@@ -1,4 +1,4 @@
-import PlayButton from "@/components/songs/PlayButton";
+import FloatingPlayButton from "@/components/songs/FloatingPlayButton";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
@@ -61,7 +61,7 @@ const TrendingCard = React.memo(
             style={styles.gradient}
           />
           <View style={styles.playButtonWrapper}>
-            <PlayButton song={song} />
+            <FloatingPlayButton song={song} />
           </View>
           <View style={styles.trendingBadge}>
             <TrendingUp size={12} color="white" />

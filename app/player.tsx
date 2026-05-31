@@ -26,9 +26,11 @@ import React, {
 } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   Platform,
   StyleSheet,
+  Text,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -51,6 +53,8 @@ import {
 } from "react-native-safe-area-context";
 import { useActiveTrack } from "react-native-track-player";
 import { scheduleOnRN } from "react-native-worklets";
+import useSocketStore from "@/store/useSocketStore";
+import { PulsingDot } from "@/components/PulsingDot";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_ANDROID = Platform.OS === "android";
@@ -68,6 +72,35 @@ const PlayerScreen = React.memo(() => {
   const [menuVisible, setMenuVisible] = useState(false);
   const queueSheetIndex = useSharedValue(0);
   const currentUser = useUserStore((state) => state.currentUser);
+  const {
+    isBroadcasting,
+    currentJockey,
+    currentRoom,
+    roomId,
+    endBroadcast,
+  } = useSocketStore();
+
+  const isAdmin =
+    isBroadcasting && !!currentUser && currentUser._id === currentRoom?.admin;
+
+  const handleStopBroadcast = useCallback(() => {
+    Alert.alert(
+      "End Live Broadcast",
+      "Are you sure you want to end this live broadcast for all listeners?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "End Broadcast",
+          style: "destructive",
+          onPress: () => {
+            if (currentUser?._id && roomId) {
+              endBroadcast(currentUser._id, roomId);
+            }
+          },
+        },
+      ]
+    );
+  }, [currentUser?._id, roomId, endBroadcast]);
 
   const handleBack = useCallback(() => router.back(), [router]);
   const handleCloseMenu = useCallback(() => setMenuVisible(false), []);
@@ -316,7 +349,16 @@ const PlayerScreen = React.memo(() => {
               {/* Artwork Area */}
               <View style={styles.artworkArea}>
                 <Animated.View
-                  style={[styles.artworkShadow, animatedArtworkStyle]}
+                  style={[
+                    styles.artworkShadow,
+                    isBroadcasting && {
+                      shadowColor: "#FF3B30",
+                      shadowOpacity: 0.55,
+                      shadowRadius: 32,
+                      elevation: 22,
+                    },
+                    animatedArtworkStyle,
+                  ]}
                 >
                   <Animated.Image
                     source={{ uri: currentSong.artwork }}
@@ -336,6 +378,23 @@ const PlayerScreen = React.memo(() => {
             >
               <View style={styles.songInfoContainer}>
                 <View style={styles.titleContainer}>
+                  {isBroadcasting && (
+                    <View style={styles.liveIndicatorRow}>
+                      <PulsingDot color="#FF3B30" size={6} />
+                      <Text style={styles.liveIndicatorText}>
+                        LIVE BROADCAST • DJ {currentJockey?.name || "Host"}
+                      </Text>
+                      {isAdmin && (
+                        <TouchableOpacity
+                          onPress={handleStopBroadcast}
+                          activeOpacity={0.8}
+                          style={styles.stopBroadcastInfoBtn}
+                        >
+                          <Text style={styles.stopBroadcastInfoBtnText}>End Live</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
                   <MovingText
                     text={currentSong.title ?? ""}
                     style={[styles.songTitle, { color: colors.text }]}
@@ -535,6 +594,38 @@ const styles = StyleSheet.create({
   queueText: {
     fontSize: 14,
     fontWeight: "700",
+  },
+  liveIndicatorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  liveIndicatorText: {
+    color: "#FF3B30",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
+  stopBroadcastInfoBtn: {
+    backgroundColor: "#FF3B30",
+    paddingVertical: 2.5,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    marginLeft: 6,
+    shadowColor: "#FF3B30",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  stopBroadcastInfoBtnText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
 });
 

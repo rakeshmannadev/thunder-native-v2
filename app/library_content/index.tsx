@@ -145,7 +145,11 @@ const LibraryContentScreen = () => {
       {!isEmpty && (
         <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
           {headerImage ? (
-            <Image source={headerImage} style={styles.headerImage} />
+            <Image
+              source={headerImage}
+              style={styles.headerImage}
+              contentFit="cover"
+            />
           ) : (
             <HeaderImageSkeleton />
           )}
@@ -195,9 +199,22 @@ const LibraryContentScreen = () => {
                     handlePlay={handlePlay}
                     title="Play All"
                     color={colors.primary}
+                    songs={[
+                      ...(isPlaylistMode
+                        ? playlists.map((f) => f.songs).flat()
+                        : []),
+                      ...songs,
+                    ]}
                   />
 
-                  <ShuffleButton songs={songs} />
+                  <ShuffleButton
+                    songs={[
+                      ...(isPlaylistMode
+                        ? playlists.map((f) => f.songs).flat()
+                        : []),
+                      ...songs,
+                    ]}
+                  />
                 </View>
               )}
             </Animated.View>
@@ -299,7 +316,6 @@ const styles = StyleSheet.create({
   headerImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   backButton: {
     position: "absolute",

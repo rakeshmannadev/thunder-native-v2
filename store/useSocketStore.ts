@@ -1,7 +1,10 @@
 import { showToast } from "@/hooks/useToastMessage";
-import { playAlbum, playSong } from "@/hooks/useTrackPlayerActions";
+import {
+  playAlbum as playTrackPlayerAlbum,
+  playSong as playTrackPlayerSong,
+} from "@/hooks/useTrackPlayerActions";
 import { fetchSongById } from "@/services/songService";
-import { Song, SongRequest, User } from "@/types";
+import { Room, Song, SongRequest, User } from "@/types";
 import TrackPlayer from "react-native-track-player";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
@@ -21,6 +24,7 @@ interface SocketState {
   currentJockey: User | null;
   roomId: string;
   currentTime: number;
+  currentRoom: Room | null;
 
   connectSocket: (userId: string) => void;
   startBroadcast: (userId: string, roomId: string) => void;
@@ -32,27 +36,17 @@ interface SocketState {
     time: number,
     currentJockey: User | null
   ) => void;
-  pauseSong: (
-    userId: string,
-    roomId: string,
-    songId: string,
-    time: number
-  ) => void;
+  pauseSong: (userId: string, roomId: string, time: number) => void;
   playAlbum: (
     roomId: string,
     songs: Song[],
     currentJockey: User | null
   ) => void;
 
-  seekSong: (
-    userId: string,
-    songId: string,
-    roomId: string,
-    time: number
-  ) => void;
+  seekSong: (userId: string, roomId: string, time: number) => void;
   endBroadcast: (userId: string, roomId: string) => void;
-  joinRoom: (roomId: string, userId: string) => void;
-  leaveRoom: (roomId: string, userId: string) => void;
+  joinRoom: (userId: string, roomId: string) => void;
+  leaveRoom: (userId: string, roomId: string) => void;
   sendJoinRequest: (userId: string, roomId: string) => void;
   sendSongRequest: (userId: string, roomId: string, song: SongRequest) => void;
   acceptJoinRequest: (userId: string, roomId: string) => void;
@@ -83,6 +77,7 @@ const socketUrl = process.env.EXPO_PUBLIC_SOCKET_URL;
 
 const useSocketStore = create<SocketState>((set, get) => ({
   socket: null,
+  currentRoom: null,
   isLoading: false,
   isJoined: false,
   isBroadcasting: false,
@@ -180,13 +175,15 @@ const useSocketStore = create<SocketState>((set, get) => ({
     });
 
     socket.on("adminJoins", (data) => {
+      console.log("admin joins");
       showToast(data.message);
-      set({ roomId: data.roomId, isJoined: true });
+      set({ roomId: data.roomId, isJoined: true, currentRoom: data.room });
     });
 
     socket.on("userJoins", (data) => {
+      console.log("user joins");
       showToast(data.message);
-      set({ roomId: data.roomId, isJoined: true });
+      set({ roomId: data.roomId, isJoined: true, currentRoom: data.room });
       socket.emit("sync-request", { roomId: data.roomId });
     });
 
@@ -217,7 +214,10 @@ const useSocketStore = create<SocketState>((set, get) => ({
             const songData = await fetchSongById(songId);
             if (songData.status) {
               const song = songData.song;
-              playSong(song);
+              await playTrackPlayerSong(song);
+              if (time > 0) {
+                await TrackPlayer.seekTo(time);
+              }
               set({
                 isPlayingSong: true,
                 isBroadcasting: true,
@@ -233,16 +233,14 @@ const useSocketStore = create<SocketState>((set, get) => ({
           }
           break;
         case "pause": {
-          const { isPlayingSong } = get();
-          const currentSong = await TrackPlayer.getActiveTrack();
-          if (currentSong?.id === songId && isPlayingSong) {
-            await TrackPlayer.pause();
-            set({ isPlayingSong: false });
-          }
+          await TrackPlayer.pause();
+          set({ isPlayingSong: false });
+
           break;
         }
         case "seek": {
-          set({ currentTime: time });
+          await TrackPlayer.seekTo(time);
+          await TrackPlayer.play();
           break;
         }
         case "play-album": {
@@ -254,7 +252,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
             roomId,
             currentStreamingQueue: songs,
           });
-          playAlbum(songs, 0);
+          playTrackPlayerAlbum(songs, 0);
           break;
         }
       }
@@ -262,7 +260,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
 
     socket.on(
       "sync-state",
-      ({
+      async ({
         isPlaying,
         isBroadcasting,
         time,
@@ -273,11 +271,19 @@ const useSocketStore = create<SocketState>((set, get) => ({
         songs = [],
       }) => {
         if (song) {
-          playSong(song);
+          await playTrackPlayerSong(song);
         } else if (songs && Array.isArray(songs) && songs.length > 0) {
           set({ currentStreamingQueue: songs });
-          playAlbum(songs, 0);
+          await playTrackPlayerAlbum(songs, 0);
         }
+
+        if (time > 0) {
+          await TrackPlayer.seekTo(time);
+        }
+        if (!isPlaying) {
+          await TrackPlayer.pause();
+        }
+
         set({
           isBroadcasting,
           currentJockey,
@@ -301,6 +307,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
       } = get();
       if (!socket) return;
       const currentSong = await TrackPlayer.getActiveTrack();
+      const progress = await TrackPlayer.getProgress();
 
       socket.emit("sync-state", {
         to: from,
@@ -309,7 +316,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
         requestedUser,
         roomId,
         isPlaying: isPlayingSong,
-        time: 0,
+        time: progress.position,
         song: currentSong,
         songs: currentStreamingQueue,
       });
@@ -325,7 +332,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
     socket.on("broadcastEnded", async (data) => {
       set({ isBroadcasting: false, isPlayingSong: false });
 
-      await TrackPlayer.reset();
+      await TrackPlayer.pause();
       showToast(data.message);
     });
 
@@ -437,9 +444,10 @@ const useSocketStore = create<SocketState>((set, get) => ({
       console.log("Socket disconnected.");
     }
   },
-  startBroadcast: (userId, roomId) => {
+  startBroadcast: async (userId, roomId) => {
     const { socket } = get();
     if (socket) {
+      await TrackPlayer.pause();
       socket.emit("initializeBroadcast", { userId, roomId });
     }
   },
@@ -470,14 +478,13 @@ const useSocketStore = create<SocketState>((set, get) => ({
       });
     }
   },
-  pauseSong: (userId, roomId, songId, time = 0) => {
+  pauseSong: (userId, roomId, time = 0) => {
     const { socket } = get();
     if (socket) {
       socket.emit("music-control", {
         action: "pause",
         userId,
         roomId,
-        songId,
         time,
       });
     }
@@ -485,6 +492,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
   playAlbum: (roomId, songs, currentJockey) => {
     const { socket } = get();
     if (socket) {
+      console.log("play album called");
       socket.emit("music-control", {
         action: "play-album",
         songs,
@@ -493,19 +501,19 @@ const useSocketStore = create<SocketState>((set, get) => ({
       });
     }
   },
-  seekSong: (userId, songId, roomId, time) => {
+  seekSong: (userId, roomId, time) => {
     const { socket } = get();
     if (socket) {
       socket.emit("music-control", {
         action: "seek",
         userId,
-        songId,
         roomId,
         time,
       });
     }
   },
   joinRoom: (userId, roomId) => {
+    console.log("join room called.");
     const { socket } = get();
     if (socket) {
       socket.emit("joinRoom", { userId, roomId });

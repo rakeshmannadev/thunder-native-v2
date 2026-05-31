@@ -1,6 +1,8 @@
 import { Colors } from "@/constants/Colors";
 import { useTrackPlayerRepeatMode } from "@/hooks/usePlayerRepeatMode";
 import usePlayerStore from "@/store/usePlayerStore";
+import useSocketStore from "@/store/useSocketStore";
+import useUserStore from "@/store/useUserStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { ComponentProps, useCallback } from "react";
 import {
@@ -79,8 +81,25 @@ export const PlayerControls = React.memo(({ style }: PlayerControlsProps) => {
 export const PlayPauseButton = React.memo(
   ({ style, iconSize = 48, color }: PlayerButtonProps) => {
     const { playing } = useIsPlaying();
+    const { isBroadcasting, currentJockey, pauseSong, roomId, seekSong } =
+      useSocketStore();
+    const { currentUser } = useUserStore();
 
-    const handlePress = useCallback(() => {
+    const handlePress = useCallback(async () => {
+      const currentTime = (await TrackPlayer.getProgress()) ?? 0;
+      if (
+        isBroadcasting &&
+        playing &&
+        currentJockey?._id === currentUser?._id
+      ) {
+        return pauseSong(currentUser!._id, roomId, currentTime.position);
+      } else if (
+        isBroadcasting &&
+        currentJockey?._id === currentUser?._id &&
+        !playing
+      ) {
+        seekSong(currentUser!._id, roomId, currentTime.position);
+      }
       if (playing) {
         TrackPlayer.pause();
       } else {
@@ -104,8 +123,17 @@ export const PlayPauseButton = React.memo(
 
 export const SkipToNextButton = React.memo(
   ({ iconSize = 30, handlePress, style, color }: PlayerButtonProps) => {
+    const { isBroadcasting, currentRoom } = useSocketStore();
+    const { currentUser } = useUserStore();
+    const isAdmin =
+      isBroadcasting && !!currentUser && currentUser._id === currentRoom?.admin;
     return (
-      <TouchableOpacity activeOpacity={0.7} onPress={handlePress} style={style}>
+      <TouchableOpacity
+        disabled={!isAdmin}
+        activeOpacity={0.7}
+        onPress={handlePress}
+        style={style}
+      >
         <MaterialCommunityIcons
           name="skip-next"
           size={iconSize}
@@ -117,8 +145,17 @@ export const SkipToNextButton = React.memo(
 );
 export const SkipToPreviousButton = React.memo(
   ({ iconSize = 30, handlePress, style, color }: PlayerButtonProps) => {
+    const { isBroadcasting, currentRoom } = useSocketStore();
+    const { currentUser } = useUserStore();
+    const isAdmin =
+      isBroadcasting && !!currentUser && currentUser._id === currentRoom?.admin;
     return (
-      <TouchableOpacity activeOpacity={0.7} onPress={handlePress} style={style}>
+      <TouchableOpacity
+        disabled={!isAdmin}
+        activeOpacity={0.7}
+        onPress={handlePress}
+        style={style}
+      >
         <MaterialCommunityIcons
           name="skip-previous"
           size={iconSize}

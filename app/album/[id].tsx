@@ -94,7 +94,11 @@ const AlbumScreen = () => {
         {isAlbumFetching ? (
           <HeaderImageSkeleton />
         ) : albumImage ? (
-          <Image source={albumImage} style={styles.headerImage} />
+          <Image
+            source={albumImage}
+            style={styles.headerImage}
+            contentFit="cover"
+          />
         ) : (
           <View
             style={[
@@ -161,6 +165,7 @@ const AlbumScreen = () => {
                 <>
                   <PlayButton
                     handlePlay={handlePlay}
+                    songs={currentAlbum.songs ?? []}
                     title="Play All"
                     color={colors.primary}
                     disabled={isAlbumFetching || !currentAlbum}
@@ -223,7 +228,6 @@ const styles = StyleSheet.create({
   headerImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   navBar: {
     position: "absolute",

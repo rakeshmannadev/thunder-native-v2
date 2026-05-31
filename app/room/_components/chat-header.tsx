@@ -9,12 +9,10 @@ import { useRouter } from "expo-router";
 import { ChevronLeft, MoreHorizontal } from "lucide-react-native";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ChatHeader = ({ room }: { room: Room }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  const { top, bottom, left } = useSafeAreaInsets();
   const router = useRouter();
 
   const { currentUser } = useUserStore();
@@ -29,16 +27,20 @@ const ChatHeader = ({ room }: { room: Room }) => {
       key: isBroadcasting ? "stop_broadcast" : "start_broadcast",
       label: isBroadcasting ? "Stop broadcast" : "Start broadcast",
       icon: "broadcast",
+      data: room.roomId,
     },
     {
       key: "song_requests",
       label: "Song requests",
       icon: "requests",
+      data: room.roomId,
     },
     {
       key: "delete_room",
       label: "Delete room",
       icon: "delete",
+      data: { roomId: room.roomId, id: room._id },
+
       destructive: true,
     },
   ];

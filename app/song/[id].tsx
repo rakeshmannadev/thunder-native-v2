@@ -171,6 +171,7 @@ const SongScreen = () => {
                     title="Play"
                     color={colors.primary}
                     disabled={isLoading}
+                    songs={[song]}
                   />
 
                   <LikeButton
@@ -229,7 +230,6 @@ const styles = StyleSheet.create({
   headerImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   navBar: {
     position: "absolute",

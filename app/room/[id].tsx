@@ -72,7 +72,10 @@ const SkeletonBox = ({
           width,
           height,
           borderRadius,
-          backgroundColor: colorScheme === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+          backgroundColor:
+            colorScheme === "dark"
+              ? "rgba(255, 255, 255, 0.08)"
+              : "rgba(0, 0, 0, 0.05)",
         },
         shimmer,
         style,
@@ -203,13 +206,13 @@ const RoomScreen = () => {
     if (!socket && currentUser) {
       connectSocket(currentUser?._id);
     }
-  }, [currentUser, connectSocket]);
+  }, [currentUser, connectSocket, socket]);
 
   useEffect(() => {
-    if (currentUser && id && !isJoined) {
+    if (currentUser && id && !isJoined && socket) {
       joinRoom(currentUser._id, id);
     }
-  }, [currentUser, id]);
+  }, [currentUser, id, isJoined, socket]);
 
   if (fetchingRoom) return <RoomSkeleton colors={colors} />;
 

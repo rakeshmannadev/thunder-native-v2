@@ -177,6 +177,9 @@ const ArtistPage = () => {
                     title="Play"
                     color={colors.primary}
                     disabled={isLoading || !currentArtist}
+                    songs={
+                      currentArtist?.top_songs || currentArtist?.all_songs || []
+                    }
                   />
 
                   <ShuffleButton

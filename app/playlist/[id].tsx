@@ -99,7 +99,11 @@ const PlaylistScreen = () => {
       {/* Parallax Header */}
       <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
         {playlistImage ? (
-          <Image source={playlistImage} style={styles.headerImage} />
+          <Image
+            source={playlistImage}
+            style={styles.headerImage}
+            contentFit="cover"
+          />
         ) : (
           <HeaderImageSkeleton />
         )}
@@ -171,6 +175,7 @@ const PlaylistScreen = () => {
                     title="Play"
                     color={colors.primary}
                     disabled={playlistLoading}
+                    songs={currentPlaylist.songs}
                   />
 
                   <ShuffleButton songs={currentPlaylist.songs} />
@@ -226,7 +231,6 @@ const styles = StyleSheet.create({
   headerImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   headerBar: {
     position: "absolute",

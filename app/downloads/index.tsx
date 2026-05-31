@@ -214,6 +214,7 @@ const DownloadsScreen = () => {
                     handlePlay={handlePlayAll}
                     title="Play All"
                     color="#00B4DB"
+                    songs={[]}
                   />
 
                   <Pressable

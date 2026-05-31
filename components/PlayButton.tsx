@@ -1,3 +1,6 @@
+import useSocketStore from "@/store/useSocketStore";
+import useUserStore from "@/store/useUserStore";
+import { Song } from "@/types";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
@@ -9,13 +12,18 @@ const PlayButton = ({
   handlePlay,
   title,
   disabled,
+  songs,
 }: {
   color: string;
   handlePlay: () => void | Promise<void>;
   title: string;
   disabled?: boolean;
+  songs: Song[];
 }) => {
   const [isStarting, setIsStarting] = useState(false);
+  const { socket, isJoined, isBroadcasting, playAlbum, roomId } =
+    useSocketStore();
+  const { currentUser } = useUserStore();
 
   const onPress = async () => {
     if (disabled || isStarting) return;
@@ -29,7 +37,13 @@ const PlayButton = ({
     setIsStarting(true);
     const startTime = Date.now();
     try {
-      await handlePlay();
+      // handle broadcast play
+      if (socket && isJoined && isBroadcasting) {
+        playAlbum(roomId, songs, currentUser);
+        // handle local play
+      } else {
+        await handlePlay();
+      }
     } catch (error) {
       console.error("Failed to play song:", error);
     } finally {
@@ -43,6 +57,8 @@ const PlayButton = ({
     }
   };
 
+  const isBroadcastingToRoom = socket && isJoined && isBroadcasting;
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -50,16 +66,33 @@ const PlayButton = ({
       disabled={disabled || isStarting}
       style={[
         styles.playButton,
-        { backgroundColor: color, opacity: disabled || isStarting ? 0.6 : 1 },
+        { backgroundColor: isBroadcastingToRoom ? "#FF3B30" : color, opacity: disabled || isStarting ? 0.6 : 1 },
+        isBroadcastingToRoom && {
+          shadowColor: "#FF3B30",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.35,
+          shadowRadius: 8,
+          elevation: 6,
+        }
       ]}
     >
       {isStarting ? (
         <ActivityIndicator size="small" color="white" />
       ) : (
-        <MaterialCommunityIcons name="play" size={24} color="white" />
+        <MaterialCommunityIcons
+          name={isBroadcastingToRoom ? "broadcast" : "play"}
+          size={24}
+          color="white"
+        />
       )}
       <ThemedText style={styles.playButtonText}>
-        {isStarting ? "Starting..." : title}
+        {isStarting
+          ? isBroadcastingToRoom
+            ? "Broadcasting..."
+            : "Starting..."
+          : isBroadcastingToRoom
+            ? "Broadcast Live"
+            : title}
       </ThemedText>
     </TouchableOpacity>
   );
