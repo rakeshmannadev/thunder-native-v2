@@ -16,14 +16,13 @@ import { ImagePlusIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   ToastAndroid,
   TouchableOpacity,
   TouchableWithoutFeedback,
   useColorScheme,
   View,
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {};
@@ -73,7 +72,7 @@ const index = (props: Props) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       style={{ flex: 1, backgroundColor: colors.background }}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

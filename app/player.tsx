@@ -1,5 +1,7 @@
 import GradientBackground from "@/components/GradientBackground";
-import MenuModal, { MenuItem } from "@/components/MenuModal";
+import SongMenu from "@/components/menu/SongMenu";
+import { MenuItem } from "@/components/MenuModal";
+import { PulsingDot } from "@/components/PulsingDot";
 import QueueSheet from "@/components/QueueSheet";
 import LikeButton from "@/components/songs/LikeButton";
 import { PlayerControls } from "@/components/songs/PlayerControls";
@@ -9,6 +11,7 @@ import { MovingText } from "@/components/songs/useMovingText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
 import { getUserPlaylists } from "@/services/userServices";
+import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
 import { Artist, Playlist } from "@/types";
@@ -16,14 +19,8 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRouter } from "expo-router";
-import { ChevronDown, MoreVertical } from "lucide-react-native";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { ChevronDown } from "lucide-react-native";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -53,8 +50,6 @@ import {
 } from "react-native-safe-area-context";
 import { useActiveTrack } from "react-native-track-player";
 import { scheduleOnRN } from "react-native-worklets";
-import useSocketStore from "@/store/useSocketStore";
-import { PulsingDot } from "@/components/PulsingDot";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_ANDROID = Platform.OS === "android";
@@ -69,16 +64,10 @@ const PlayerScreen = React.memo(() => {
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const currentSong = useActiveTrack();
   const { bottom } = useSafeAreaInsets();
-  const [menuVisible, setMenuVisible] = useState(false);
   const queueSheetIndex = useSharedValue(0);
   const currentUser = useUserStore((state) => state.currentUser);
-  const {
-    isBroadcasting,
-    currentJockey,
-    currentRoom,
-    roomId,
-    endBroadcast,
-  } = useSocketStore();
+  const { isBroadcasting, currentJockey, currentRoom, roomId, endBroadcast } =
+    useSocketStore();
 
   const isAdmin =
     isBroadcasting && !!currentUser && currentUser._id === currentRoom?.admin;
@@ -103,8 +92,6 @@ const PlayerScreen = React.memo(() => {
   }, [currentUser?._id, roomId, endBroadcast]);
 
   const handleBack = useCallback(() => router.back(), [router]);
-  const handleCloseMenu = useCallback(() => setMenuVisible(false), []);
-  const handleOpenMenu = useCallback(() => setMenuVisible(true), []);
 
   const gradientColors = useMemo(
     () =>
@@ -308,6 +295,7 @@ const PlayerScreen = React.memo(() => {
     );
   }
 
+  console.count("Render count");
   return (
     <View style={{ flex: 1, backgroundColor: "transparent" }}>
       <GestureDetector gesture={panGesture}>
@@ -335,15 +323,12 @@ const PlayerScreen = React.memo(() => {
                     style={{ marginTop: 2 }}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleOpenMenu}
-                  style={[
-                    styles.iconBtn,
-                    { backgroundColor: colors.iconBackground },
-                  ]}
-                >
-                  <MoreVertical color={colors.text} size={24} />
-                </TouchableOpacity>
+                {/* Song menu */}
+                <SongMenu
+                  colors={colors}
+                  styles={[styles.iconBtn]}
+                  menuItems={menuItems}
+                />
               </View>
 
               {/* Artwork Area */}
@@ -390,7 +375,9 @@ const PlayerScreen = React.memo(() => {
                           activeOpacity={0.8}
                           style={styles.stopBroadcastInfoBtn}
                         >
-                          <Text style={styles.stopBroadcastInfoBtnText}>End Live</Text>
+                          <Text style={styles.stopBroadcastInfoBtnText}>
+                            End Live
+                          </Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -459,34 +446,6 @@ const PlayerScreen = React.memo(() => {
       </GestureDetector>
 
       <QueueSheet ref={queueSheetRef} animatedIndex={queueSheetIndex} />
-      <MenuModal
-        visible={menuVisible}
-        onClose={handleCloseMenu}
-        items={menuItems}
-        imageUrl={currentSong?.artwork}
-        title={currentSong?.title}
-        description={currentSong?.artist}
-        artists={currentSong?.artist_map?.primary_artists!}
-        songs={[
-          {
-            id: currentSong?.id,
-            name: currentSong?.title!,
-            subtitle: currentSong?.artist!,
-            image: [
-              {
-                link: currentSong?.artwork!,
-                quality: "900x900",
-              },
-            ],
-            album_id: currentSong?.album_id!,
-            album: currentSong?.album!,
-            artist_map: currentSong?.artist_map!,
-            duration: currentSong?.duration!,
-            release_date: currentSong?.release_date!,
-            download_url: [{ link: currentSong?.url!, quality: "320kbps" }],
-          },
-        ]}
-      />
     </View>
   );
 });

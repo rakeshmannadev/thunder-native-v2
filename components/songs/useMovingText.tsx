@@ -1,15 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect } from "react";
-import { View } from "react-native";
-import Animated, {
-  Easing,
-  cancelAnimation,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
+import React from "react";
+import { Text, View } from "react-native";
+import { EaseView } from "react-native-ease";
 
 export type MovingTextProps = {
   text: string;
@@ -20,52 +12,37 @@ export type MovingTextProps = {
 
 export const MovingText = React.memo(
   ({ text, animationThreshold, style, maskColor }: MovingTextProps) => {
-    const translateX = useSharedValue(0);
     const shouldAnimate = text.length >= animationThreshold;
-
     const textWidth = text.length * 3;
-
-    useEffect(() => {
-      if (!shouldAnimate) return;
-
-      translateX.value = withDelay(
-        1000,
-        withRepeat(
-          withTiming(-textWidth, {
-            duration: 5000,
-            easing: Easing.linear,
-          }),
-          -1,
-          true
-        )
-      );
-
-      return () => {
-        cancelAnimation(translateX);
-      };
-    }, [translateX, text, animationThreshold, shouldAnimate, textWidth]);
-
-    const animatedStyle = useAnimatedStyle(() => {
-      return {
-        transform: [{ translateX: translateX.value }],
-      };
-    });
 
     return (
       <View style={{ overflow: "hidden", width: "100%", flexDirection: "row" }}>
-        <Animated.Text
-          numberOfLines={1}
-          style={[
-            style,
-            shouldAnimate && animatedStyle,
-            shouldAnimate && {
-              width: 9999,
-              paddingLeft: 16,
-            },
-          ]}
-        >
-          {text}
-        </Animated.Text>
+        {shouldAnimate ? (
+          // Use initialAnimate → animate (enter animation) so the native engine
+          // applies loop: 'reverse' correctly — this is the only path that enables
+          // looping in react-native-ease's Android/iOS implementation.
+          <EaseView
+            key={text} // re-trigger enter animation when text changes
+            initialAnimate={{ translateX: 0 }}
+            animate={{ translateX: -textWidth }}
+            transition={{
+              type: "timing",
+              duration: 5000,
+              easing: "linear",
+              delay: 1000,
+              loop: "reverse",
+            }}
+            style={{ width: 9999, paddingLeft: 16 }}
+          >
+            <Text numberOfLines={1} style={style}>
+              {text}
+            </Text>
+          </EaseView>
+        ) : (
+          <Text numberOfLines={1} style={style}>
+            {text}
+          </Text>
+        )}
 
         {shouldAnimate && maskColor && (
           <LinearGradient

@@ -29,6 +29,7 @@ import {
 } from "@tanstack/react-query";
 import { Platform, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import TrackPlayer from "react-native-track-player";
 
@@ -113,6 +114,7 @@ function RootLayoutNav() {
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
           <GestureHandlerRootView style={{ flex: 1 }}>
+            <KeyboardProvider>
             <BottomSheetModalProvider>
               <Stack>
                 <Stack.Screen
@@ -285,6 +287,7 @@ function RootLayoutNav() {
               {/* Floating mini-player bar — manages its own visibility */}
               <FloatingPlayer segments={segments} />
             </BottomSheetModalProvider>
+            </KeyboardProvider>
           </GestureHandlerRootView>
         </ThemeProvider>
       </SafeAreaProvider>

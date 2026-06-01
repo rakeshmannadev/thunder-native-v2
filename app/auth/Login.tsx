@@ -24,17 +24,14 @@ import {
 import React from "react";
 import {
   ActivityIndicator,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   useColorScheme,
   View,
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -70,13 +67,12 @@ const Login = () => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       style={{ flex: 1, backgroundColor: colors.background }}
     >
       <StatusBar
         barStyle={colorSchema === "dark" ? "light-content" : "dark-content"}
       />
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
           <LinearGradient
             colors={[colors.primary + "30", "transparent"]}
@@ -239,7 +235,6 @@ const Login = () => {
             </View>
           </ScrollView>
         </View>
-      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };

@@ -10,8 +10,6 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Radio } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -28,6 +26,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import ChatHeader from "./_components/chat-header";
 import ChatInput from "./_components/chat-input";
 import ChatSection from "./_components/chat-section";
@@ -225,8 +224,7 @@ const RoomScreen = () => {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior="padding"
       >
         <LinearGradient
           colors={[colors.primary + "40", colors.background]}
