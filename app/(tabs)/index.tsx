@@ -57,7 +57,7 @@ export default function HomeScreen() {
       trending: getRandomIndex(),
       featured: getRandomIndex(),
       topArtists: getRandomIndex(),
-      topAlbums: getRandomIndex(),
+      topAlbums: getRandomIndex(6),
       charts: getRandomIndex(),
       shows: getRandomIndex(),
     }),

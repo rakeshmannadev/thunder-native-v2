@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
-import { Artist, Playlist, Song } from "@/types";
+import { Artist, Playlist, Room, Song } from "@/types";
 
 export const getFavoriteSongs = async () => {
   try {
@@ -16,6 +16,16 @@ export const getSavedAlbums = async () => {
     return response.data.playlists;
   } catch (error: any) {
     console.log(error.response.data.messages);
+  }
+};
+
+export const getJoinedRooms = async () => {
+  try {
+    const response = await axiosInstance.get("/user/getJoinedRooms");
+    return response.data.rooms as Room[];
+  } catch (error: any) {
+    console.log(error.response.data.message);
+    throw error;
   }
 };
 

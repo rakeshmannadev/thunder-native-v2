@@ -1,10 +1,10 @@
 import JoinedRoom from "@/components/rooms/JoinedRoom";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import useUserStore from "@/store/useUserStore";
-import { useRouter } from "expo-router";
+import { getJoinedRooms } from "@/services/userServices";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Radio } from "lucide-react-native";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   FlatList,
   RefreshControl,
@@ -22,14 +22,17 @@ const JoinedRoomsTab = ({
 }: {
   setIndex: React.Dispatch<React.SetStateAction<number>>;
 }) => {
-  const { rooms, isFetchingRooms, fetchJoinedRooms } = useUserStore();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
-  const router = useRouter();
 
-  useEffect(() => {
-    fetchJoinedRooms();
-  }, []);
+  const {
+    data: rooms = [],
+    isLoading: isFetchingRooms,
+    refetch: fetchJoinedRooms,
+  } = useQuery({
+    queryKey: ["joined-rooms"],
+    queryFn: getJoinedRooms,
+  });
 
   if (!isFetchingRooms && rooms.length === 0)
     return <NoRoomsView setIndex={setIndex} />;

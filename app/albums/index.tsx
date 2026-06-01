@@ -46,7 +46,7 @@ const TopAlbumPage = () => {
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       const nextPage = allPages.length + 1;
-      return lastPage.length === 10 ? nextPage : undefined;
+      return lastPage.length === 6 ? nextPage : undefined;
     },
   });
 

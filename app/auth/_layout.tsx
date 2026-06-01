@@ -1,12 +1,7 @@
-import useUserStore from "@/store/useUserStore";
-import { Redirect, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import React from "react";
 
 const _layout = () => {
-  const { currentUser } = useUserStore();
-
-  if (currentUser) return <Redirect href={"/"} />;
-
   return (
     <Stack>
       <Stack.Screen

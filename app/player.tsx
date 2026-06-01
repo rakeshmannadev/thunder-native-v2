@@ -10,7 +10,7 @@ import ShareButton from "@/components/songs/ShareButton";
 import { MovingText } from "@/components/songs/useMovingText";
 import { Colors } from "@/constants/Colors";
 import { screenPadding } from "@/constants/tokens";
-import { getUserPlaylists } from "@/services/userServices";
+import { getJoinedRooms, getUserPlaylists } from "@/services/userServices";
 import useSocketStore from "@/store/useSocketStore";
 import useUserStore from "@/store/useUserStore";
 import { defaultStyles } from "@/styles";
@@ -108,10 +108,32 @@ const PlayerScreen = React.memo(() => {
     enabled: !!currentUser,
   });
 
+  const { data: rooms = [] } = useQuery({
+    queryKey: ["joined-rooms"],
+    queryFn: getJoinedRooms,
+    enabled: !!currentUser,
+  });
+
   const menuItems: MenuItem[] = useMemo(
     () =>
       currentSong
         ? [
+            {
+              key: isBroadcasting ? "stop_broadcast" : "view_rooms",
+              label: isBroadcasting ? "Stop broadcast" : "Start broadcast",
+              icon: "broadcast",
+              data: currentRoom?.roomId,
+              submenu:
+                !isBroadcasting && rooms
+                  ? rooms.map((room) => ({
+                      key: "join_room&start_broadcast",
+                      label: room.roomName,
+                      icon: "broadcast",
+                      data: room.roomId,
+                      imageUrl: room.image,
+                    }))
+                  : [],
+            },
             {
               key: "go_to_album",
               label: "Go to album",
@@ -159,7 +181,7 @@ const PlayerScreen = React.memo(() => {
             },
           ]
         : [],
-    [currentSong, userPlaylists]
+    [currentSong, userPlaylists, isBroadcasting]
   );
 
   // ── Animations ───────────────────────────────────────

@@ -440,7 +440,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
         isPlayingSong: false,
       });
 
-      await TrackPlayer.reset();
+      await TrackPlayer.pause();
       console.log("Socket disconnected.");
     }
   },
@@ -538,11 +538,10 @@ const useSocketStore = create<SocketState>((set, get) => ({
     }
   },
   leaveRoom: (roomId, userId) => {
-    const { socket, disconnectSocket } = get();
+    const { socket } = get();
     if (socket) {
       socket.emit("leaveRoom", { userId, roomId });
     }
-    disconnectSocket();
     useRoomStore.setState({ currentRoom: null });
     showToast("You have left the room");
   },

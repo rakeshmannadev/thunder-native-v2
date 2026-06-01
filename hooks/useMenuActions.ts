@@ -21,8 +21,15 @@ import {
 
 const useMenuActions = () => {
   const { setAudioPreference } = usePlayerStore();
-  const { startBroadcast, endBroadcast, deleteRoom, leaveRoom } =
-    useSocketStore();
+  const {
+    startBroadcast,
+    endBroadcast,
+    deleteRoom,
+    leaveRoom,
+    joinRoom,
+    connectSocket,
+    socket,
+  } = useSocketStore();
   const { currentUser } = useUserStore();
   const { currentRoom, leaveJoinedRoom } = useRoomStore();
   const currentSong = useActiveTrack();
@@ -90,6 +97,14 @@ const useMenuActions = () => {
       case "high":
         setAudioPreference({ quality: "high" });
         break;
+      case "join_room&start_broadcast":
+        const roomIdToStartBroadcast = params;
+        if (roomIdToStartBroadcast && currentUser) {
+          if (!socket) connectSocket(currentUser._id);
+          joinRoom(currentUser._id, roomIdToStartBroadcast);
+          startBroadcast(currentUser._id, roomIdToStartBroadcast);
+        }
+        break;
       case "start_broadcast":
         const roomId = params;
         if (currentUser && roomId) {
@@ -100,6 +115,7 @@ const useMenuActions = () => {
         const stopRoomId = params;
         if (currentUser && stopRoomId) {
           endBroadcast(currentUser?._id, stopRoomId);
+          leaveRoom(currentUser._id, stopRoomId);
         }
         break;
       case "delete_room":

@@ -21,7 +21,13 @@ import MenuModal, { MenuItem } from "../MenuModal";
 import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
 
-const AlbumItem = ({ song, showRemoveFavoriteOption = false }: { song: Song; showRemoveFavoriteOption?: boolean }) => {
+const AlbumItem = ({
+  song,
+  showRemoveFavoriteOption = false,
+}: {
+  song: Song;
+  showRemoveFavoriteOption?: boolean;
+}) => {
   const colorSchema = useColorScheme();
   const colors = Colors[colorSchema === "light" ? "light" : "dark"];
 

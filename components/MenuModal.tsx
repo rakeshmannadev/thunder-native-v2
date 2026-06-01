@@ -32,7 +32,7 @@ export interface MenuItem {
   imageUrl?: string;
   data?: any;
   destructive?: boolean;
-  submenu?: MenuItem[];
+  submenu?: MenuItem[] | [];
 }
 
 interface MenuModalProps {

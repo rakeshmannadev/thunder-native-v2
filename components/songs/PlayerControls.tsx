@@ -105,7 +105,7 @@ export const PlayPauseButton = React.memo(
       } else {
         TrackPlayer.play();
       }
-    }, [playing]);
+    }, [playing, isBroadcasting, roomId, currentJockey, currentUser]);
 
     return (
       <View style={[{ height: iconSize }, style]}>

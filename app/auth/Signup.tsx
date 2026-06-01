@@ -60,6 +60,7 @@ const Signup = () => {
       setToken("user", JSON.stringify(user));
       setToken("accessToken", token);
       setCachedToken(token);
+      router.replace("/");
     },
   });
 
@@ -83,221 +84,221 @@ const Signup = () => {
       behavior="padding"
       style={{ flex: 1, backgroundColor: colors.background }}
     >
-        <View style={styles.container}>
-          <LinearGradient
-            colors={[colors.primary + "30", "transparent"]}
-            style={StyleSheet.absoluteFill}
-          />
+      <View style={styles.container}>
+        <LinearGradient
+          colors={[colors.primary + "30", "transparent"]}
+          style={StyleSheet.absoluteFill}
+        />
 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingBottom: bottom + 40,
-              paddingTop: top + 40,
-            }}
-          >
-            <View style={styles.content}>
-              {/* Header */}
-              <Animated.View
-                entering={FadeInUp.duration(800)}
-                style={styles.header}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingBottom: bottom + 40,
+            paddingTop: top + 40,
+          }}
+        >
+          <View style={styles.content}>
+            {/* Header */}
+            <Animated.View
+              entering={FadeInUp.duration(800)}
+              style={styles.header}
+            >
+              <LogoIcon styles={{ width: 100, height: 100 }} />
+              <Heading style={[styles.title, { color: colors.text }]}>
+                Create Account
+              </Heading>
+              <ThemedText
+                style={[styles.subtitle, { color: colors.textMuted }]}
               >
-                <LogoIcon styles={{ width: 100, height: 100 }} />
-                <Heading style={[styles.title, { color: colors.text }]}>
-                  Create Account
-                </Heading>
-                <ThemedText
-                  style={[styles.subtitle, { color: colors.textMuted }]}
-                >
-                  Join Thunder and explore millions of songs
-                </ThemedText>
-              </Animated.View>
+                Join Thunder and explore millions of songs
+              </ThemedText>
+            </Animated.View>
 
-              {/* Form */}
-              <Animated.View
-                entering={FadeInDown.delay(200).duration(800)}
-                style={styles.formContainer}
-              >
-                <VStack space="xl">
-                  <VStack space="xs">
-                    <ThemedText style={styles.label}>Full Name</ThemedText>
-                    <Input
-                      style={[
-                        styles.input,
-                        { backgroundColor: colors.secondaryBackground },
-                      ]}
+            {/* Form */}
+            <Animated.View
+              entering={FadeInDown.delay(200).duration(800)}
+              style={styles.formContainer}
+            >
+              <VStack space="xl">
+                <VStack space="xs">
+                  <ThemedText style={styles.label}>Full Name</ThemedText>
+                  <Input
+                    style={[
+                      styles.input,
+                      { backgroundColor: colors.secondaryBackground },
+                    ]}
+                  >
+                    <InputIcon
+                      as={UserIcon}
+                      color={colors.textMuted}
+                      style={styles.inputIcon}
+                    />
+                    <InputField
+                      placeholder="Enter your name"
+                      value={name}
+                      onChangeText={setName}
+                      style={{ color: colors.text }}
+                      placeholderTextColor={colors.textMuted}
+                    />
+                  </Input>
+                </VStack>
+
+                <VStack space="xs">
+                  <ThemedText style={styles.label}>Email Address</ThemedText>
+                  <Input
+                    style={[
+                      styles.input,
+                      { backgroundColor: colors.secondaryBackground },
+                    ]}
+                  >
+                    <InputIcon
+                      as={Mail}
+                      color={colors.textMuted}
+                      style={styles.inputIcon}
+                    />
+                    <InputField
+                      placeholder="Enter your email"
+                      value={email}
+                      onChangeText={setEmail}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      style={{ color: colors.text }}
+                      placeholderTextColor={colors.textMuted}
+                    />
+                  </Input>
+                </VStack>
+
+                <VStack space="xs">
+                  <ThemedText style={styles.label}>Password</ThemedText>
+                  <Input
+                    style={[
+                      styles.input,
+                      { backgroundColor: colors.secondaryBackground },
+                    ]}
+                  >
+                    <InputIcon
+                      as={Lock}
+                      color={colors.textMuted}
+                      style={styles.inputIcon}
+                    />
+                    <InputField
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a password"
+                      value={password}
+                      onChangeText={setPassword}
+                      style={{ color: colors.text }}
+                      placeholderTextColor={colors.textMuted}
+                    />
+                    <InputSlot
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeIcon}
                     >
                       <InputIcon
-                        as={UserIcon}
+                        as={showPassword ? EyeIcon : EyeOffIcon}
                         color={colors.textMuted}
-                        style={styles.inputIcon}
                       />
-                      <InputField
-                        placeholder="Enter your name"
-                        value={name}
-                        onChangeText={setName}
-                        style={{ color: colors.text }}
-                        placeholderTextColor={colors.textMuted}
-                      />
-                    </Input>
-                  </VStack>
+                    </InputSlot>
+                  </Input>
+                </VStack>
 
-                  <VStack space="xs">
-                    <ThemedText style={styles.label}>Email Address</ThemedText>
-                    <Input
-                      style={[
-                        styles.input,
-                        { backgroundColor: colors.secondaryBackground },
-                      ]}
-                    >
-                      <InputIcon
-                        as={Mail}
-                        color={colors.textMuted}
-                        style={styles.inputIcon}
-                      />
-                      <InputField
-                        placeholder="Enter your email"
-                        value={email}
-                        onChangeText={setEmail}
-                        autoCapitalize="none"
-                        keyboardType="email-address"
-                        style={{ color: colors.text }}
-                        placeholderTextColor={colors.textMuted}
-                      />
-                    </Input>
-                  </VStack>
-
-                  <VStack space="xs">
-                    <ThemedText style={styles.label}>Password</ThemedText>
-                    <Input
-                      style={[
-                        styles.input,
-                        { backgroundColor: colors.secondaryBackground },
-                      ]}
-                    >
-                      <InputIcon
-                        as={Lock}
-                        color={colors.textMuted}
-                        style={styles.inputIcon}
-                      />
-                      <InputField
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Create a password"
-                        value={password}
-                        onChangeText={setPassword}
-                        style={{ color: colors.text }}
-                        placeholderTextColor={colors.textMuted}
-                      />
-                      <InputSlot
-                        onPress={() => setShowPassword(!showPassword)}
-                        style={styles.eyeIcon}
+                {/* Gender Selection */}
+                <VStack space="xs">
+                  <ThemedText style={styles.label}>Gender</ThemedText>
+                  <View style={styles.genderRow}>
+                    {["male", "female"].map((g) => (
+                      <TouchableOpacity
+                        key={g}
+                        onPress={() => setGender(g)}
+                        style={[
+                          styles.genderOption,
+                          {
+                            backgroundColor:
+                              gender === g
+                                ? colors.primary
+                                : colors.secondaryBackground,
+                            borderColor:
+                              gender === g
+                                ? colors.primary
+                                : colors.borderColor,
+                          },
+                        ]}
                       >
-                        <InputIcon
-                          as={showPassword ? EyeIcon : EyeOffIcon}
-                          color={colors.textMuted}
+                        <CheckCircle2
+                          size={18}
+                          color={gender === g ? "white" : "transparent"}
                         />
-                      </InputSlot>
-                    </Input>
-                  </VStack>
-
-                  {/* Gender Selection */}
-                  <VStack space="xs">
-                    <ThemedText style={styles.label}>Gender</ThemedText>
-                    <View style={styles.genderRow}>
-                      {["male", "female"].map((g) => (
-                        <TouchableOpacity
-                          key={g}
-                          onPress={() => setGender(g)}
+                        <ThemedText
                           style={[
-                            styles.genderOption,
-                            {
-                              backgroundColor:
-                                gender === g
-                                  ? colors.primary
-                                  : colors.secondaryBackground,
-                              borderColor:
-                                gender === g
-                                  ? colors.primary
-                                  : colors.borderColor,
-                            },
+                            styles.genderText,
+                            { color: gender === g ? "white" : colors.text },
                           ]}
                         >
-                          <CheckCircle2
-                            size={18}
-                            color={gender === g ? "white" : "transparent"}
-                          />
-                          <ThemedText
-                            style={[
-                              styles.genderText,
-                              { color: gender === g ? "white" : colors.text },
-                            ]}
-                          >
-                            {g.charAt(0).toUpperCase() + g.slice(1)}
-                          </ThemedText>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </VStack>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.signupBtn,
-                      { backgroundColor: colors.primary },
-                    ]}
-                    onPress={handleSignUp}
-                    activeOpacity={0.8}
-                    disabled={isPending}
-                  >
-                    <ThemedText style={styles.signupBtnText}>
-                      {isPending ? "Creating account..." : "Create account"}
-                    </ThemedText>
-                    {isPending ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <ArrowRight color="white" size={20} />
-                    )}
-                  </TouchableOpacity>
-
-                  <View style={styles.dividerContainer}>
-                    <View
-                      style={[
-                        styles.divider,
-                        { backgroundColor: colors.borderColor },
-                      ]}
-                    />
-                    <ThemedText
-                      style={[styles.dividerText, { color: colors.textMuted }]}
-                    >
-                      or
-                    </ThemedText>
-                    <View
-                      style={[
-                        styles.divider,
-                        { backgroundColor: colors.borderColor },
-                      ]}
-                    />
+                          {g.charAt(0).toUpperCase() + g.slice(1)}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ))}
                   </View>
-
-                  <TouchableOpacity
-                    style={[styles.loginLink, { borderColor: colors.primary }]}
-                    onPress={() => router.navigate("/auth/Login")}
-                  >
-                    <ThemedText
-                      style={[styles.loginText, { color: colors.text }]}
-                    >
-                      Already have an account?{" "}
-                      <ThemedText
-                        style={{ color: colors.primary, fontWeight: "800" }}
-                      >
-                        Login
-                      </ThemedText>
-                    </ThemedText>
-                  </TouchableOpacity>
                 </VStack>
-              </Animated.View>
-            </View>
-          </ScrollView>
-        </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.signupBtn,
+                    { backgroundColor: colors.primary },
+                  ]}
+                  onPress={handleSignUp}
+                  activeOpacity={0.8}
+                  disabled={isPending}
+                >
+                  <ThemedText style={styles.signupBtnText}>
+                    {isPending ? "Creating account..." : "Create account"}
+                  </ThemedText>
+                  {isPending ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <ArrowRight color="white" size={20} />
+                  )}
+                </TouchableOpacity>
+
+                <View style={styles.dividerContainer}>
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: colors.borderColor },
+                    ]}
+                  />
+                  <ThemedText
+                    style={[styles.dividerText, { color: colors.textMuted }]}
+                  >
+                    or
+                  </ThemedText>
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: colors.borderColor },
+                    ]}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.loginLink, { borderColor: colors.primary }]}
+                  onPress={() => router.navigate("/auth/Login")}
+                >
+                  <ThemedText
+                    style={[styles.loginText, { color: colors.text }]}
+                  >
+                    Already have an account?{" "}
+                    <ThemedText
+                      style={{ color: colors.primary, fontWeight: "800" }}
+                    >
+                      Login
+                    </ThemedText>
+                  </ThemedText>
+                </TouchableOpacity>
+              </VStack>
+            </Animated.View>
+          </View>
+        </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 };

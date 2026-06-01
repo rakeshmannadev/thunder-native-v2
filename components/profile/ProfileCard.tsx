@@ -174,7 +174,7 @@ const DefaultProfileCard = () => {
           style={[styles.loginBtn, { backgroundColor: colors.primary }]}
           onPress={() => router.push("/auth/Login")}
         >
-          <ThemedText style={styles.loginBtnText}>Login / Sign Up</ThemedText>
+          <ThemedText style={styles.loginBtnText}>Login</ThemedText>
         </TouchableOpacity>
       </View>
     </View>
