@@ -36,6 +36,8 @@ interface SocketState {
     time: number,
     currentJockey: User | null
   ) => void;
+  playNext: (userId: string, roomId: string) => void;
+  playPrevious: (userId: string, roomId: string) => void;
   pauseSong: (userId: string, roomId: string, time: number) => void;
   playAlbum: (
     roomId: string,
@@ -234,11 +236,10 @@ const useSocketStore = create<SocketState>((set, get) => ({
           break;
         case "pause": {
           await TrackPlayer.pause();
-          set({ isPlayingSong: false });
-
           break;
         }
         case "seek": {
+          console.log("seek-received");
           await TrackPlayer.seekTo(time);
           await TrackPlayer.play();
           break;
@@ -253,6 +254,17 @@ const useSocketStore = create<SocketState>((set, get) => ({
             currentStreamingQueue: songs,
           });
           playTrackPlayerAlbum(songs, 0);
+          break;
+        }
+        case "play-next": {
+          console.log("play-next received");
+          await TrackPlayer.skipToNext();
+          await TrackPlayer.play();
+          break;
+        }
+        case "play-previous": {
+          await TrackPlayer.skipToPrevious();
+          await TrackPlayer.play();
           break;
         }
       }
@@ -504,11 +516,32 @@ const useSocketStore = create<SocketState>((set, get) => ({
   seekSong: (userId, roomId, time) => {
     const { socket } = get();
     if (socket) {
+      console.log("seek called");
       socket.emit("music-control", {
         action: "seek",
         userId,
         roomId,
         time,
+      });
+    }
+  },
+  playNext: (userId, roomId) => {
+    const { socket } = get();
+    if (socket) {
+      socket.emit("music-control", {
+        action: "play-next",
+        userId,
+        roomId,
+      });
+    }
+  },
+  playPrevious: (userId, roomId) => {
+    const { socket } = get();
+    if (socket) {
+      socket.emit("music-control", {
+        action: "play-previous",
+        userId,
+        roomId,
       });
     }
   },

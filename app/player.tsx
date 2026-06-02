@@ -181,7 +181,7 @@ const PlayerScreen = React.memo(() => {
             },
           ]
         : [],
-    [currentSong, userPlaylists, isBroadcasting]
+    [currentSong, userPlaylists, isBroadcasting, rooms]
   );
 
   // ── Animations ───────────────────────────────────────
@@ -197,10 +197,6 @@ const PlayerScreen = React.memo(() => {
     artworkOpacity.value = withTiming(1, { duration: 600 });
   }, [currentSong?.id]);
 
-  // ── Android-only swipe-to-dismiss gesture ────────────
-  // On iOS, the native stack handles this via gestureEnabled + gestureDirection:'vertical'.
-  // On Android, we use a custom pan gesture and disable the navigation animation before
-  // calling router.back() to prevent the double-animation conflict.
   const isPanEnabled = useSharedValue(true);
   useAnimatedReaction(
     () => queueSheetIndex.value <= 0.01,
@@ -210,8 +206,6 @@ const PlayerScreen = React.memo(() => {
   );
 
   const dismissPlayer = useCallback(() => {
-    // Disable the navigation pop animation since our gesture already
-    // animated the content off-screen — prevents the "stuck" double animation
     navigation.setOptions({ animation: "none" });
     router.back();
   }, [navigation, router]);
@@ -346,11 +340,7 @@ const PlayerScreen = React.memo(() => {
                   />
                 </TouchableOpacity>
                 {/* Song menu */}
-                <SongMenu
-                  colors={colors}
-                  styles={[styles.iconBtn]}
-                  menuItems={menuItems}
-                />
+                <SongMenu styles={[styles.iconBtn]} menuItems={menuItems} />
               </View>
 
               {/* Artwork Area */}

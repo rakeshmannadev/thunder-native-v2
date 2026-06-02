@@ -1,20 +1,20 @@
 import { Colors } from "@/constants/Colors";
-import { Song } from "@/types";
+import { Playlist } from "@/types";
 import { MoreVertical } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import { TouchableOpacity, useColorScheme, ViewStyle } from "react-native";
 import MenuModal, { MenuItem } from "../MenuModal";
 
-const SongMenu = ({
+const PlaylistMenu = ({
   styles,
   menuItems,
   iconSize = 24,
-  currentSong,
+  playlist,
 }: {
   styles: ViewStyle[];
   menuItems: MenuItem[];
   iconSize?: number;
-  currentSong?: Song;
+  playlist?: Playlist;
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
@@ -36,14 +36,14 @@ const SongMenu = ({
         visible={menuVisible}
         onClose={handleCloseMenu}
         items={menuItems}
-        imageUrl={currentSong?.image.at(-1)?.link}
-        title={currentSong?.name}
-        description={currentSong?.subtitle}
-        artists={currentSong?.artist_map?.primary_artists!}
-        songs={currentSong ? [currentSong] : []}
+        imageUrl={playlist?.imageUrl}
+        title={playlist?.playlistName}
+        description={playlist?.subtitle}
+        artists={playlist?.artists}
+        songs={playlist ? playlist.songs : []}
       />
     </>
   );
 };
 
-export default SongMenu;
+export default PlaylistMenu;

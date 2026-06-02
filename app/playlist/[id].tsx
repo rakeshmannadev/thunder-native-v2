@@ -179,6 +179,7 @@ const PlaylistScreen = () => {
                   />
 
                   <ShuffleButton songs={currentPlaylist.songs} />
+
                   <AddToPlaylistButton currentPlaylist={currentPlaylist} />
                 </>
               )}

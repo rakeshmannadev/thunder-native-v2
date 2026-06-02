@@ -4,18 +4,17 @@ import { Playlist } from "@/types";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { EllipsisVerticalIcon } from "lucide-react-native";
-import React, { useState } from "react";
+import React from "react";
 import {
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import MenuModal, { MenuItem } from "./MenuModal";
+import { MenuItem } from "./MenuModal";
 import NoDataPlaceholder from "./NoDataPlaceholder";
+import PlaylistMenu from "./menu/PlaylistMenu";
 
 type SectionGridProps = {
   playlist: Playlist;
@@ -33,7 +32,6 @@ const PlaylistCard = ({
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
   const router = useRouter();
-  const [menuVisible, setMenuVisible] = useState(false);
 
   if (!playlist) {
     return (
@@ -146,16 +144,12 @@ const PlaylistCard = ({
 
         {/* More options button — only when menu items exist */}
         {menuItems.length > 0 && (
-          <Pressable
-            onPress={(e) => {
-              e.stopPropagation?.();
-              setMenuVisible(true);
-            }}
-            style={styles.moreButton}
-            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-          >
-            <EllipsisVerticalIcon size={16} color="white" />
-          </Pressable>
+          <PlaylistMenu
+            menuItems={menuItems}
+            styles={[styles.moreButton]}
+            iconSize={20}
+            playlist={playlist}
+          />
         )}
       </View>
 
@@ -170,15 +164,6 @@ const PlaylistCard = ({
           {subtitle}
         </Text>
       </View>
-
-      <MenuModal
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        items={menuItems}
-        title={name}
-        imageUrl={imageRaw}
-        description={subtitle}
-      />
     </TouchableOpacity>
   );
 };

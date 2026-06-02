@@ -4,21 +4,17 @@ import { formatDuration } from "@/helpers";
 import { resolveImageSource } from "@/helpers/resolverImageUrl";
 import useSongOperations from "@/hooks/useSongOperations";
 import { playSong } from "@/hooks/useTrackPlayerActions";
-import { getSavedAlbums } from "@/services/userServices";
+import { getUserPlaylists } from "@/services/userServices";
 import useUserStore from "@/store/useUserStore";
 import { Playlist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { EllipsisVerticalIcon, PlayIcon } from "lucide-react-native";
-import React, { useState } from "react";
-import {
-  Pressable,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
+import { PlayIcon } from "lucide-react-native";
+import React from "react";
+import { TouchableOpacity, useColorScheme, View } from "react-native";
 import { useActiveTrack, useIsPlaying } from "react-native-track-player";
-import MenuModal, { MenuItem } from "../MenuModal";
+import SongMenu from "../menu/SongMenu";
+import { MenuItem } from "../MenuModal";
 import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
 import { Skeleton, SkeletonText } from "../ui/skeleton";
@@ -38,16 +34,14 @@ const PlaylistCard = ({
   const isPlaying = useIsPlaying();
 
   const { data: playlists } = useQuery({
-    queryKey: ["saved-albums"],
-    queryFn: () => getSavedAlbums(),
+    queryKey: ["user-playlists"],
+    queryFn: getUserPlaylists,
     enabled: !!currentUser,
   });
 
   const { saveRecentlyPlayedMutation } = useSongOperations();
 
   const isActive = currentSong?.id == song.id;
-
-  const [menuVisible, setMenuVisible] = useState(false);
 
   const playTrack = async () => {
     await playSong(song);
@@ -187,22 +181,10 @@ const PlaylistCard = ({
           )}
         </View>
       </View>
-      <Pressable
-        onPressIn={() => setMenuVisible(true)}
-        className="w-fit p-2 rounded-full"
-      >
-        <EllipsisVerticalIcon size={20} color={colors.icon} />
-      </Pressable>
-
-      <MenuModal
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        items={menuItems}
-        imageUrl={song.image?.[2]?.link}
-        title={song.name}
-        description={song.subtitle}
-        artists={song.artist_map.primary_artists}
-        songs={[song]}
+      <SongMenu
+        menuItems={menuItems}
+        styles={[{ width: "auto", padding: 8, borderRadius: "100%" }]}
+        currentSong={song}
       />
     </TouchableOpacity>
   );

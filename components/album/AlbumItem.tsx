@@ -8,16 +8,11 @@ import useUserStore from "@/store/useUserStore";
 import { Playlist, Song } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { EllipsisVerticalIcon } from "lucide-react-native";
 import React, { useState } from "react";
-import {
-  Pressable,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
+import { TouchableOpacity, useColorScheme, View } from "react-native";
 import { useActiveTrack } from "react-native-track-player";
-import MenuModal, { MenuItem } from "../MenuModal";
+import SongMenu from "../menu/SongMenu";
+import { MenuItem } from "../MenuModal";
 import MusicVisualizer from "../songs/MusicVisualizer";
 import { ThemedText } from "../ThemedText";
 
@@ -128,7 +123,6 @@ const AlbumItem = ({
         ]
       : []),
   ];
-
   return (
     <TouchableOpacity
       onPress={() => playTrack(song)}
@@ -184,25 +178,11 @@ const AlbumItem = ({
           </View>
         </View>
       </View>
-      <Pressable
-        onPressIn={() => setMenuVisible(true)}
-        className="w-fit p-2 rounded-full"
-      >
-        <EllipsisVerticalIcon size={20} color={colors.icon} />
-      </Pressable>
-
-      {song && (
-        <MenuModal
-          visible={menuVisible}
-          onClose={() => setMenuVisible(false)}
-          items={menuItems}
-          imageUrl={song?.image?.[song.image.length - 1]?.link || ""}
-          title={song?.name || ""}
-          description={song?.subtitle || ""}
-          artists={song?.artist_map?.primary_artists!}
-          songs={[song]}
-        />
-      )}
+      <SongMenu
+        menuItems={menuItems}
+        styles={[{ width: "auto", padding: 8, borderRadius: "100%" }]}
+        currentSong={song}
+      />
     </TouchableOpacity>
   );
 };

@@ -1,8 +1,16 @@
 import { Colors } from "@/constants/Colors";
 import { formatSecondsToMinutes } from "@/helpers/miscellaneous";
+import useSocketStore from "@/store/useSocketStore";
+import useUserStore from "@/store/useUserStore";
 
 import { defaultStyles, utilsStyles } from "@/styles";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   StyleSheet,
   Text,
@@ -20,6 +28,9 @@ const renderNoBubble = () => null;
 export const PlayerProgressBar = React.memo(({ style }: ViewProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === "light" ? "light" : "dark"];
+
+  const { isBroadcasting, currentRoom, seekSong } = useSocketStore();
+  const { currentUser } = useUserStore();
 
   const isSliding = useSharedValue(false);
   const min = useSharedValue(0);
@@ -81,14 +92,29 @@ export const PlayerProgressBar = React.memo(({ style }: ViewProps) => {
     isSliding.value = true;
   }, []);
 
-  const handleValueChange = useCallback(async (value: number) => {
-    await TrackPlayer.seekTo(value * durationRef.current);
-  }, []);
+  const handleValueChange = useCallback(
+    async (value: number) => {
+      if (
+        isBroadcasting &&
+        currentUser &&
+        currentRoom &&
+        currentRoom.admin === currentUser._id
+      ) {
+        seekSong(
+          currentUser._id,
+          currentRoom.roomId,
+          value * durationRef.current
+        );
+      } else {
+        await TrackPlayer.seekTo(value * durationRef.current);
+      }
+    },
+    [isBroadcasting, currentRoom, currentUser]
+  );
 
-  const handleSlidingComplete = useCallback(async (value: number) => {
+  const handleSlidingComplete = useCallback(() => {
     if (!isSliding.value) return;
     isSliding.value = false;
-    await TrackPlayer.seekTo(value * durationRef.current);
   }, []);
 
   return (

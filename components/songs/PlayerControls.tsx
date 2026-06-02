@@ -98,7 +98,7 @@ export const PlayPauseButton = React.memo(
         currentJockey?._id === currentUser?._id &&
         !playing
       ) {
-        seekSong(currentUser!._id, roomId, currentTime.position);
+        return seekSong(currentUser!._id, roomId, currentTime.position);
       }
       if (playing) {
         TrackPlayer.pause();
@@ -123,16 +123,25 @@ export const PlayPauseButton = React.memo(
 
 export const SkipToNextButton = React.memo(
   ({ iconSize = 30, handlePress, style, color }: PlayerButtonProps) => {
-    const { isBroadcasting, currentRoom } = useSocketStore();
+    const { isBroadcasting, currentRoom, playNext } = useSocketStore();
     const { currentUser } = useUserStore();
-    const isAdmin =
-      isBroadcasting && !!currentUser && currentUser._id === currentRoom?.admin;
+    const isAdmin = currentUser && currentUser._id === currentRoom?.admin;
+    const isDisabled = isBroadcasting && !isAdmin;
+
+    const handlePlayNext = () => {
+      if (isBroadcasting && isAdmin) {
+        playNext(currentUser!._id, currentRoom!.roomId);
+      } else {
+        handlePress?.();
+      }
+    };
+
     return (
       <TouchableOpacity
-        disabled={!isAdmin}
+        disabled={isDisabled}
         activeOpacity={0.7}
-        onPress={handlePress}
-        style={style}
+        onPress={handlePlayNext}
+        style={[style, isDisabled && styles.disabled]}
       >
         <MaterialCommunityIcons
           name="skip-next"
@@ -145,16 +154,25 @@ export const SkipToNextButton = React.memo(
 );
 export const SkipToPreviousButton = React.memo(
   ({ iconSize = 30, handlePress, style, color }: PlayerButtonProps) => {
-    const { isBroadcasting, currentRoom } = useSocketStore();
+    const { isBroadcasting, currentRoom, playPrevious } = useSocketStore();
     const { currentUser } = useUserStore();
-    const isAdmin =
-      isBroadcasting && !!currentUser && currentUser._id === currentRoom?.admin;
+    const isAdmin = !!currentUser && currentUser._id === currentRoom?.admin;
+    const isDisabled = isBroadcasting && !isAdmin;
+
+    const handlePlayPrevious = () => {
+      if (isBroadcasting && isAdmin) {
+        playPrevious(currentUser!._id, currentRoom!.roomId);
+      } else {
+        handlePress?.();
+      }
+    };
+
     return (
       <TouchableOpacity
-        disabled={!isAdmin}
+        disabled={isDisabled}
         activeOpacity={0.7}
-        onPress={handlePress}
-        style={style}
+        onPress={handlePlayPrevious}
+        style={[style, isDisabled && styles.disabled]}
       >
         <MaterialCommunityIcons
           name="skip-previous"
@@ -177,6 +195,8 @@ const repeatOrder = [
 export const PlayerRepeatToggle = React.memo(
   ({ color, ...iconProps }: IconProps) => {
     const { repeatMode, changeRepeatMode } = useTrackPlayerRepeatMode();
+    const { isBroadcasting } = useSocketStore();
+    const isDisabled = isBroadcasting;
 
     const toggleRepeatMode = useCallback(() => {
       if (repeatMode == null) return;
@@ -193,20 +213,30 @@ export const PlayerRepeatToggle = React.memo(
           : "repeat";
 
     return (
-      <MaterialCommunityIcons
-        name={icon}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        disabled={isDisabled}
         onPress={toggleRepeatMode}
-        color={color}
-        {...iconProps}
-      />
+        style={isDisabled && styles.disabled}
+      >
+        <MaterialCommunityIcons name={icon} color={color} {...iconProps} />
+      </TouchableOpacity>
     );
   }
 );
 
 export const ShuffleButton = React.memo(
   ({ iconSize = 48, handlePress, isShuffle, color }: PlayerButtonProps) => {
+    const { isBroadcasting } = useSocketStore();
+    const isDisabled = isBroadcasting;
+
     return (
-      <TouchableOpacity activeOpacity={0.7} onPress={handlePress}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={handlePress}
+        disabled={isDisabled}
+        style={isDisabled && styles.disabled}
+      >
         <MaterialCommunityIcons
           name={isShuffle ? "shuffle-variant" : "shuffle-disabled"}
           size={iconSize}
@@ -225,5 +255,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
+  },
+  disabled: {
+    opacity: 0.35,
   },
 });
